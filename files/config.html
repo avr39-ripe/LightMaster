@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>DragonMaster configuration</title>
+
+    <!-- Bootstrap core -->
+    <link href="bootstrap.min.css" rel="stylesheet">
+    <script src="fetch.js"></script>
+	<script src="config.js"></script>
+	<style>
+		.main { font-size: 63px; }
+	</style>
+
+  </head>
+  <body>
+
+    <div class="container">
+      <div class="header">
+        <nav>
+          <ul class="nav nav-pills pull-right">
+            <li role="presentation"><a href="/">Status</a></li>
+            <li role="presentation" class="active"><a href="/config">Configuration</a></li>
+          </ul>
+        </nav>
+        <h3 class="text-muted">DragonMaster</h3>
+      </div>
+	  
+	  <div class="row">
+		<h2>&nbsp;</h2>
+		<div class="col-xs-offset-2 col-xs-8">
+			<!-- Network config -->
+			<div>
+			  <div class="panel panel-default">
+				<div class="panel-heading">
+				  <h3 class="panel-title">Network</h3>
+				</div>
+				<div class="panel-body">
+				  <form id="form_netcfg" method="POST">
+					  <div class="form-group">
+						<label for="StaSSID">Name</label>
+						<input type="text" id="StaSSID" name="StaSSID" class="form-control" placeholder="Enter SSID" value="{StaSSID}">
+					  </div>
+					  <div class="form-group">
+						<label for="Password">Password</label>
+						<input type="password" id="StaPassword" name="StaPassword" class="form-control" placeholder="Password">
+					  </div>
+					  <div class="form-group">
+						<label for="StaEnable">Enable WIFI Client</label>
+						<input type="checkbox" id="StaEnable" name="StaEnable" class="form-control">
+					  </div>
+					  <button type="submit" class="btn btn-success">Save network</button>
+					  <button type="button" id="netcfg_cancel" class="btn btn-link">Cancel</button>
+					</form>
+				</div>
+			  </div>
+			</div>
+			
+			<!-- DragonMaster adjustment config -->
+			<div>
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title">DragonMaster settings</h3>
+					</div>
+					<div class="panel-body">
+						<form id="form_settings" method="POST">
+							<div class="form-group">
+								<label for="loopInterval">Main loop interval, ms</label>
+								<input type="number" required class="form-control" min="100" max="60000" step="1" id="loopInterval" name="loopInterval" class="form-control" value="{loopInterval}">
+								<label for="updateURL">Firmware update URL</label>
+								<input type="url" required class="form-control" id="updateURL" name="updateURL" value="{updateURL}">
+								<br>
+								<button type="button" id="settings_update_fw" class="btn btn-danger">Update Firmware</button>
+								<button type="button" id="settings_switch_fw" class="btn btn-primary">Switch Firmware</button>							
+							</div>
+							<button type="submit" class="btn btn-success">Save settings</button>
+					  		<button type="button" id="settings_cancel" class="btn btn-link">Cancel</button>
+						</form>
+					</div>
+				</div>
+			</div>
+			
+			<!-- Fan Thermostat config -->
+			<div>
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title">Fan thermostat settings</h3>
+					</div>
+					<div class="panel-body">
+						<form id="form_thermostat_fan" method="POST">
+							<div class="form-group">
+								<label for="targetTemp_fan">Target temp, &deg;C</label>
+								<input type="number" required class="form-control" min="15" max="95" step="0.5" id="targetTemp_fan" class="form-control" value="{targetTempFan}">
+								<label for="targetTempDelta_fan">Target temp delta, &deg;C</label>
+								<input type="number" required class="form-control" min="0.5" max="10" step="0.5" id="targetTempDelta_fan" class="form-control" value="{targetTempDeltaFan}">
+							</div>
+							<button type="submit" class="btn btn-success">Save settings</button>
+					  		<button type="button" id="thermostat_fan_cancel" class="btn btn-link">Cancel</button>
+						</form>
+					</div>
+				</div>
+			</div>
+			
+			<!-- Pump Thermostat config -->
+			<div>
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title">Pump thermostat settings</h3>
+					</div>
+					<div class="panel-body">
+						<form id="form_thermostat_pump" method="POST">
+							<div class="form-group">
+								<label for="targetTemp_pump">Target temp, &deg;C</label>
+								<input type="number" required class="form-control" min="15" max="95" step="0.5" id="targetTemp_pump" class="form-control" value="{targetTempPump}">
+								<label for="targetTempDelta_pump">Target temp delta, &deg;C</label>
+								<input type="number" required class="form-control" min="0.5" max="10" step="0.5" id="targetTempDelta_pump" class="form-control" value="{targetTempDeltaPump}">
+							</div>
+							<button type="submit" class="btn btn-success">Save settings</button>
+					  		<button type="button" id="thermostat_pump_cancel" class="btn btn-link">Cancel</button>
+						</form>
+					</div>
+				</div>
+			</div>
+			
+			<!-- Fan config -->
+			<div>
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title">Fan settings</h3>
+					</div>
+					<div class="panel-body">
+						<form id="form_fan" method="POST">
+							<div class="form-group">
+								<label for="startDuration">Start Duration, min</label>
+								<input type="number" required class="form-control" min="1" max="60" step="1" id="startDuration" class="form-control" value="{startDuration}">
+								<label for="stopDuration">Stop Duration, min</label>
+								<input type="number" required class="form-control" min="1" max="60" step="1" id="stopDuration" class="form-control" value="{stopDuration}">
+								<label for="periodicInterval">Periodic Interval, min</label>
+								<input type="number" required class="form-control" min="1" max="360" step="1" id="periodicInterval" class="form-control" value="{periodicInterval}">
+								<label for="periodicDuration">Periodic Duration, min</label>
+								<input type="number" required class="form-control" min="1" max="60" step="1" id="periodicDuration" class="form-control" value="{periodicDuration}">
+								<label for="periodicTempDelta">Periodic TempDelta, &deg;C</label>
+								<input type="number" required class="form-control" min="-20" max="0" step="0.5" id="periodicTempDelta" class="form-control" value="{periodicTempDelta}">
+								<label for="checkerInterval">Checker interval, min</label>
+								<input type="number" required class="form-control" min="1" max="60" step="1" id="checkerInterval" class="form-control" value="{checkerInterval}">	
+							</div>
+							<button type="submit" class="btn btn-success">Save settings</button>
+					  		<button type="button" id="fan_cancel" class="btn btn-link">Cancel</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div> <!-- /col -->
+	</div> <!-- /row -->
+
+	</div> <!-- /container -->
+  </body>
+</html>
