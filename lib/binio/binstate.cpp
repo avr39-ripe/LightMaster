@@ -25,7 +25,7 @@ void BinStateClass::set(uint8_t state, uint8_t forceDelegatesCall)
 	Serial.printf("prevState set to: %s\n", getPrev() ? "true" : "false");
 	if (_onSet)
 	{
-		_onSet(get()); //Call some external delegate on setting ANY state
+		_onSet(getRawState()); //Call some external delegate on setting ANY state
 	}
 
 	if (get() != getPrev() || forceDelegatesCall)
@@ -66,12 +66,12 @@ void BinStateClass::_callOnChangeDelegates()
 {
 	for (uint8_t i = 0; i < _onChange.count(); i++)
 	{
-		_onChange[i](get());
+		_onChange[i](getRawState());
 	}
 
 	for (uint8_t i = 0; i < _onChangeInverse.count(); i++)
 	{
-		_onChangeInverse[i](!get());
+		_onChangeInverse[i](!getRawState());
 	}
 }
 

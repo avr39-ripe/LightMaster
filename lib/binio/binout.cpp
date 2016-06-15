@@ -38,7 +38,7 @@ void BinOutGPIOClass::setUnitNumber(uint8_t unitNumber)
 
 void BinOutGPIOClass::_setUnitState(uint8_t state)
 {
-	digitalWrite(_unitNumber, this->state.get());
+	digitalWrite(_unitNumber, this->state.getRawState());
 }
 
 // BinOutMCP23S17Class
@@ -57,5 +57,5 @@ void BinOutMCP23S17Class::setUnitNumber(uint8_t unitNumber)
 
 void BinOutMCP23S17Class::_setUnitState(uint8_t state)
 {
-	_mcp->digitalWrite(_unitNumber, this->state.get());
+	_mcp->digitalWrite(_unitNumber, this->state.getRawState());
 }

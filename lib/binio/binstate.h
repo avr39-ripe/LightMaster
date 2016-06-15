@@ -18,7 +18,8 @@ class BinStateClass
 {
 public:
 	BinStateClass(uint8_t polarity = true, uint8_t toggleActive = true);
-	uint8_t get() { return (_state & stateBit ? getPolarity() : !getPolarity()); };
+	uint8_t get() { return _state & stateBit ? getPolarity() : !getPolarity(); };
+	uint8_t getRawState() { return _state & stateBit ? true : false; };
 	uint8_t getPrev() { return _state & prevStateBit ? true : false; };
 	uint8_t getPolarity() { return _state & polarityBit ? true : false; }
 	uint8_t getToggleActive() { return _state & toggleActiveBit ? true : false; };
