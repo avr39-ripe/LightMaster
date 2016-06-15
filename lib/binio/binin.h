@@ -8,9 +8,10 @@
 #ifndef LIB_BINIO_BINARYINPUT_H_
 #define LIB_BINIO_BINARYINPUT_H_
 #include <SmingCore/SmingCore.h>
+#include <binstate.h>
 #include <Libraries/MCP23S17/MCP23S17.h>
 
-typedef Delegate<void(uint8_t state)> onStateChangeDelegate;
+//typedef Delegate<void(uint8_t state)> onStateChangeDelegate;
 
 class BinInClass
 {
@@ -18,14 +19,15 @@ public:
 	BinInClass(uint8_t unitNumber, uint8_t polarity);
 	virtual ~BinInClass() {};
 	void setUnitNumber(uint8_t unitNumber) { _unitNumber = unitNumber; };
-	void setPolarity(uint8_t polarity) { _polarity = polarity; };
-	uint8_t getState() { return _state; };
-	void onStateChange(onStateChangeDelegate delegateFunction);
+//	void setPolarity(uint8_t polarity) { _polarity = polarity; };
+//	uint8_t getState() { return _state; };
+//	void onStateChange(onStateChangeDelegate delegateFunction);
+	BinStateClass state;
 protected:
 	uint8_t _unitNumber = 0;
-	uint8_t _state = 0;
-	uint8_t _polarity = 0;
-	onStateChangeDelegate _onChangeState = nullptr;
+//	uint8_t _state = 0;
+//	uint8_t _polarity = 0;
+//	onStateChangeDelegate _onChangeState = nullptr;
 	void _readState();
 	virtual uint8_t _readUnit() = 0;
 

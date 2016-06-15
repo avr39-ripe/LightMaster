@@ -24,6 +24,6 @@ void LightGroupClass::toggle(uint8_t extState)
 
 void LightGroupClass::addInput(BinInClass &input)
 {
-	input.onStateChange(onStateChangeDelegate(&BinStateClass::toggle, &this->state));
+	input.state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &this->state));
 
 }
