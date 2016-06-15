@@ -12,14 +12,16 @@
 BinOutClass::BinOutClass(uint8_t unitNumber, uint8_t polarity)
 {
 	_unitNumber = unitNumber;
-	_polarity = polarity;
+//	_polarity = polarity;
+	state.setPolarity(polarity);
+	state.onSet(onStateChangeDelegate(&BinOutClass::_setUnitState, this));
 }
 
-void BinOutClass::setState(uint8_t state)
-{
-	_state = state ? _polarity : !(_polarity);
-	_setUnitState(_state);
-}
+//void BinOutClass::setState(uint8_t state)
+//{
+//	_state = state ? _polarity : !(_polarity);
+//	_setUnitState(_state);
+//}
 
 // BinOutGPIOClass
 BinOutGPIOClass::BinOutGPIOClass(uint8_t unitNumber, uint8_t polarity)
@@ -36,7 +38,7 @@ void BinOutGPIOClass::setUnitNumber(uint8_t unitNumber)
 
 void BinOutGPIOClass::_setUnitState(uint8_t state)
 {
-	digitalWrite(_unitNumber, state);
+	digitalWrite(_unitNumber, this->state.get());
 }
 
 // BinOutMCP23S17Class
@@ -55,5 +57,5 @@ void BinOutMCP23S17Class::setUnitNumber(uint8_t unitNumber)
 
 void BinOutMCP23S17Class::_setUnitState(uint8_t state)
 {
-	_mcp->digitalWrite(_unitNumber, state);
+	_mcp->digitalWrite(_unitNumber, this->state.get());
 }

@@ -10,7 +10,7 @@
 // LightGroupClass
 LightGroupClass::LightGroupClass(BinOutClass &output, uint8_t toggleActive)
 {
-	state.onChange(onStateChangeDelegate(&BinOutClass::setState, &output));
+	state.onChange(onStateChangeDelegate(&BinStateClass::set, &output.state));
 	 _output = &output;
 	_toggleActive = toggleActive;
 }
@@ -24,6 +24,6 @@ void LightGroupClass::toggle(uint8_t extState)
 
 void LightGroupClass::addInput(BinInClass &input)
 {
-	input.onStateChange(onStateChangeDelegate(&LightGroupClass::toggle, this));
+	input.onStateChange(onStateChangeDelegate(&BinStateClass::toggle, &this->state));
 
 }

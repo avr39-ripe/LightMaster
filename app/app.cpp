@@ -44,10 +44,10 @@ void AppClass::init()
 	for (uint8_t i = 0; i < 8; i++)
 	{
 		output[i] = new BinOutMCP23S17Class(*mcp000,i,0);
-		output[i]->setState(false);
-		lightGroup[i] = new LightGroupClass(*output[i]);
-		lightGroup[i]->addInput(*input[i]);
-//		input[i]->onStateChange(onStateChangeDelegate(&BinOutGPIOClass::setState, output[i]));
+		output[i]->state.set(false);
+//		lightGroup[i] = new LightGroupClass(*output[i]);
+//		lightGroup[i]->addInput(*input[i]);
+		input[i]->onStateChange(onStateChangeDelegate(&BinStateClass::toggle, &output[i]->state));
 	}
 //	output[0] = new BinOutMCP23S17Class(*mcp000,1,0); // Fan
 //	output[1] = new BinOutMCP23S17Class(*mcp000,2,0); // Pumup
