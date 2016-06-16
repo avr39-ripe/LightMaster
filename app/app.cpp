@@ -9,7 +9,7 @@
 #include <lightmaster.h>
 
 //AppClass
-void monitor(HttpRequest &request, HttpResponse &response); // Monitor via json some important params
+//void monitor(HttpRequest &request, HttpResponse &response); // Monitor via json some important params
 
 void AppClass::init()
 {
@@ -22,24 +22,17 @@ void AppClass::init()
 #endif
 
 #ifndef MCP23S17 //use GPIO
-	input[0] = new BinInGPIOClass(15,1); // Start button
-	input[1] = new BinInGPIOClass(16,0); // Stop button
+//Nothing here
 #else
-//	input[0] = new BinInMCP23S17Class(*mcp000,1,0); // Start button
-//	input[1] = new BinInMCP23S17Class(*mcp000,2,0); // Stop button
 	for (uint8_t i = 0; i < 8; i++)
 	{
 		input[i] = new BinInMCP23S17Class(*mcp000,i,0);
 		binInPoller.add(input[i]);
 	}
 #endif
-//	binInPoller.add(input[0]);
-//	binInPoller.add(input[1]);
 
 #ifndef MCP23S17 //use GPIO
-	output[0] = new BinOutGPIOClass(12,1); // Fan
-	output[1] = new BinOutGPIOClass(13,1); // Pumup
-	output[2] = new BinOutGPIOClass(14,1); // O3
+//Nothing here
 #else
 	for (uint8_t i = 0; i < 8; i++)
 	{
@@ -49,21 +42,8 @@ void AppClass::init()
 //		lightGroup[i]->addInput(*input[i]);
 		input[i]->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output[i]->state));
 	}
-//	output[0] = new BinOutMCP23S17Class(*mcp000,1,0); // Fan
-//	output[1] = new BinOutMCP23S17Class(*mcp000,2,0); // Pumup
-//	output[2] = new BinOutMCP23S17Class(*mcp000,3,0); // O3
 #endif
-//	output[0]->setState(false);
-//	output[1]->setState(false);
-//	output[2]->setState(false);
-//	input[0]->onStateChange(onStateChangeDelegate(&BinOutGPIOClass::setState, output[0]));
-//	input[1]->onStateChange(onStateChangeDelegate(&BinOutGPIOClass::setState, output[1]));
-
 	ApplicationClass::init();
-
-//	webServer.addPath("/temperature.json",HttpPathDelegate(&TempSensors::onHttpGet,tempSensor));
-//	webServer.addPath("/thermostat.fan",HttpPathDelegate(&ThermostatClass::onHttpConfig,thermostats[0]));
-//	webServer.addPath("/thermostat.pump",HttpPathDelegate(&ThermostatClass::onHttpConfig,thermostats[1]));
 //	webServer.addPath("/fan",HttpPathDelegate(&FanClass::onHttpConfig,fan));
 //	webServer.addPath("/monitor",monitor);
 //	Serial.printf("AppClass init done!\n");
@@ -88,7 +68,6 @@ void AppClass::_loop()
 
 	ApplicationClass::_loop();
 //	Serial.printf("AppClass loop\n");
-//	Serial.printf("GPIO 15: %d GPIO 16: %d\n", input[0]->getState(), input[1]->getState());
 }
 
 //void monitor(HttpRequest &request, HttpResponse &response)
