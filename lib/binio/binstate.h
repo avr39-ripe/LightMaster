@@ -19,10 +19,10 @@ class BinStateClass
 public:
 	BinStateClass(uint8_t polarity = true, uint8_t toggleActive = true);
 	uint8_t get() { return _state & stateBit ? getPolarity() : !getPolarity(); };
-	uint8_t getRawState() { return _state & stateBit ? true : false; };
-	uint8_t getPrev() { return _state & prevStateBit ? true : false; };
-	uint8_t getPolarity() { return _state & polarityBit ? true : false; }
-	uint8_t getToggleActive() { return _state & toggleActiveBit ? true : false; };
+	uint8_t getRawState() { return (_state & stateBit) != 0; };
+	uint8_t getPrev() { return (_state & prevStateBit) != 0; };
+	uint8_t getPolarity() { return (_state & polarityBit) != 0; }
+	uint8_t getToggleActive() { return (_state & toggleActiveBit) != 0; };
 	void set(uint8_t state, uint8_t forceDelegatesCall);
 	void set(uint8_t state) { set(state, false); };
 	void setPolarity(uint8_t polarity) { polarity ? _state |= polarityBit : _state &= ~(polarityBit); };
