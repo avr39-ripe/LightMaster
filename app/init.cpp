@@ -10,6 +10,7 @@ BinInClass* input[8];
 BinInPollerClass binInPoller(100);
 BinOutClass* output[8];
 LightGroupClass* lightGroup[8];
+BinHttpButtonsClass* httpButtons;
 
 AppClass App;
 

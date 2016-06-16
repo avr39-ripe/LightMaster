@@ -16,6 +16,7 @@ class BinInClass
 public:
 	BinInClass(uint8_t unitNumber, uint8_t polarity);
 	virtual ~BinInClass() {};
+	uint8_t getUnitNumber() { return _unitNumber; };
 	void setUnitNumber(uint8_t unitNumber) { _unitNumber = unitNumber; };
 	BinStateClass state;
 protected:

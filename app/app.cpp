@@ -17,6 +17,8 @@ void AppClass::init()
 	//TODO: add config param for TZ!
 	SystemClock.setTimeZone(3);
 
+	httpButtons = new BinHttpButtonsClass();
+
 #ifdef MCP23S17 //use MCP23S17
 	mcp000 = new MCP(0x000, mcp23s17_cs);
 #endif
@@ -41,10 +43,17 @@ void AppClass::init()
 //		lightGroup[i] = new LightGroupClass(*output[i]);
 //		lightGroup[i]->addInput(*input[i]);
 		input[i]->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output[i]->state));
+		BinHttpButtonClass* button = new BinHttpButtonClass(i);
+		button->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output[i]->state));
+		httpButtons->add(*button);
 	}
+
+//	httpButton = new BinHttpButtonClass(0);
+//	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output[0]->state));
+
 #endif
 	ApplicationClass::init();
-//	webServer.addPath("/fan",HttpPathDelegate(&FanClass::onHttpConfig,fan));
+	webServer.addPath("/button",HttpPathDelegate(&BinHttpButtonsClass::onHttp,httpButtons));
 //	webServer.addPath("/monitor",monitor);
 //	Serial.printf("AppClass init done!\n");
 }
