@@ -17,14 +17,9 @@ public:
 	BinOutClass(uint8_t unitNumber, uint8_t polarity);
 	virtual ~BinOutClass() {};
 	void setUnitNumber(uint8_t unitNumber) { _unitNumber = unitNumber; };
-//	void setPolarity(uint8_t polarity) { _polarity = polarity; };
-//	void setState(uint8_t state);
-//	uint8_t getState() { return _state ? _polarity : (!_polarity); };
 	BinStateClass state;
 protected:
 	uint8_t _unitNumber = 0;
-//	uint8_t _state = 0;
-//	uint8_t _polarity = 0;
 	virtual void _setUnitState(uint8_t state) = 0;
 };
 

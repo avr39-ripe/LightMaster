@@ -36,7 +36,7 @@ private:
 	void _setPrev(uint8_t state) { state ? _state |= prevStateBit : _state &= ~(prevStateBit);};
 	uint8_t _state = 0; //BITMASK FIELD!!!
 	void _callOnChangeDelegates();
-	onStateChangeDelegate _onSet; // call this with _state as argument
+	onStateChangeDelegate _onSet = nullptr; // call this with _state as argument
 	Vector<onStateChangeDelegate> _onChange; // call them with _state as argument
 	Vector<onStateChangeDelegate> _onChangeInverse; // call them with !_state as argument
 //Bitmask of _state field

@@ -12,16 +12,10 @@
 BinOutClass::BinOutClass(uint8_t unitNumber, uint8_t polarity)
 {
 	_unitNumber = unitNumber;
-//	_polarity = polarity;
 	state.setPolarity(polarity);
 	state.onSet(onStateChangeDelegate(&BinOutClass::_setUnitState, this));
 }
 
-//void BinOutClass::setState(uint8_t state)
-//{
-//	_state = state ? _polarity : !(_polarity);
-//	_setUnitState(_state);
-//}
 
 // BinOutGPIOClass
 BinOutGPIOClass::BinOutGPIOClass(uint8_t unitNumber, uint8_t polarity)
