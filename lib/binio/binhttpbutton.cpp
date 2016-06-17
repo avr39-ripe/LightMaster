@@ -19,11 +19,11 @@ void BinHttpButtonClass::onHttpSetState(HttpRequest &request, HttpResponse &resp
 		else // Request Body Not Empty
 		{
 //Uncomment next line for extra debuginfo
-			Serial.print(request.getBody());
+//			Serial.print(request.getBody());
 			DynamicJsonBuffer jsonBuffer;
 			JsonObject& root = jsonBuffer.parseObject(request.getBody());
 //Uncomment next line for extra debuginfo
-			root.prettyPrintTo(Serial);
+//			root.prettyPrintTo(Serial);
 			if (root["state"].success()) // There is loopInterval parameter in json
 			{
 				state.set(root["state"]);
@@ -58,7 +58,7 @@ void BinHttpButtonsClass::onHttp(HttpRequest &request, HttpResponse &response)
 			{
 				JsonObject& data = root.createNestedObject((String)id);
 				data["name"] = _buttons[id]->getName();
-				data["state"] = _buttons[id]->state.get();
+				data["state"] = _buttons[id]->getOutputState();
 			}
 		}
 		else
@@ -67,7 +67,7 @@ void BinHttpButtonsClass::onHttp(HttpRequest &request, HttpResponse &response)
 			if (id >= 0 && id < _buttons.count())
 			{
 				root["name"] = _buttons[id]->getName();
-				root["state"] = _buttons[id]->state.get();
+				root["state"] = _buttons[id]->getOutputState();
 			}
 		}
 
