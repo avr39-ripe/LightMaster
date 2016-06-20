@@ -19,11 +19,11 @@ void BinHttpButtonClass::onHttpSetState(HttpRequest &request, HttpResponse &resp
 		else // Request Body Not Empty
 		{
 //Uncomment next line for extra debuginfo
-//			Serial.print(request.getBody());
+			Serial.print(request.getBody());
 			DynamicJsonBuffer jsonBuffer;
 			JsonObject& root = jsonBuffer.parseObject(request.getBody());
 //Uncomment next line for extra debuginfo
-//			root.prettyPrintTo(Serial);
+			root.prettyPrintTo(Serial);
 			if (root["state"].success()) // There is loopInterval parameter in json
 			{
 				state.set(root["state"]);
