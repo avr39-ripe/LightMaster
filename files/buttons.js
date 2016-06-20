@@ -8,14 +8,17 @@ function post_button(key,state) {
 	var json = {};
 	json["state"] = state;
 	
-	fetch(`/button?button=${key}`, {
-		method: 'post',
-		headers: {
-			'Accept': 'application/json',
-			'Content-Type': 'application/json; charset=utf-8'
-			},
-		body: JSON.stringify(json)
-	});
+	// fetch(`/button?button=${key}`, {
+		// method: 'post',
+		// headers: {
+			// 'Accept': 'application/json',
+			// 'Content-Type': 'application/json; charset=utf-8'
+			// },
+		// body: JSON.stringify(json)
+	// });
+	json["command"] = "setButton";
+	json["button"] = key;
+	websocket.send(JSON.stringify(json));
 	// getJson(`/button?button=${key}`)
 	// .then(function(Json){updateButton(key,Json.state);});
 }
@@ -35,7 +38,7 @@ function initButtons() {
 	getJson("/button")
 	.then(function(Json){Object.keys(Json).forEach(function(key){
 		var container = document.getElementById("panel-container");
-		container.insertAdjacentHTML("beforeEnd",`<br><div class="col-xs-10 col-md-5"><button id="Button${key}" class="btn btn-primary btn-block">${Json[key].name}</button></div>`);
+		container.insertAdjacentHTML("beforeEnd",`<div class="col-xs-10 col-md-5"><br><button id="Button${key}" class="btn btn-primary btn-block">${Json[key].name}</button></div>`);
 		var button = document.getElementById(`Button${key}`);
 		button.addEventListener('mousedown', function() { post_button(key, 1); });
 		button.addEventListener('mouseup', function() { post_button(key, 0); });
@@ -50,13 +53,44 @@ function updateButtons() {
 	})})
 }
 
+function onOpen(evt) {
+	console.log.bind(console)("CONNECTED");
+	websocket.send("Sming love WebSockets");
+}
+
+function onClose(evt) {
+	console.log.bind(console)("DISCONNECTED");
+}
+
+function onMessage(evt) {
+	console.log.bind(console)("Message recv: " + evt.data);
+	var json = JSON.parse(evt.data);
+	console.log.bind(console)("Json recv: " + json);
+	if (json.response == "getButton") {
+		updateButton(json.button,json.state);
+	}
+	
+	//websocket.close();
+}
+
+function onError(evt) {
+	console.log.bind(console)("ERROR: " + evt.data);
+}
+
 //Here we put some initial code which starts after DOM loaded
 function onDocumentRedy() {
 	//Init
 	initButtons();
 //	updateButtons();
-	setInterval(updateButtons, 3000);
+//	setInterval(updateButtons, 3000);
 
 }
+
+var wsUri = "ws://" + location.host + "/";
+var websocket = new WebSocket(wsUri);
+websocket.onopen = function(evt) { onOpen(evt) };
+websocket.onclose = function(evt) { onClose(evt) };
+websocket.onmessage = function(evt) { onMessage(evt) };
+websocket.onerror = function(evt) { onError(evt) };
 
 document.addEventListener('DOMContentLoaded', onDocumentRedy);
