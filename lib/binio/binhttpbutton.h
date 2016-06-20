@@ -20,7 +20,7 @@ public:
 	void onHttpSetState(HttpRequest &request, HttpResponse &response);
 	String getName() { return _name; };
 	void setName(String name) { _name = name; };
-	uint8_t getOutputState() { return (_output == nullptr) ? false : _output->state.get(); };
+	uint8_t getOutputState() { return (_output == nullptr) ? this->state.get() : _output->state.get(); };
 	void setOutput(BinOutClass *output) { _output = output; };
 	uint8_t _readUnit() {}; //Do not used here
 private:
@@ -33,6 +33,9 @@ class BinHttpButtonsClass
 public:
 	void onHttp(HttpRequest &request, HttpResponse &response);
 	void add(BinHttpButtonClass &button);
+	void setButton(uint8_t button, uint8_t state) { _buttons[button]->state.set(state); };
+	uint8_t getButton(uint8_t button) { return _buttons[button]->getOutputState(); };
+//	void wsSendButton(uint8_t button, uint8_t state);
 private:
 	Vector<BinHttpButtonClass*> _buttons;
 };
