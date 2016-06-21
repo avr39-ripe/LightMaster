@@ -7,6 +7,16 @@
 
 #include <binhttpbutton.h>
 
+//BinHttpButtonClass
+
+BinHttpButtonClass::BinHttpButtonClass(HttpServer& webServer, uint8_t unitNumber, String name, BinOutClass *output)
+:BinInClass(unitNumber, 1), _webServer(webServer), _name(name), _output(output)
+{
+	if (output)
+	{
+		output->state.onChange(onStateChangeDelegate(&BinHttpButtonClass::wsSendButton, this));
+	}
+}
 void BinHttpButtonClass::onHttpSetState(HttpRequest &request, HttpResponse &response)
 {
 	if (request.getRequestMethod() == RequestMethod::POST)
@@ -37,6 +47,23 @@ void BinHttpButtonClass::onHttpSetState(HttpRequest &request, HttpResponse &resp
 //	}
 }
 
+void BinHttpButtonClass::wsSendButton(uint8_t state)
+{
+	DynamicJsonBuffer jsonBuffer;
+	JsonObject& root = jsonBuffer.createObject();
+	root["response"] = "getButton";
+	root["button"] = getUnitNumber();
+	root["state"] = state;
+//	root.prettyPrintTo(Serial);
+	String buf;
+	root.printTo(buf);
+	WebSocketsList &clients = _webServer.getActiveWebSockets();
+	for (int i = 0; i < clients.count(); i++)
+	{
+		clients[i].sendString(buf);
+	}
+
+}
 //BinHttpButtonsClass
 
 void BinHttpButtonsClass::add(BinHttpButtonClass &button)
@@ -93,8 +120,15 @@ void BinHttpButtonsClass::onHttp(HttpRequest &request, HttpResponse &response)
 	}
 }
 
-//void BinHttpButtonsClass::wsSendButton(uint8_t button, uint8_t state)
-//{
-//	DynamicJsonBuffer JsonBuffer;
-//
-//}
+void BinHttpButtonsClass::onWSReceiveButton(JsonObject& jsonRoot)
+{
+	if (jsonRoot["button"].success())
+	{
+		if (jsonRoot["state"].success())
+		{
+			uint8_t button = jsonRoot["button"];
+			uint8_t state = jsonRoot["state"];
+			_buttons[button]->state.set(state);
+		}
+	}
+}

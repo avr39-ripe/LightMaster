@@ -55,7 +55,7 @@ function updateButtons() {
 
 function onOpen(evt) {
 	console.log.bind(console)("CONNECTED");
-	websocket.send("Sming love WebSockets");
+//	websocket.send("Sming love WebSockets");
 }
 
 function onClose(evt) {
@@ -77,20 +77,38 @@ function onError(evt) {
 	console.log.bind(console)("ERROR: " + evt.data);
 }
 
+function initWS() {
+	var wsUri = "ws://" + location.host + "/";
+	websocket = new WebSocket(wsUri);
+	websocket.onopen = function(evt) { onOpen(evt) };
+	websocket.onclose = function(evt) { onClose(evt) };
+	websocket.onmessage = function(evt) { onMessage(evt) };
+	websocket.onerror = function(evt) { onError(evt) };
+}
+
+function closeWS() {
+	websocket.close();
+}
+
 //Here we put some initial code which starts after DOM loaded
 function onDocumentRedy() {
 	//Init
+	initWS()
 	initButtons();
 //	updateButtons();
 //	setInterval(updateButtons, 3000);
 
 }
 
-var wsUri = "ws://" + location.host + "/";
-var websocket = new WebSocket(wsUri);
-websocket.onopen = function(evt) { onOpen(evt) };
-websocket.onclose = function(evt) { onClose(evt) };
-websocket.onmessage = function(evt) { onMessage(evt) };
-websocket.onerror = function(evt) { onError(evt) };
+var websocket;
 
+// var wsUri = "ws://" + location.host + "/";
+// var websocket = new WebSocket(wsUri);
+// websocket.onopen = function(evt) { onOpen(evt) };
+// websocket.onclose = function(evt) { onClose(evt) };
+// websocket.onmessage = function(evt) { onMessage(evt) };
+// websocket.onerror = function(evt) { onError(evt) };
+
+//window.addEventListener('focus', initWS);
+//window.addEventListener('blur', closeWS);
 document.addEventListener('DOMContentLoaded', onDocumentRedy);

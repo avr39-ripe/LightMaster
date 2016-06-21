@@ -47,8 +47,9 @@ void AppClass::init()
 //		lightGroup[i] = new LightGroupClass(*output[i]);
 //		lightGroup[i]->addInput(*input[i]);
 		input[i]->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output[i]->state));
-		BinHttpButtonClass* button = new BinHttpButtonClass(i, "Btn" + String(i), output[i]);
+		BinHttpButtonClass* button = new BinHttpButtonClass(webServer, i, "Btn" + String(i), output[i]);
 		button->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output[i]->state));
+//		output[i]->state.onChange(onStateChangeDelegate(&BinHttpButtonClass::wsSendButton, button));
 		httpButtons->add(*button);
 	}
 
@@ -72,10 +73,6 @@ void AppClass::init()
 void AppClass::wsConnected(WebSocket& socket)
 {
 	Serial.printf("Websocket CONNECTED!\n");
-	// Notify everybody about new connection
-//	WebSocketsList &clients = server.getActiveWebSockets();
-//	for (int i = 0; i < clients.count(); i++)
-//		clients[i].sendString("New friend arrived! Total: " + String(totalActiveSockets));
 }
 
 void AppClass::wsMessageReceived(WebSocket& socket, const String& message)
@@ -85,39 +82,13 @@ void AppClass::wsMessageReceived(WebSocket& socket, const String& message)
 	DynamicJsonBuffer jsonBuffer;
 	JsonObject& root = jsonBuffer.parseObject(msg);
 	//Uncomment next line for extra debuginfo
-	root.prettyPrintTo(Serial);
+//	root.prettyPrintTo(Serial);
 	String command = root["command"];
-	Serial.printf("Command str: %s\n", command.c_str());
+//	Serial.printf("Command str: %s\n", command.c_str());
 	if (command == "setButton")
 	{
-//		Serial.println("command == setButton");
-//	}
-		if (root["button"].success())
-		{
-			if (root["state"].success()) // There is loopInterval parameter in json
-			{
-				uint8_t button = root["button"];
-				uint8_t state = root["state"];
-				httpButtons->setButton(button,state);
-				//Create response json with output status
-//				httpButtons->wsSendButton(button,state);
-				JsonObject& respRoot = jsonBuffer.createObject();
-				respRoot["response"] = "getButton";
-				respRoot["button"] = button;
-				respRoot["state"] = httpButtons->getButton(button);
-				respRoot.prettyPrintTo(Serial);
-				String buf;
-				respRoot.printTo(buf);
-				WebSocketsList &clients = webServer.getActiveWebSockets();
-				for (int i = 0; i < clients.count(); i++)
-				{
-					clients[i].sendString(buf);
-				}
-			}
-		}
+		httpButtons->onWSReceiveButton(root);
 	}
-//	String response = "Echo: " + message;
-//	socket.sendString(response);
 }
 
 void AppClass::wsBinaryReceived(WebSocket& socket, uint8_t* data, size_t size)
@@ -128,10 +99,6 @@ void AppClass::wsBinaryReceived(WebSocket& socket, uint8_t* data, size_t size)
 void AppClass::wsDisconnected(WebSocket& socket)
 {
 	Serial.printf("Websocket DISCONNECTED!\n");
-	// Notify everybody about lost connection
-//	WebSocketsList &clients = server.getActiveWebSockets();
-//	for (int i = 0; i < clients.count(); i++)
-//		clients[i].sendString("We lost our friend :( Total: " + String(totalActiveSockets));
 }
 
 void AppClass::start()
@@ -153,6 +120,7 @@ void AppClass::_loop()
 
 	ApplicationClass::_loop();
 //	Serial.printf("AppClass loop\n");
+	Serial.printf("Free Heap: %d WS count: %d\n", system_get_free_heap_size(), webServer.getActiveWebSockets().count());
 }
 
 //void monitor(HttpRequest &request, HttpResponse &response)
