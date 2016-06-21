@@ -132,3 +132,20 @@ void BinHttpButtonsClass::onWSReceiveButton(JsonObject& jsonRoot)
 		}
 	}
 }
+
+void BinHttpButtonsClass::onWSGetButtons(WebSocket& socket)
+{
+	DynamicJsonBuffer jsonBuffer;
+	String buf;
+	JsonObject& root = jsonBuffer.createObject();
+	root["response"] = "getButtons";
+	for (uint8_t id=0; id < _buttons.count(); id++)
+	{
+		JsonObject& data = root.createNestedObject((String)id);
+		data["name"] = _buttons[id]->getName();
+		data["state"] = _buttons[id]->getOutputState();
+	}
+	root.printTo(buf);
+	socket.sendString(buf);
+
+}

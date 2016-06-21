@@ -34,13 +34,16 @@ private:
 class BinHttpButtonsClass
 {
 public:
+//	BinHttpButtonsClass::BinHttpButtonsClass(HttpServer& webServer)
+//	: _webServer(webServer) {};
 	void onHttp(HttpRequest &request, HttpResponse &response);
 	void onWSReceiveButton(JsonObject& jsonRoot);
 	void add(BinHttpButtonClass &button);
 	void setButton(uint8_t button, uint8_t state) { _buttons[button]->state.set(state); };
 	uint8_t getButton(uint8_t button) { return _buttons[button]->getOutputState(); };
-//	void wsSendButton(uint8_t button, uint8_t state);
+	void onWSGetButtons(WebSocket& socket);
 private:
 	Vector<BinHttpButtonClass*> _buttons;
+//	HttpServer& _webServer;
 };
 #endif /* LIB_BINIO_BINHTTPBUTTON_H_ */

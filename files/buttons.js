@@ -46,6 +46,19 @@ function initButtons() {
 	})})
 }
 
+function onGetButtons(Json) {
+	Object.keys(Json).forEach(function(key){
+		if(key != "response") {
+			var container = document.getElementById("panel-container");
+			container.insertAdjacentHTML("beforeEnd",`<div class="col-xs-10 col-md-5"><br><button id="Button${key}" class="btn btn-primary btn-block">${Json[key].name}</button></div>`);
+			var button = document.getElementById(`Button${key}`);
+			button.addEventListener('mousedown', function() { post_button(key, 1); });
+			button.addEventListener('mouseup', function() { post_button(key, 0); });
+			updateButton(key,Json[key].state);	
+		}
+	})
+}
+
 function updateButtons() {
 	getJson("/button")
 	.then(function(Json){Object.keys(Json).forEach(function(key){
@@ -55,6 +68,7 @@ function updateButtons() {
 
 function onOpen(evt) {
 	console.log.bind(console)("CONNECTED");
+	wsGetButtons();
 //	websocket.send("Sming love WebSockets");
 }
 
@@ -66,10 +80,14 @@ function onMessage(evt) {
 	console.log.bind(console)("Message recv: " + evt.data);
 	var json = JSON.parse(evt.data);
 	console.log.bind(console)("Json recv: " + json);
+	
 	if (json.response == "getButton") {
 		updateButton(json.button,json.state);
 	}
 	
+	if (json.response == "getButtons") {
+		onGetButtons(json);
+	}
 	//websocket.close();
 }
 
@@ -90,11 +108,18 @@ function closeWS() {
 	websocket.close();
 }
 
+function wsGetButtons() {
+	var json = {};
+	json["command"] = "getButtons";
+	websocket.send(JSON.stringify(json));
+}
+
 //Here we put some initial code which starts after DOM loaded
 function onDocumentRedy() {
 	//Init
-	initWS()
-	initButtons();
+	initWS();
+	
+//	initButtons();
 //	updateButtons();
 //	setInterval(updateButtons, 3000);
 

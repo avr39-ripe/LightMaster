@@ -85,10 +85,17 @@ void AppClass::wsMessageReceived(WebSocket& socket, const String& message)
 //	root.prettyPrintTo(Serial);
 	String command = root["command"];
 //	Serial.printf("Command str: %s\n", command.c_str());
+
 	if (command == "setButton")
 	{
 		httpButtons->onWSReceiveButton(root);
 	}
+
+	if (command == "getButtons")
+	{
+		httpButtons->onWSGetButtons(socket);
+	}
+
 }
 
 void AppClass::wsBinaryReceived(WebSocket& socket, uint8_t* data, size_t size)
