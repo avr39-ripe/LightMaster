@@ -22,40 +22,39 @@ void AppClass::init()
 	SystemClock.setTimeZone(3);
 
 	httpButtons = new BinHttpButtonsClass();
+	lightSystem = new LightSystemClass();
 
 #ifdef MCP23S17 //use MCP23S17
 	mcp000 = new MCP(0x000, mcp23s17_cs);
 #endif
 
-#ifndef MCP23S17 //use GPIO
-//Nothing here
-#else
-	for (uint8_t i = 0; i < 8; i++)
-	{
-		input[i] = new BinInMCP23S17Class(*mcp000,i,0);
-		binInPoller.add(input[i]);
-	}
-#endif
+//#ifndef MCP23S17 //use GPIO
+////Nothing here
+//#else
+//	for (uint8_t i = 0; i < 8; i++)
+//	{
+//
+//	}
+//#endif
 
 #ifndef MCP23S17 //use GPIO
 //Nothing here
 #else
 	for (uint8_t i = 0; i < 8; i++)
 	{
-		output[i] = new BinOutMCP23S17Class(*mcp000,i,0);
-		//output[i]->state.set(false);
-//		lightGroup[i] = new LightGroupClass(*output[i]);
-//		lightGroup[i]->addInput(*input[i]);
-		input[i]->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output[i]->state));
-		BinHttpButtonClass* button = new BinHttpButtonClass(webServer, i, "Btn" + String(i), &output[i]->state);
-		button->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output[i]->state));
-//		output[i]->state.onChange(onStateChangeDelegate(&BinHttpButtonClass::wsSendButton, button));
-		httpButtons->add(*button);
+//		input[i] = new BinInMCP23S17Class(*mcp000,i,0);
+//		binInPoller.add(input[i]);
+//
+//		output[i] = new BinOutMCP23S17Class(*mcp000,i,0);
+//		input[i]->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output[i]->state));
+//		BinHttpButtonClass* button = new BinHttpButtonClass(webServer, i, "Btn" + String(i), &output[i]->state);
+//		button->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output[i]->state));
+//		httpButtons->add(*button);
+		BinOutClass* output = new BinOutMCP23S17Class(*mcp000,i,0);
+		BinInClass* input = new BinInMCP23S17Class(*mcp000,i,0);
+//		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, i, "Btn" + String(i), output->state);
+		lightSystem->addLightGroup(output, input);
 	}
-
-//	httpButton = new BinHttpButtonClass(0);
-//	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output[0]->state));
-
 #endif
 	ApplicationClass::init();
 	webServer.addPath("/button",HttpPathDelegate(&BinHttpButtonsClass::onHttp,httpButtons));
