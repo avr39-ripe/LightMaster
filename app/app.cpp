@@ -43,7 +43,7 @@ void AppClass::init()
 	for (uint8_t i = 0; i < 8; i++)
 	{
 		output[i] = new BinOutMCP23S17Class(*mcp000,i,0);
-		output[i]->state.set(false);
+		//output[i]->state.set(false);
 //		lightGroup[i] = new LightGroupClass(*output[i]);
 //		lightGroup[i]->addInput(*input[i]);
 		input[i]->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output[i]->state));
