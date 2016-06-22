@@ -47,7 +47,7 @@ void AppClass::init()
 //		lightGroup[i] = new LightGroupClass(*output[i]);
 //		lightGroup[i]->addInput(*input[i]);
 		input[i]->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output[i]->state));
-		BinHttpButtonClass* button = new BinHttpButtonClass(webServer, i, "Btn" + String(i), output[i]);
+		BinHttpButtonClass* button = new BinHttpButtonClass(webServer, i, "Btn" + String(i), &output[i]->state);
 		button->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output[i]->state));
 //		output[i]->state.onChange(onStateChangeDelegate(&BinHttpButtonClass::wsSendButton, button));
 		httpButtons->add(*button);

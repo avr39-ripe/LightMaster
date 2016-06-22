@@ -9,12 +9,12 @@
 
 //BinHttpButtonClass
 
-BinHttpButtonClass::BinHttpButtonClass(HttpServer& webServer, uint8_t unitNumber, String name, BinOutClass *output)
-:BinInClass(unitNumber, 1), _webServer(webServer), _name(name), _output(output)
+BinHttpButtonClass::BinHttpButtonClass(HttpServer& webServer, uint8_t unitNumber, String name, BinStateClass *outputState)
+:BinInClass(unitNumber, 1), _webServer(webServer), _name(name), _outputState(outputState)
 {
-	if (output)
+	if (outputState)
 	{
-		output->state.onChange(onStateChangeDelegate(&BinHttpButtonClass::wsSendButton, this));
+		outputState->onChange(onStateChangeDelegate(&BinHttpButtonClass::wsSendButton, this));
 	}
 }
 void BinHttpButtonClass::onHttpSetState(HttpRequest &request, HttpResponse &response)
