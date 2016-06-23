@@ -22,7 +22,7 @@ public:
 	String getName() { return _name; };
 	void setName(String name) { _name = name; };
 	uint8_t getOutputState() { return (_outputState == nullptr) ? this->state.get() : _outputState->get(); };
-	void addOutputState(BinStateClass *outputState) { _outputState = outputState; };
+	void addOutputState(BinStateClass *outputState);
 	void wsSendButton(uint8_t state);
 	uint8_t _readUnit() {}; //Do not used here
 private:
@@ -38,7 +38,7 @@ public:
 //	: _webServer(webServer) {};
 	void onHttp(HttpRequest &request, HttpResponse &response);
 	void onWSReceiveButton(JsonObject& jsonRoot);
-	void add(BinHttpButtonClass &button);
+	void add(BinHttpButtonClass* button);
 	void setButton(uint8_t button, uint8_t state) { _buttons[button]->state.set(state); };
 	uint8_t getButton(uint8_t button) { return _buttons[button]->getOutputState(); };
 	void onWSGetButtons(WebSocket& socket);

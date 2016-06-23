@@ -47,6 +47,14 @@ void BinHttpButtonClass::onHttpSetState(HttpRequest &request, HttpResponse &resp
 //	}
 }
 
+void BinHttpButtonClass::addOutputState(BinStateClass *outputState)
+{
+	if (outputState)
+	{
+		_outputState = outputState;
+		outputState->onChange(onStateChangeDelegate(&BinHttpButtonClass::wsSendButton, this));
+	}
+}
 void BinHttpButtonClass::wsSendButton(uint8_t state)
 {
 	DynamicJsonBuffer jsonBuffer;
@@ -66,9 +74,9 @@ void BinHttpButtonClass::wsSendButton(uint8_t state)
 }
 //BinHttpButtonsClass
 
-void BinHttpButtonsClass::add(BinHttpButtonClass &button)
+void BinHttpButtonsClass::add(BinHttpButtonClass* button)
 {
-	_buttons.add(&button);
+	_buttons.add(button);
 }
 
 void BinHttpButtonsClass::onHttp(HttpRequest &request, HttpResponse &response)

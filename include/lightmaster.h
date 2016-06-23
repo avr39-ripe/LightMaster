@@ -25,11 +25,7 @@ const uint8_t mcp23s17_cs = 15;
 extern MCP* mcp000;
 #endif
 
-extern BinInClass* input[8];
 extern BinInPollerClass binInPoller;
-extern BinOutClass* output[8];
-extern LightGroupClass* lightGroup[8];
-extern BinHttpButtonsClass* httpButtons;
 extern LightSystemClass* lightSystem;
 
 #endif /* INCLUDE_LIGHTMASTER_H_ */
