@@ -109,5 +109,6 @@ void AppClass::_loop()
 	ApplicationClass::_loop();
 //	Serial.printf("AppClass loop\n");
 	Serial.printf("Free Heap: %d WS count: %d\n", system_get_free_heap_size(), webServer.getActiveWebSockets().count());
+	Serial.printf("Random: %d\n", lightSystem->getRandom(8,25));
 }
 

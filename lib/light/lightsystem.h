@@ -26,6 +26,7 @@ public:
 	void onWSReceiveButton(JsonObject& jsonRoot) { _binHttpButtons.onWSReceiveButton(jsonRoot); };
 	void onWSGetButtons(WebSocket& socket) { _binHttpButtons.onWSGetButtons(socket); };
 	void toggleAllOff(uint8_t state);
+	uint16_t getRandom(uint16_t min, uint16_t max);
 private:
 	BinStateClass* _allOffState;
 	BinOutClass* _allOffOutput = nullptr;

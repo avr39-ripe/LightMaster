@@ -79,3 +79,12 @@ void LightSystemClass::toggleAllOff(uint8_t state)
 		Serial.printf("TurnAllState: %s\n", _allOffState->get() ? "true" : "false");
 	}
 }
+
+uint16_t LightSystemClass::getRandom(uint16_t min, uint16_t max)
+{
+	float interval = max - min;
+	long rand = os_random();
+	return min + lround((labs(rand) * interval) / LONG_MAX);
+//	Serial.printf("Random long: %d, Random idx: %d\n", rand, idx);
+//	Serial.println((labs(rand) * 7.0 ) / LONG_MAX);
+}
