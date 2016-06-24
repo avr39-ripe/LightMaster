@@ -35,7 +35,7 @@ void AppClass::init()
 	BinInClass* input = new BinInMCP23S17Class(*mcp000,7,0);
 	binInPoller.add(input);
 	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, 7, "TurnAll");
-	lightSystem->addTurnAllInput(input, httpButton);
+	lightSystem->addAllOffGroup(nullptr, input, httpButton);
 
 #endif
 	ApplicationClass::init();

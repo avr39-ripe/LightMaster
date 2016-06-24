@@ -9,7 +9,8 @@
 
 LightSystemClass::LightSystemClass()
 {
-	_turnAllState.onChange(onStateChangeDelegate(&LightSystemClass::turnAll, this));
+	_allOffState = new BinStateClass();
+	_allOffState->onChange(onStateChangeDelegate(&LightSystemClass::toggleAllOff, this));
 }
 
 
@@ -31,22 +32,33 @@ void LightSystemClass::addLightGroup(BinOutClass* output, BinInClass* input, Bin
 	}
 }
 
-void LightSystemClass::addTurnAllInput(BinInClass* input, BinHttpButtonClass* httpButton)
+void LightSystemClass::addAllOffGroup(BinOutClass* output, BinInClass* input, BinHttpButtonClass* httpButton)
 {
+	if (output)
+	{
+		_outputs.add(output);
+		if (_allOffState)
+		{
+			delete _allOffState;
+			_allOffState = &output->state;
+			_allOffState->onChange(onStateChangeDelegate(&LightSystemClass::toggleAllOff, this));
+		}
+	}
+
 	if (input)
 	{
 		_inputs.add(input);
-		input->state.onChange(onStateChangeDelegate(&BinStateClass::set, &_turnAllState));
+		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, _allOffState));
 	}
 	if (httpButton)
 	{
-		httpButton->addOutputState(&_turnAllState);
+		httpButton->addOutputState(_allOffState);
 //		_turnAllState.onChange(onStateChangeDelegate(&BinHttpButtonClass::wsSendButton, httpButton));
-		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::set, &_turnAllState));
+		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, _allOffState));
 		_binHttpButtons.add(httpButton);
 	}
 }
-void LightSystemClass::turnAll(uint8_t state)
+void LightSystemClass::toggleAllOff(uint8_t state)
 {
 	if (!state)
 	{
@@ -55,7 +67,7 @@ void LightSystemClass::turnAll(uint8_t state)
 //		{
 //			_outputs[i]->state.set(_outputs[i]->state.getPrev());
 //		}
-//		Serial.printf("TurnAllState: %s\n", _turnAllState.get() ? "true" : "false");
+//		Serial.printf("TurnAllState: %s\n", _allOffState.get() ? "true" : "false");
 	}
 	else
 	{
@@ -64,6 +76,6 @@ void LightSystemClass::turnAll(uint8_t state)
 		{
 			_outputs[i]->state.set(false);
 		}
-		Serial.printf("TurnAllState: %s\n", _turnAllState.get() ? "true" : "false");
+		Serial.printf("TurnAllState: %s\n", _allOffState->get() ? "true" : "false");
 	}
 }

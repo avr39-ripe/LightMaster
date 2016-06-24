@@ -20,15 +20,14 @@ public:
 	void addLightGroup(BinOutClass* output, BinInClass* input, BinHttpButtonClass* httpButton);
 	void addLightGroup(BinOutClass* output, BinInClass* input) { addLightGroup(output, input, nullptr); };
 	void addLightGroup(BinOutClass* output, BinHttpButtonClass* httpButton) { addLightGroup(output,nullptr,httpButton); };
-	void addTurnAllInput(BinInClass* input, BinHttpButtonClass* httpButton);
-	void addTurnAllInput(BinInClass* input) { addTurnAllInput(input, nullptr); };
-	void addTurnAllInput(BinHttpButtonClass* httpButton) {addTurnAllInput(nullptr, httpButton); };
+	void addAllOffGroup(BinOutClass* output, BinInClass* input, BinHttpButtonClass* httpButton);
+	void addAllOffGroup(BinInClass* input) { addAllOffGroup(nullptr,input, nullptr); };
+	void addAllOffGroup(BinHttpButtonClass* httpButton) {addAllOffGroup(nullptr, nullptr, httpButton); };
 	void onWSReceiveButton(JsonObject& jsonRoot) { _binHttpButtons.onWSReceiveButton(jsonRoot); };
 	void onWSGetButtons(WebSocket& socket) { _binHttpButtons.onWSGetButtons(socket); };
-	void turnAll(uint8_t state);
-	BinStateClass _turnAllState;
+	void toggleAllOff(uint8_t state);
 private:
-
+	BinStateClass* _allOffState;
 	Vector<BinInClass*> _inputs;
 	Vector<BinOutClass*> _outputs;
 	BinHttpButtonsClass _binHttpButtons;
