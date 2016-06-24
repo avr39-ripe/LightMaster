@@ -36,7 +36,7 @@ void LightSystemClass::addAllOffGroup(BinOutClass* output, BinInClass* input, Bi
 {
 	if (output)
 	{
-		_outputs.add(output);
+		_allOffOutput = output;
 		if (_allOffState)
 		{
 			delete _allOffState;

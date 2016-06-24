@@ -28,6 +28,7 @@ public:
 	void toggleAllOff(uint8_t state);
 private:
 	BinStateClass* _allOffState;
+	BinOutClass* _allOffOutput = nullptr;
 	Vector<BinInClass*> _inputs;
 	Vector<BinOutClass*> _outputs;
 	BinHttpButtonsClass _binHttpButtons;

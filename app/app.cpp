@@ -32,10 +32,11 @@ void AppClass::init()
 		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, i, "Btn" + String(i), &output->state);
 		lightSystem->addLightGroup(output, input, httpButton);
 	}
+	BinOutClass* output = new BinOutMCP23S17Class(*mcp000,7,0);
 	BinInClass* input = new BinInMCP23S17Class(*mcp000,7,0);
 	binInPoller.add(input);
 	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, 7, "TurnAll");
-	lightSystem->addAllOffGroup(nullptr, input, httpButton);
+	lightSystem->addAllOffGroup(output, input, httpButton);
 
 #endif
 	ApplicationClass::init();
