@@ -9,19 +9,13 @@
 #include <lightmaster.h>
 
 //AppClass
-//void monitor(HttpRequest &request, HttpResponse &response); // Monitor via json some important params
-//void wsConnected(WebSocket& socket);
-//void wsMessageReceived(WebSocket& socket, const String& message);
-//void wsBinaryReceived(WebSocket& socket, uint8_t* data, size_t size);
-//void wsDisconnected(WebSocket& socket);
 
 void AppClass::init()
 {
 	ntpClient = new NtpClient("pool.ntp.org", 300);
 	//TODO: add config param for TZ!
 	SystemClock.setTimeZone(3);
-
-	httpButtons = new BinHttpButtonsClass();
+	lightSystem = new LightSystemClass();
 
 #ifdef MCP23S17 //use MCP23S17
 	mcp000 = new MCP(0x000, mcp23s17_cs);
@@ -30,42 +24,29 @@ void AppClass::init()
 #ifndef MCP23S17 //use GPIO
 //Nothing here
 #else
-	for (uint8_t i = 0; i < 8; i++)
+	for (uint8_t i = 0; i < 7; i++)
 	{
-		input[i] = new BinInMCP23S17Class(*mcp000,i,0);
-		binInPoller.add(input[i]);
+		BinOutClass* output = new BinOutMCP23S17Class(*mcp000,i,0);
+		BinInClass* input = new BinInMCP23S17Class(*mcp000,i,0);
+		binInPoller.add(input);
+		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, i, "Btn" + String(i), &output->state);
+		lightSystem->addLightGroup(output, input, httpButton);
 	}
-#endif
-
-#ifndef MCP23S17 //use GPIO
-//Nothing here
-#else
-	for (uint8_t i = 0; i < 8; i++)
-	{
-		output[i] = new BinOutMCP23S17Class(*mcp000,i,0);
-		//output[i]->state.set(false);
-//		lightGroup[i] = new LightGroupClass(*output[i]);
-//		lightGroup[i]->addInput(*input[i]);
-		input[i]->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output[i]->state));
-		BinHttpButtonClass* button = new BinHttpButtonClass(webServer, i, "Btn" + String(i), &output[i]->state);
-		button->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output[i]->state));
-//		output[i]->state.onChange(onStateChangeDelegate(&BinHttpButtonClass::wsSendButton, button));
-		httpButtons->add(*button);
-	}
-
-//	httpButton = new BinHttpButtonClass(0);
-//	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output[0]->state));
+	BinOutClass* output = new BinOutMCP23S17Class(*mcp000,7,0);
+	BinInClass* input = new BinInMCP23S17Class(*mcp000,7,0);
+	binInPoller.add(input);
+	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, 7, "TurnAll");
+	lightSystem->addAllOffGroup(output, input, httpButton);
 
 #endif
 	ApplicationClass::init();
-	webServer.addPath("/button",HttpPathDelegate(&BinHttpButtonsClass::onHttp,httpButtons));
+//	webServer.addPath("/button",HttpPathDelegate(&BinHttpButtonsClass::onHttp,httpButtons));
 	// Web Sockets configuration
 	webServer.enableWebSockets(true);
 	webServer.setWebSocketConnectionHandler(WebSocketDelegate(&AppClass::wsConnected,this));
 	webServer.setWebSocketMessageHandler(WebSocketMessageDelegate(&AppClass::wsMessageReceived,this));
 	webServer.setWebSocketBinaryHandler(WebSocketBinaryDelegate(&AppClass::wsBinaryReceived,this));
 	webServer.setWebSocketDisconnectionHandler(WebSocketDelegate(&AppClass::wsDisconnected,this));
-//	webServer.addPath("/monitor",monitor);
 //	Serial.printf("AppClass init done!\n");
 }
 
@@ -88,12 +69,12 @@ void AppClass::wsMessageReceived(WebSocket& socket, const String& message)
 
 	if (command == "setButton")
 	{
-		httpButtons->onWSReceiveButton(root);
+		lightSystem->onWSReceiveButton(root);
 	}
 
 	if (command == "getButtons")
 	{
-		httpButtons->onWSGetButtons(socket);
+		lightSystem->onWSGetButtons(socket);
 	}
 
 }
@@ -130,11 +111,3 @@ void AppClass::_loop()
 	Serial.printf("Free Heap: %d WS count: %d\n", system_get_free_heap_size(), webServer.getActiveWebSockets().count());
 }
 
-//void monitor(HttpRequest &request, HttpResponse &response)
-//{
-//	JsonObjectStream* stream = new JsonObjectStream();
-//	JsonObject& json = stream->getRoot();
-//
-//	response.setHeader("Access-Control-Allow-Origin", "*");
-//	response.sendJsonObject(stream);
-//}
