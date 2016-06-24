@@ -88,3 +88,50 @@ uint16_t LightSystemClass::getRandom(uint16_t min, uint16_t max)
 //	Serial.printf("Random long: %d, Random idx: %d\n", rand, idx);
 //	Serial.println((labs(rand) * 7.0 ) / LONG_MAX);
 }
+
+void LightSystemClass::_randomTurnOn()
+{
+	randomLightGroupIdx = getRandom(0, _outputs.count());
+	_outputs[randomLightGroupIdx]->state.set(true);
+	uint8_t onTime = getRandom(minOn, maxOn);
+	Serial.printf("Random ON, %d: for %d seconds\n", randomLightGroupIdx, onTime);
+	_randomTimer.initializeMs(onTime * 1000, TimerDelegate(&LightSystemClass::_randomTurnOff, this)).start(true);
+}
+
+void LightSystemClass::_randomTurnOff()
+{
+	_outputs[randomLightGroupIdx]->state.set(false);
+	uint8_t offTime = getRandom(minOff, maxOff);
+	Serial.printf("Random OFF, %d: wait for %d seconds\n", randomLightGroupIdx, offTime);
+	_randomTimer.initializeMs(offTime * 1000, TimerDelegate(&LightSystemClass::_randomTurnOn, this)).start(true);
+}
+
+void LightSystemClass::randomLight(uint8_t state)
+{
+	if (state)
+	{
+		Serial.printf("Random ON!!!");
+		_randomTurnOn();
+	}
+	else
+	{
+		Serial.printf("Random OFF!!!");
+		_outputs[randomLightGroupIdx]->state.set(false);
+		_randomTimer.stop();
+
+	}
+}
+
+void LightSystemClass::addRandomButton(BinHttpButtonClass* httpButton)
+{
+	if (httpButton)
+	{
+		_randomState = new BinStateClass();
+		_randomState->onChange(onStateChangeDelegate(&LightSystemClass::randomLight, this));
+
+		httpButton->addOutputState(_randomState);
+//		_turnAllState.onChange(onStateChangeDelegate(&BinHttpButtonClass::wsSendButton, httpButton));
+		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, _randomState));
+		_binHttpButtons.add(httpButton);
+	}
+}

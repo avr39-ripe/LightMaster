@@ -37,6 +37,9 @@ void AppClass::init()
 	binInPoller.add(input);
 	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, 7, "TurnAll");
 	lightSystem->addAllOffGroup(output, input, httpButton);
+	httpButton = new BinHttpButtonClass(webServer, 8, "Random!");
+	lightSystem->addRandomButton(httpButton);
+//	lightSystem->randomLight(true);
 
 #endif
 	ApplicationClass::init();
@@ -109,6 +112,6 @@ void AppClass::_loop()
 	ApplicationClass::_loop();
 //	Serial.printf("AppClass loop\n");
 	Serial.printf("Free Heap: %d WS count: %d\n", system_get_free_heap_size(), webServer.getActiveWebSockets().count());
-	Serial.printf("Random: %d\n", lightSystem->getRandom(8,25));
+//	Serial.printf("Random: %d\n", lightSystem->getRandom(8,25));
 }
 
