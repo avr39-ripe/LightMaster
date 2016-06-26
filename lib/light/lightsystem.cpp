@@ -9,6 +9,7 @@
 
 LightSystemClass::LightSystemClass()
 {
+	_loadBinConfig();
 	_allOffState = new BinStateClass();
 	_allOffState->onChange(onStateChangeDelegate(&LightSystemClass::toggleAllOff, this));
 }
@@ -91,18 +92,18 @@ uint16_t LightSystemClass::getRandom(uint16_t min, uint16_t max)
 
 void LightSystemClass::_randomTurnOn()
 {
-	randomLightGroupIdx = getRandom(0, _outputs.count());
-	_outputs[randomLightGroupIdx]->state.set(true);
-	uint8_t onTime = getRandom(minOn, maxOn);
-	Serial.printf("Random ON, %d: for %d seconds\n", randomLightGroupIdx, onTime);
+	_randomLightGroupIdx = getRandom(0, _outputs.count());
+	_outputs[_randomLightGroupIdx]->state.set(true);
+	uint8_t onTime = getRandom(_minOn, _maxOn);
+	Serial.printf("Random ON, %d: for %d seconds\n", _randomLightGroupIdx, onTime);
 	_randomTimer.initializeMs(onTime * 1000, TimerDelegate(&LightSystemClass::_randomTurnOff, this)).start(true);
 }
 
 void LightSystemClass::_randomTurnOff()
 {
-	_outputs[randomLightGroupIdx]->state.set(false);
-	uint8_t offTime = getRandom(minOff, maxOff);
-	Serial.printf("Random OFF, %d: wait for %d seconds\n", randomLightGroupIdx, offTime);
+	_outputs[_randomLightGroupIdx]->state.set(false);
+	uint8_t offTime = getRandom(_minOff, _maxOff);
+	Serial.printf("Random OFF, %d: wait for %d seconds\n", _randomLightGroupIdx, offTime);
 	_randomTimer.initializeMs(offTime * 1000, TimerDelegate(&LightSystemClass::_randomTurnOn, this)).start(true);
 }
 
@@ -116,7 +117,7 @@ void LightSystemClass::randomLight(uint8_t state)
 	else
 	{
 		Serial.printf("Random OFF!!!");
-		_outputs[randomLightGroupIdx]->state.set(false);
+		_outputs[_randomLightGroupIdx]->state.set(false);
 		_randomTimer.stop();
 
 	}
@@ -133,5 +134,96 @@ void LightSystemClass::addRandomButton(BinHttpButtonClass* httpButton)
 //		_turnAllState.onChange(onStateChangeDelegate(&BinHttpButtonClass::wsSendButton, httpButton));
 		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, _randomState));
 		_binHttpButtons.add(httpButton);
+	}
+}
+
+void LightSystemClass::onWSReceiveRandom(JsonObject& jsonRoot)
+{
+	uint8_t needSave = false;
+
+	if (jsonRoot["startTime"].success())
+	{
+		_randomStartTime = jsonRoot["startTime"];
+		needSave = true;
+	}
+	if (jsonRoot["stopTime"].success())
+	{
+		_randomStopTime = jsonRoot["stopTime"];
+		needSave = true;
+	}
+	if (jsonRoot["minOn"].success())
+	{
+		_minOn = jsonRoot["minOn"];
+		needSave = true;
+	}
+	if (jsonRoot["maxOn"].success())
+	{
+		_maxOn = jsonRoot["maxOn"];
+		needSave = true;
+	}
+	if (jsonRoot["minOff"].success())
+	{
+		_minOff = jsonRoot["minOff"];
+		needSave = true;
+	}
+	if (jsonRoot["maxOff"].success())
+	{
+		_maxOff = jsonRoot["maxOff"];
+		needSave = true;
+	}
+
+	if (needSave)
+	{
+		_saveBinConfig();
+	}
+}
+
+void LightSystemClass::onWSGetRandom(WebSocket& socket)
+{
+	DynamicJsonBuffer jsonBuffer;
+	String buf;
+	JsonObject& root = jsonBuffer.createObject();
+	root["response"] = "getRandom";
+
+	root["startTime"] = _randomStartTime;
+	root["stopTime"] = _randomStopTime;
+	root["minOn"] = _minOn;
+	root["maxOn"] = _maxOn;
+	root["minOff"] = _minOff;
+	root["maxOff"] = _maxOff;
+
+	root.printTo(buf);
+	socket.sendString(buf);
+
+}
+
+void LightSystemClass::_saveBinConfig()
+{
+	Serial.printf("Try to save bin cfg..\n");
+	file_t file = fileOpen("lightSys.cfg", eFO_CreateIfNotExist | eFO_WriteOnly);
+	fileWrite(file, &_randomStartTime, sizeof(_randomStartTime));
+	fileWrite(file, &_randomStopTime, sizeof(_randomStopTime));
+	fileWrite(file, &_minOn, sizeof(_minOn));
+	fileWrite(file, &_maxOn, sizeof(_maxOn));
+	fileWrite(file, &_minOff, sizeof(_minOff));
+	fileWrite(file, &_maxOff, sizeof(_maxOff));
+	fileClose(file);
+}
+
+void LightSystemClass::_loadBinConfig()
+{
+	Serial.printf("Try to load bin cfg..\n");
+	if (fileExist("lightSys.cfg"))
+	{
+		Serial.printf("Will load bin cfg..\n");
+		file_t file = fileOpen("lightSys.cfg", eFO_ReadOnly);
+		fileSeek(file, 0, eSO_FileStart);
+		fileRead(file, &_randomStartTime, sizeof(_randomStartTime));
+		fileRead(file, &_randomStopTime, sizeof(_randomStopTime));
+		fileRead(file, &_minOn, sizeof(_minOn));
+		fileRead(file, &_maxOn, sizeof(_maxOn));
+		fileRead(file, &_minOff, sizeof(_minOff));
+		fileRead(file, &_maxOff, sizeof(_maxOff));
+		fileClose(file);
 	}
 }

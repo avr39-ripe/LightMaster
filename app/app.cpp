@@ -12,6 +12,7 @@
 
 void AppClass::init()
 {
+	ApplicationClass::init();
 	ntpClient = new NtpClient("pool.ntp.org", 300);
 	//TODO: add config param for TZ!
 	SystemClock.setTimeZone(3);
@@ -42,7 +43,7 @@ void AppClass::init()
 //	lightSystem->randomLight(true);
 
 #endif
-	ApplicationClass::init();
+
 //	webServer.addPath("/button",HttpPathDelegate(&BinHttpButtonsClass::onHttp,httpButtons));
 	// Web Sockets configuration
 	webServer.enableWebSockets(true);
@@ -78,6 +79,16 @@ void AppClass::wsMessageReceived(WebSocket& socket, const String& message)
 	if (command == "getButtons")
 	{
 		lightSystem->onWSGetButtons(socket);
+	}
+
+	if (command == "setRandom")
+	{
+		lightSystem->onWSReceiveRandom(root);
+	}
+
+	if (command == "getRandom")
+	{
+		lightSystem->onWSGetRandom(socket);
 	}
 
 }

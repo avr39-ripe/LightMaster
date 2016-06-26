@@ -1,3 +1,5 @@
+'use strict';
+
 function getFanConfig() {
     fetch('/fan')
   	.then(function(response) {
@@ -142,13 +144,80 @@ function post_fw(action) {
 		body: JSON.stringify(json)
 	});
 }
+
+//Websockets
+var websocket;
+function onOpen(evt) {
+	console.log.bind(console)("CONNECTED");
+	wsGetRandom();
+//	websocket.send("Sming love WebSockets");
+}
+
+function onClose(evt) {
+	console.log.bind(console)("DISCONNECTED");
+}
+
+function onMessage(evt) {
+	console.log.bind(console)("Message recv: " + evt.data);
+	var json = JSON.parse(evt.data);
+	console.log.bind(console)("Json recv: " + json);
+	
+	if (json.response == "getRandom") {
+		onGetRandom(json);
+	}
+	//websocket.close();
+}
+
+function onError(evt) {
+	console.log.bind(console)("ERROR: " + evt.data);
+}
+
+function initWS() {
+	var wsUri = "ws://" + location.host + "/";
+	websocket = new WebSocket(wsUri);
+	websocket.onopen = function(evt) { onOpen(evt) };
+	websocket.onclose = function(evt) { onClose(evt) };
+	websocket.onmessage = function(evt) { onMessage(evt) };
+	websocket.onerror = function(evt) { onError(evt) };
+}
+
+function closeWS() {
+	websocket.close();
+}
+
+function wsGetRandom() {
+	var json = {};
+	json["command"] = "getRandom";
+	websocket.send(JSON.stringify(json));
+}
+
+function onGetRandom(json) {
+	Object.keys(json).forEach(function(key) {
+		if(key != "response") {
+				document.getElementById(key).value = json[key];
+		}
+	});
+}
+
+function sendRandom(event) {
+	event.preventDefault();
+	var json = {};
+	json["command"] = "setRandom";
+	
+	json["startTime"] = document.getElementById('startTime').value;
+	json["stopTime"] = document.getElementById('stopTime').value;
+	json["minOn"] = document.getElementById('minOn').value;
+	json["maxOn"] = document.getElementById('maxOn').value;
+	json["minOff"] = document.getElementById('minOff').value;
+	json["maxOff"] = document.getElementById('maxOff').value;
+	
+	websocket.send(JSON.stringify(json));
+}
 //Here we put some initial code which starts after DOM loaded
 function onDocumentRedy() {
     //Init
+    initWS();
     get_config();
-    get_fan_config();
-    get_pump_config();
-    getFanConfig();
     
     document.getElementById('form_netcfg').addEventListener('submit', post_netcfg);
     document.getElementById('netcfg_cancel').addEventListener('click', get_config);
@@ -156,12 +225,8 @@ function onDocumentRedy() {
 	document.getElementById('settings_cancel').addEventListener('click', get_config);
 	document.getElementById('settings_update_fw').addEventListener('click', function() { post_fw("update"); });
 	document.getElementById('settings_switch_fw').addEventListener('click', function() { post_fw("switch"); });
-	document.getElementById('form_thermostat_fan').addEventListener('submit', post_fan_config);
-	document.getElementById('thermostat_fan_cancel').addEventListener('click', get_fan_config);
-	document.getElementById('form_thermostat_pump').addEventListener('submit', post_pump_config);
-	document.getElementById('thermostat_pump_cancel').addEventListener('click', get_pump_config);
-	document.getElementById('form_fan').addEventListener('submit', postFanConfig);
-	document.getElementById('fan_cancel').addEventListener('click', getFanConfig);
+	document.getElementById('form_random').addEventListener('submit', sendRandom);
+	document.getElementById('random_cancel').addEventListener('click', wsGetRandom);
 
 }
 

@@ -26,10 +26,14 @@ public:
 	void addRandomButton(BinHttpButtonClass* httpButton);
 	void onWSReceiveButton(JsonObject& jsonRoot) { _binHttpButtons.onWSReceiveButton(jsonRoot); };
 	void onWSGetButtons(WebSocket& socket) { _binHttpButtons.onWSGetButtons(socket); };
+	void onWSReceiveRandom(JsonObject& jsonRoot);
+	void onWSGetRandom(WebSocket& socket);
 	void toggleAllOff(uint8_t state);
 	uint16_t getRandom(uint16_t min, uint16_t max);
 	void randomLight(uint8_t state);
 private:
+	void _saveBinConfig();
+	void _loadBinConfig();
 	void _randomTurnOn();
 	void _randomTurnOff();
 	BinStateClass* _allOffState;
@@ -38,12 +42,15 @@ private:
 	Vector<BinOutClass*> _outputs;
 	BinHttpButtonsClass _binHttpButtons;
 	BinStateClass* _randomState = nullptr;
-	uint8_t randomLightGroupIdx = 0;
+	uint8_t _randomLightGroupIdx = 0;
 	Timer _randomTimer;
-	uint8_t minOn = 15; //minimum random On time in seconds
-	uint8_t maxOn = 45; //max random On time in seconds
-	uint8_t minOff = 20; //min random Off time
-	uint8_t maxOff = 60; //max random Off time
+	uint16_t _randomStartTime = 0;
+	uint16_t _randomStopTime = 1439;
+	uint8_t _minOn = 15; //minimum random On time in seconds
+	uint8_t _maxOn = 45; //max random On time in seconds
+	uint8_t _minOff = 20; //min random Off time
+	uint8_t _maxOff = 60; //max random Off time
 };
+
 
 #endif /* LIB_LIGHT_LIGHTSYSTEM_H_ */
