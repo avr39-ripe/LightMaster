@@ -36,6 +36,8 @@ private:
 	void _loadBinConfig();
 	void _randomTurnOn();
 	void _randomTurnOff();
+	void _randomEnabler(uint8_t state);
+	void _randomEnablerCheck();
 	BinStateClass* _allOffState;
 	BinOutClass* _allOffOutput = nullptr;
 	Vector<BinInClass*> _inputs;
@@ -43,6 +45,7 @@ private:
 	BinHttpButtonsClass _binHttpButtons;
 	BinStateClass* _randomState = nullptr;
 	uint8_t _randomLightGroupIdx = 0;
+	Timer _randomEnablerTimer;
 	Timer _randomTimer;
 	uint16_t _randomStartTime = 0;
 	uint16_t _randomStopTime = 1439;

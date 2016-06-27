@@ -20,6 +20,11 @@ void AppClass::init()
 
 #ifdef MCP23S17 //use MCP23S17
 	mcp000 = new MCP(0x000, mcp23s17_cs);
+
+	mcp000->begin();
+	mcp000->pinMode(0xFF00); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
+	mcp000->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
+	mcp000->digitalWrite(0x00FF); //Set all PORTA to 0xFF for simple relay which is active LOW
 #endif
 
 #ifndef MCP23S17 //use GPIO
@@ -107,12 +112,7 @@ void AppClass::start()
 {
 	ApplicationClass::start();
 	binInPoller.start();
-#ifdef MCP23S17 //use MCP23S17
-	mcp000->begin();
-	mcp000->pinMode(0xFF00); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
-	mcp000->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
-	mcp000->digitalWrite(0x00FF); //Set all PORTA to 0xFF for simple relay which is active LOW
-#endif
+
 //	Serial.printf("AppClass start done!\n");
 }
 

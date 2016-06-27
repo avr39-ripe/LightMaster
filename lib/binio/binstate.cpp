@@ -8,8 +8,8 @@
 
 BinStateClass::BinStateClass(uint8_t polarity, uint8_t toggleActive)
 {
-	polarity ? _state |= polarityBit : _state &= ~(polarityBit);
-	toggleActive ? _state |= toggleActiveBit : _state &= ~(toggleActiveBit);
+	polarity ? _state |= BinState::polarityBit : _state &= ~(BinState::polarityBit);
+	toggleActive ? _state |= BinState::toggleActiveBit : _state &= ~(BinState::toggleActiveBit);
 }
 
 void BinStateClass::set(uint8_t state, uint8_t forceDelegatesCall)
@@ -31,6 +31,11 @@ void BinStateClass::set(uint8_t state, uint8_t forceDelegatesCall)
 	if (get() != getPrev() || forceDelegatesCall)
 	{
 		_callOnChangeDelegates(); //Call external delegates on state CHANGE
+
+		if ( (_state & BinState::persistentBit) != 0 )
+		{
+			_saveBinConfig();
+		}
 	}
 }
 
@@ -75,3 +80,33 @@ void BinStateClass::_callOnChangeDelegates()
 	}
 }
 
+void BinStateClass::_saveBinConfig()
+{
+	Serial.printf("Try to save bin cfg..\n");
+	file_t file = fileOpen(String(".state" + _uid), eFO_CreateIfNotExist | eFO_WriteOnly);
+	fileWrite(file, &_state, sizeof(_state));
+	fileClose(file);
+}
+
+void BinStateClass::_loadBinConfig()
+{
+	uint8_t tempState = 0;
+	Serial.printf("Try to load bin cfg..\n");
+	if (fileExist(String(".state" + _uid)))
+	{
+		Serial.printf("Will load bin cfg..\n");
+		file_t file = fileOpen(String(".state" + _uid), eFO_ReadOnly);
+		fileSeek(file, 0, eSO_FileStart);
+		fileRead(file, &tempState, sizeof(tempState));
+		fileClose(file);
+
+		set( tempState & BinState::stateBit ? getPolarity() : !getPolarity() ); //To properly call all delegates and so on
+	}
+}
+
+void BinStateClass::persistent(uint8_t uid)
+{
+	_uid = uid;
+	_loadBinConfig();
+	_state |= BinState::persistentBit;
+}

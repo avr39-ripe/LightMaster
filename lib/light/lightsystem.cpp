@@ -12,6 +12,7 @@ LightSystemClass::LightSystemClass()
 	_loadBinConfig();
 	_allOffState = new BinStateClass();
 	_allOffState->onChange(onStateChangeDelegate(&LightSystemClass::toggleAllOff, this));
+	_allOffState->persistent(0);
 }
 
 
@@ -43,6 +44,7 @@ void LightSystemClass::addAllOffGroup(BinOutClass* output, BinInClass* input, Bi
 			delete _allOffState;
 			_allOffState = &output->state;
 			_allOffState->onChange(onStateChangeDelegate(&LightSystemClass::toggleAllOff, this));
+			_allOffState->persistent(1);
 		}
 	}
 
@@ -117,8 +119,11 @@ void LightSystemClass::randomLight(uint8_t state)
 	else
 	{
 		Serial.printf("Random OFF!!!");
-		_outputs[_randomLightGroupIdx]->state.set(false);
-		_randomTimer.stop();
+		if (_randomTimer.isStarted())
+		{
+			_outputs[_randomLightGroupIdx]->state.set(false);
+			_randomTimer.stop();
+		}
 
 	}
 }
@@ -128,7 +133,8 @@ void LightSystemClass::addRandomButton(BinHttpButtonClass* httpButton)
 	if (httpButton)
 	{
 		_randomState = new BinStateClass();
-		_randomState->onChange(onStateChangeDelegate(&LightSystemClass::randomLight, this));
+		_randomState->onChange(onStateChangeDelegate(&LightSystemClass::_randomEnabler, this));
+		_randomState->persistent(2);
 
 		httpButton->addOutputState(_randomState);
 //		_turnAllState.onChange(onStateChangeDelegate(&BinHttpButtonClass::wsSendButton, httpButton));
@@ -225,5 +231,44 @@ void LightSystemClass::_loadBinConfig()
 		fileRead(file, &_minOff, sizeof(_minOff));
 		fileRead(file, &_maxOff, sizeof(_maxOff));
 		fileClose(file);
+	}
+}
+
+void LightSystemClass::_randomEnabler(uint8_t state)
+{
+	if (state)
+	{
+		_randomEnablerTimer.initializeMs(60000, TimerDelegate(&LightSystemClass::_randomEnablerCheck, this)).start(true);
+		_randomEnablerCheck();
+	}
+	else
+	{
+		randomLight(false);
+		_randomEnablerTimer.stop();
+	}
+}
+
+void LightSystemClass::_randomEnablerCheck()
+{
+	DateTime _now = SystemClock.now(eTZ_Local);
+	uint16_t _now_minutes = _now.Hour * 60 + _now.Minute;
+
+	if ((_now_minutes >= _randomStartTime) && (_now_minutes <= _randomStopTime))
+	{
+		Serial.println("RandomChecker in range!");
+		if (!_randomTimer.isStarted())
+		{
+			Serial.print(_now.toFullDateTimeString()); Serial.println(" Turn Random ON! ");
+			randomLight(true);
+		}
+	}
+	else
+	{
+		Serial.println("RandomChecker out of range!");
+		if (_randomTimer.isStarted())
+		{
+			Serial.print(_now.toFullDateTimeString()); Serial.println(" Sleep time for Random! ");
+			randomLight(false);
+		}
 	}
 }
