@@ -85,11 +85,12 @@ void LightSystemClass::toggleAllOff(uint8_t state)
 
 uint16_t LightSystemClass::getRandom(uint16_t min, uint16_t max)
 {
-	float interval = max - min;
-	long rand = os_random();
-	return min + lround((labs(rand) * interval) / LONG_MAX);
-//	Serial.printf("Random long: %d, Random idx: %d\n", rand, idx);
-//	Serial.println((labs(rand) * 7.0 ) / LONG_MAX);
+//	float interval = max - min;
+//	long rand = os_random();
+//	return min + lround((labs(rand) * interval) / LONG_MAX);
+////	Serial.printf("Random long: %d, Random idx: %d\n", rand, idx);
+////	Serial.println((labs(rand) * 7.0 ) / LONG_MAX);
+	return random(min,max);
 }
 
 void LightSystemClass::_randomTurnOn()
@@ -98,7 +99,7 @@ void LightSystemClass::_randomTurnOn()
 	_outputs[_randomLightGroupIdx]->state.set(true);
 	uint8_t onTime = getRandom(_minOn, _maxOn);
 	Serial.printf("Random ON, %d: for %d seconds\n", _randomLightGroupIdx, onTime);
-	_randomTimer.initializeMs(onTime * 1000, TimerDelegate(&LightSystemClass::_randomTurnOff, this)).start(true);
+	_randomTimer.initializeMs(onTime * 60000, TimerDelegate(&LightSystemClass::_randomTurnOff, this)).start(true);
 }
 
 void LightSystemClass::_randomTurnOff()
@@ -106,7 +107,7 @@ void LightSystemClass::_randomTurnOff()
 	_outputs[_randomLightGroupIdx]->state.set(false);
 	uint8_t offTime = getRandom(_minOff, _maxOff);
 	Serial.printf("Random OFF, %d: wait for %d seconds\n", _randomLightGroupIdx, offTime);
-	_randomTimer.initializeMs(offTime * 1000, TimerDelegate(&LightSystemClass::_randomTurnOn, this)).start(true);
+	_randomTimer.initializeMs(offTime * 60000, TimerDelegate(&LightSystemClass::_randomTurnOn, this)).start(true);
 }
 
 void LightSystemClass::randomLight(uint8_t state)

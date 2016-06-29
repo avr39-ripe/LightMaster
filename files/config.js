@@ -213,6 +213,23 @@ function sendRandom(event) {
 	
 	websocket.send(JSON.stringify(json));
 }
+
+function sendTime(event) {
+	event.preventDefault();
+	var d = new Date();
+	var json = {
+			'command'				: 	"setTime",
+			'timeZone'				:	Math.abs(d.getTimezoneOffset()/60),
+			'Second'				:	d.getUTCSeconds(),
+			'Minute'				:	d.getUTCMinutes(),
+			'Hour'					:	d.getUTCHours(),
+			'Wday'					:	d.getUTCDay(),
+			'Day'					:	d.getUTCDate(),
+			'Month'					:	d.getUTCMonth(),
+			'Year'					:	d.getUTCFullYear()
+			};
+	websocket.send(JSON.stringify(json));
+}
 //Here we put some initial code which starts after DOM loaded
 function onDocumentRedy() {
     //Init
@@ -227,6 +244,7 @@ function onDocumentRedy() {
 	document.getElementById('settings_switch_fw').addEventListener('click', function() { post_fw("switch"); });
 	document.getElementById('form_random').addEventListener('submit', sendRandom);
 	document.getElementById('random_cancel').addEventListener('click', wsGetRandom);
+	document.getElementById('sync_datetime').addEventListener('click', sendTime);
 
 }
 

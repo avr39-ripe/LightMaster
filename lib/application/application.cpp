@@ -324,6 +324,7 @@ void ApplicationConfig::load()
 
 		loopInterval = root["loopInterval"];
 		updateURL = String((const char *)root["updateURL"]);
+		timeZone = root["timeZone"];
 
 		delete[] jsonString;
 	}
@@ -332,6 +333,7 @@ void ApplicationConfig::load()
 		//Factory defaults if no config file present
 		loopInterval = 1000; // 1 second
 		updateURL = "http://192.168.31.181/";
+		timeZone = 2;
 	}
 }
 
@@ -342,6 +344,7 @@ void ApplicationConfig::save()
 
 	root["loopInterval"] = loopInterval;
 	root["updateURL"] = updateURL;
+	root["timeZone"] = timeZone;
 
 	String buf;
 	root.printTo(buf);

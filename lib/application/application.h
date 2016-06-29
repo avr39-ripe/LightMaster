@@ -28,6 +28,7 @@ public:
 	// Configuration parameters goes next
 	uint32_t loopInterval = 0; // loop interval in ms
 	String updateURL; // Firmware update URL
+	uint8_t timeZone = 2;
 private:
 	String _fileName = APP_CONFIG_FILE;
 };

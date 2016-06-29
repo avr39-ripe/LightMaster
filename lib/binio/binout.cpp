@@ -54,6 +54,6 @@ void BinOutMCP23S17Class::setUnitNumber(uint8_t unitNumber)
 
 void BinOutMCP23S17Class::_setUnitState(uint8_t state)
 {
-	Serial.printf("SetUnit: %d to %s\n", _unitNumber, this->state.getRawState() ? "true" : "false");
+//	Serial.printf("SetUnit: %d to %s\n", _unitNumber, this->state.getRawState() ? "true" : "false");
 	_mcp->digitalWrite(_unitNumber, this->state.getRawState());
 }

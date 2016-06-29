@@ -18,6 +18,8 @@ public:
 	void wsMessageReceived(WebSocket& socket, const String& message);
 	void wsBinaryReceived(WebSocket& socket, uint8_t* data, size_t size);
 	void wsDisconnected(WebSocket& socket);
+	void onWSSetTime(JsonObject& jsonRoot);
+	void onWSGetAppState(WebSocket& socket);
 protected:
 	virtual void _loop(); // Application main loop function goes here
 };
