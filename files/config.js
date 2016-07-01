@@ -1,88 +1,5 @@
 'use strict';
 
-function getFanConfig() {
-    fetch('/fan')
-  	.then(function(response) {
-      if (response.status >= 200 && response.status < 300) return response.json();
-	})
-	.then(function(configJson) {
-		Object.keys(configJson).forEach(function(key) {
-			document.getElementById(key).value = configJson[key];
-		});
-		document.getElementById('periodicTempDelta').value /= 100;
-	});
-}
-
-
-function postFanConfig(event) {
-	event.preventDefault();
-    var formData = {
-            'startDuration'			:	document.getElementById('startDuration').value,
-            'stopDuration'			:	document.getElementById('stopDuration').value,
-            'periodicInterval'		:	document.getElementById('periodicInterval').value,
-            'periodicDuration'		:	document.getElementById('periodicDuration').value,
-            'periodicTempDelta'		:	document.getElementById('periodicTempDelta').value * 100,
-            'checkerInterval'		:	document.getElementById('checkerInterval').value
-            };
-   	fetch('/fan', {
-		method: 'post',
-		headers: {
-			'Accept': 'application/json',
-			'Content-Type': 'application/json; charset=utf-8'
-			},
-		body: JSON.stringify(formData)
-	}); 
-}
-
-function getThermostatConfig(name) {
-    fetch('/thermostat.'+name)
-  	.then(function(response) {
-      if (response.status >= 200 && response.status < 300) return response.json();
-	})
-	.then(function(configJson) {
-		Object.keys(configJson).forEach(function(key) {
-			document.getElementById(key+'_'+name).value = configJson[key] / 100;
-		});
-	});
-}
-
-function get_fan_config() {
-	getThermostatConfig('fan');
-}
-
-function get_pump_config() {
-	getThermostatConfig('pump');
-}
-
-function postThermostatConfg(name,jsonData) {
-	fetch('/thermostat.'+name, {
-		method: 'post',
-		headers: {
-			'Accept': 'application/json',
-			'Content-Type': 'application/json; charset=utf-8'
-			},
-		body: JSON.stringify(jsonData)
-	});
-}
-
-function post_fan_config(event) {
-	event.preventDefault();
-    var formData = {
-            'targetTemp'		:	document.getElementById('targetTemp_fan').value * 100,
-            'targetTempDelta'	:	document.getElementById('targetTempDelta_fan').value * 100
-            };
-    postThermostatConfg('fan', formData);
-}
-
-function post_pump_config(event) {
-	event.preventDefault();
-    var formData = {
-            'targetTemp'		:	document.getElementById('targetTemp_pump').value * 100,
-            'targetTempDelta'	:	document.getElementById('targetTempDelta_pump').value * 100
-            };
-    postThermostatConfg('pump', formData);
-}
-
 function get_config() {
     fetch('/config.json')
   	.then(function(response) {
@@ -179,6 +96,7 @@ function initWS() {
 	websocket.onclose = function(evt) { onClose(evt) };
 	websocket.onmessage = function(evt) { onMessage(evt) };
 	websocket.onerror = function(evt) { onError(evt) };
+	websocket.binaryType = 'arraybuffer';
 }
 
 function closeWS() {
@@ -216,20 +134,15 @@ function sendRandom(event) {
 
 function sendTime(event) {
 	event.preventDefault();
-	var d = new Date();
-	var json = {
-			'command'				: 	"setTime",
-			'timeZone'				:	Math.abs(d.getTimezoneOffset()/60),
-			'Second'				:	d.getUTCSeconds(),
-			'Minute'				:	d.getUTCMinutes(),
-			'Hour'					:	d.getUTCHours(),
-			'Wday'					:	d.getUTCDay(),
-			'Day'					:	d.getUTCDate(),
-			'Month'					:	d.getUTCMonth(),
-			'Year'					:	d.getUTCFullYear()
-			};
-	websocket.send(JSON.stringify(json));
+	var ab = new ArrayBuffer(5);
+	var bin = new DataView(ab);
+	bin.setUint8(0,42);
+	bin.setUint32(1,Math.round(new Date().getTime() / 1000));
+	
+	console.log.bind(console)(bin.getUint8(1),bin.getUint8(2),bin.getUint8(3),bin.getUint8(4));
+	websocket.send(bin.buffer);
 }
+
 //Here we put some initial code which starts after DOM loaded
 function onDocumentRedy() {
     //Init

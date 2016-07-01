@@ -112,6 +112,24 @@ void AppClass::wsMessageReceived(WebSocket& socket, const String& message)
 void AppClass::wsBinaryReceived(WebSocket& socket, uint8_t* data, size_t size)
 {
 	Serial.printf("Websocket binary data recieved, size: %d\r\n", size);
+	struct cmdSetTimeType
+	{
+		uint8_t opCode = 0;
+		long timestamp = 0;
+	};
+	cmdSetTimeType setTimeCmd;
+	Serial.printf("Opcode: %d\n", data[0]);
+
+	if ( data[0] == 42)
+	{
+		os_memcpy(&setTimeCmd, data, sizeof(setTimeCmd));
+		Serial.printf("Opcode: %d, timestamp %u\n", setTimeCmd.opCode, *((unsigned long*)data+1));
+//		Serial.print("Timestamp: "); Serial.println((long)(*data+1));
+		for (uint8_t i = 0; i<4; i++)
+		{
+			Serial.println(data[1+i]);
+		}
+	}
 }
 
 void AppClass::wsDisconnected(WebSocket& socket)
