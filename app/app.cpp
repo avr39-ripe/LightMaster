@@ -118,9 +118,12 @@ void AppClass::wsBinaryReceived(WebSocket& socket, uint8_t* data, size_t size)
 	{
 		uint32_t timestamp = 0;
 		os_memcpy(&timestamp, (&data[1]), 4);
-		Config.timeZone = data[5];
-		Config.save();
-		SystemClock.setTimeZone(Config.timeZone);
+		if (Config.timeZone != data[5])
+		{
+			Config.timeZone = data[5];
+			Config.save();
+			SystemClock.setTimeZone(Config.timeZone);
+		}
 		SystemClock.setTime(timestamp, eTZ_UTC);
 	}
 }
