@@ -124,11 +124,24 @@ void AppClass::wsBinaryReceived(WebSocket& socket, uint8_t* data, size_t size)
 	{
 		os_memcpy(&setTimeCmd, data, sizeof(setTimeCmd));
 		Serial.printf("Opcode: %d, timestamp %u\n", setTimeCmd.opCode, *((unsigned long*)data+1));
-//		Serial.print("Timestamp: "); Serial.println((long)(*data+1));
+//		Serial.print("Timestamp: "); Serial.println(*((long*)(data+1)));
+		unsigned long timestamp = (data[4] << 24 | data[3] << 16 | data[2] << 8 | data[1]);
+		Serial.printf("timestamp = %u\n", timestamp);
+		SystemClock.setTime(timestamp, eTZ_UTC);
+		union buff {
+					uint32_t num;
+					uint8_t elem[4];
+				} buffer;
 		for (uint8_t i = 0; i<4; i++)
 		{
 			Serial.println(data[1+i]);
+			buffer.elem[i] = data[1+i];
 		}
+
+//		timestamp = 0;
+//		timestamp = *((unsigned long*)(data+1));
+		Serial.printf("Buffer.num = %u\n", buffer.num);
+
 	}
 }
 

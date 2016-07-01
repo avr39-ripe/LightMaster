@@ -137,7 +137,7 @@ function sendTime(event) {
 	var ab = new ArrayBuffer(5);
 	var bin = new DataView(ab);
 	bin.setUint8(0,42);
-	bin.setUint32(1,Math.round(new Date().getTime() / 1000));
+	bin.setUint32(1,Math.round(new Date().getTime() / 1000),true);
 	
 	console.log.bind(console)(bin.getUint8(1),bin.getUint8(2),bin.getUint8(3),bin.getUint8(4));
 	websocket.send(bin.buffer);
