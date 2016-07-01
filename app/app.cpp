@@ -112,36 +112,16 @@ void AppClass::wsMessageReceived(WebSocket& socket, const String& message)
 void AppClass::wsBinaryReceived(WebSocket& socket, uint8_t* data, size_t size)
 {
 	Serial.printf("Websocket binary data recieved, size: %d\r\n", size);
-	struct cmdSetTimeType
-	{
-		uint8_t opCode = 0;
-		long timestamp = 0;
-	};
-	cmdSetTimeType setTimeCmd;
 	Serial.printf("Opcode: %d\n", data[0]);
 
 	if ( data[0] == 42)
 	{
-		os_memcpy(&setTimeCmd, data, sizeof(setTimeCmd));
-		Serial.printf("Opcode: %d, timestamp %u\n", setTimeCmd.opCode, *((unsigned long*)data+1));
-//		Serial.print("Timestamp: "); Serial.println(*((long*)(data+1)));
-		unsigned long timestamp = (data[4] << 24 | data[3] << 16 | data[2] << 8 | data[1]);
-		Serial.printf("timestamp = %u\n", timestamp);
+		uint32_t timestamp = 0;
+		os_memcpy(&timestamp, (&data[1]), 4);
+		Config.timeZone = data[5];
+		Config.save();
+		SystemClock.setTimeZone(Config.timeZone);
 		SystemClock.setTime(timestamp, eTZ_UTC);
-		union buff {
-					uint32_t num;
-					uint8_t elem[4];
-				} buffer;
-		for (uint8_t i = 0; i<4; i++)
-		{
-			Serial.println(data[1+i]);
-			buffer.elem[i] = data[1+i];
-		}
-
-//		timestamp = 0;
-//		timestamp = *((unsigned long*)(data+1));
-		Serial.printf("Buffer.num = %u\n", buffer.num);
-
 	}
 }
 

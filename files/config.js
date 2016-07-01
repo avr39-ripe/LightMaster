@@ -134,12 +134,13 @@ function sendRandom(event) {
 
 function sendTime(event) {
 	event.preventDefault();
-	var ab = new ArrayBuffer(5);
+	var ab = new ArrayBuffer(6);
 	var bin = new DataView(ab);
+	var d = new Date();
 	bin.setUint8(0,42);
-	bin.setUint32(1,Math.round(new Date().getTime() / 1000),true);
-	
-	console.log.bind(console)(bin.getUint8(1),bin.getUint8(2),bin.getUint8(3),bin.getUint8(4));
+	bin.setUint32(1,Math.round(d.getTime() / 1000),true);
+	bin.setUint8(5, Math.abs(d.getTimezoneOffset()/60));	
+//	console.log.bind(console)(bin.getUint8(1),bin.getUint8(2),bin.getUint8(3),bin.getUint8(4));
 	websocket.send(bin.buffer);
 }
 
