@@ -10,7 +10,12 @@
 
 char zoneNames[][20] = {{"Прихожая"},{"Холл"},{"Столовая"},{"Кухня"},{"Низ холла"},{"Спальня 1"},{"Спальня 2"}};
 //AppClass
-
+AppClass::AppClass()
+:ApplicationClass()
+{
+	_wsBinSetters[sysId] = WebSocketBinaryDelegate(&AppClass::wsBinSetter,this);
+	_wsBinGetters[sysId] = WebSocketBinaryDelegate(&AppClass::wsBinGetter,this);
+}
 void AppClass::init()
 {
 	ApplicationClass::init();
@@ -114,17 +119,62 @@ void AppClass::wsBinaryReceived(WebSocket& socket, uint8_t* data, size_t size)
 	Serial.printf("Websocket binary data recieved, size: %d\r\n", size);
 	Serial.printf("Opcode: %d\n", data[0]);
 
-	if ( data[0] == 42)
+	if ( data[wsBinConst::wsCmd] == wsBinConst::setCmd)
 	{
-		uint32_t timestamp = 0;
-		os_memcpy(&timestamp, (&data[1]), 4);
-		if (Config.timeZone != data[5])
+		Serial.printf("wsSetCmd\n");
+		if (_wsBinSetters.contains(data[wsBinConst::wsSysId]))
 		{
-			Config.timeZone = data[5];
+			Serial.printf("wsSysId = %d setter called!\n", data[wsBinConst::wsSysId]);
+			_wsBinSetters[data[wsBinConst::wsSysId]](socket, data, size);
+		}
+	}
+
+	if ( data[wsBinConst::wsCmd] == wsBinConst::getCmd)
+	{
+		Serial.printf("wsGetCmd\n");
+		if (_wsBinGetters.contains(data[wsBinConst::wsSysId]))
+		{
+			Serial.printf("wsSysId = %d getter called!\n", data[wsBinConst::wsSysId]);
+			_wsBinGetters[data[wsBinConst::wsSysId]](socket, data, size);
+		}
+	}
+}
+
+void AppClass::wsBinSetter(WebSocket& socket, uint8_t* data, size_t size)
+{
+	switch (data[wsBinConst::wsSubCmd])
+	{
+	case wsBinConst::scAppSetTime:
+		uint32_t timestamp = 0;
+		os_memcpy(&timestamp, (&data[wsBinConst::wsPayLoadStart]), 4);
+		if (Config.timeZone != data[wsBinConst::wsPayLoadStart + 4])
+		{
+			Config.timeZone = data[wsBinConst::wsPayLoadStart + 4];
 			Config.save();
 			SystemClock.setTimeZone(Config.timeZone);
 		}
 		SystemClock.setTime(timestamp, eTZ_UTC);
+		break;
+	}
+}
+
+void AppClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
+{
+	switch (data[wsBinConst::wsSubCmd])
+	{
+	case wsBinConst::scAppGetStatus:
+		uint8_t* buffer = new uint8_t[wsBinConst::wsPayLoadStart + 4 + 4];
+		buffer[wsBinConst::wsCmd] = wsBinConst::getResponse;
+		buffer[wsBinConst::wsSysId] = sysId;
+		buffer[wsBinConst::wsSubCmd] = wsBinConst::scAppGetStatus;
+
+		DateTime now = SystemClock.now();
+		uint32_t timestamp = now.toUnixTime();
+		os_memcpy((&buffer[wsBinConst::wsPayLoadStart]), &_counter, sizeof(_counter));
+		os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 4]), &timestamp, sizeof(timestamp));
+		socket.sendBinary(buffer, wsBinConst::wsPayLoadStart + 4 + 4);
+		delete buffer;
+		break;
 	}
 }
 

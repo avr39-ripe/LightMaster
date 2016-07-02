@@ -1,5 +1,25 @@
 'use strict';
 
+//wsBinProtocol constants
+const wsBinConst = {
+//Frame header offsets
+	wsCmd			: 0, //Command type
+	wsSysId			: 1, //target sysId
+	wsSubCmd		: 2, //sub-command type
+	wsPayLoadStart	: 3,
+
+	reservedCmd		: 0,
+	getCmd			: 1,
+	setCmd			: 2,
+	getResponse		: 3,
+	setAck			: 4,
+	setNack			: 5,
+
+// sub-command
+	scAppSetTime	: 1,
+	scAppGetStatus	: 2
+};
+
 function get_config() {
     fetch('/config.json')
   	.then(function(response) {
@@ -134,13 +154,17 @@ function sendRandom(event) {
 
 function sendTime(event) {
 	event.preventDefault();
-	var ab = new ArrayBuffer(6);
+	var ab = new ArrayBuffer(8);
 	var bin = new DataView(ab);
 	var d = new Date();
-	bin.setUint8(0,42);
-	bin.setUint32(1,Math.round(d.getTime() / 1000),true);
-	bin.setUint8(5, Math.abs(d.getTimezoneOffset()/60));	
-//	console.log.bind(console)(bin.getUint8(1),bin.getUint8(2),bin.getUint8(3),bin.getUint8(4));
+	
+	bin.setUint8(wsBinConst.wsCmd, wsBinConst.setCmd);
+	bin.setUint8(wsBinConst.wsSysId, 1); //AppClass.sysId = 1
+	bin.setUint8(wsBinConst.wsSubCmd, wsBinConst.scAppSetTime);
+	
+	bin.setUint32(wsBinConst.wsPayLoadStart,Math.round(d.getTime() / 1000),true);
+	bin.setUint8(wsBinConst.wsPayLoadStart + 4, Math.abs(d.getTimezoneOffset()/60));	
+	console.log.bind(console)(bin.getUint8(1),bin.getUint8(2),bin.getUint8(3),bin.getUint8(4));
 	websocket.send(bin.buffer);
 }
 
