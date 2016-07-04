@@ -1,65 +1,26 @@
 'use strict';
 
-//wsBinProtocol constants
-const wsBinConst = {
-//Frame header offsets
-	wsCmd			: 0, //Command type
-	wsSysId			: 1, //target sysId
-	wsSubCmd		: 2, //sub-command type
-	wsPayLoadStart	: 3,
+// function wsGetAppState() {
+	// var json = {};
+	// json["command"] = "getAppState";
+	// websocket.send(JSON.stringify(json));
+// }
 
-	reservedCmd		: 0,
-	getCmd			: 1,
-	setCmd			: 2,
-	getResponse		: 3,
-	setAck			: 4,
-	setNack			: 5,
-
-// sub-command
-	scAppSetTime	: 1,
-	scAppGetStatus	: 2
-};
-
-function updateState() {
-    var xhr1 = new XMLHttpRequest();
-    
-    xhr1.open('GET', '/state.json', true);
-
-    xhr1.send();
-
-    xhr1.onreadystatechange = function() {
-        
-        if (this.readyState != 4) return;
-        if (this.status == 200) {
-            if (this.responseText.length > 0) {
-                var stateJson = JSON.parse(this.responseText);
-                document.getElementById('counter').textContent = stateJson.counter;
-            }
-        }
-    };
-}
-
-function wsGetAppState() {
-	var json = {};
-	json["command"] = "getAppState";
-	websocket.send(JSON.stringify(json));
-}
-
-function onGetAppState(json)
-{
-	Object.keys(json).forEach(function(key) {
-		if(key != "response") {
-				document.getElementById(key).innerHTML = json[key];
-		}
-	});
-}
+// function onGetAppState(json)
+// {
+	// Object.keys(json).forEach(function(key) {
+		// if(key != "response") {
+				// document.getElementById(key).innerHTML = json[key];
+		// }
+	// });
+// }
 
 //Websockets
 var websocket;
 function onOpen(evt) {
 	console.log.bind(console)("CONNECTED");
-	wsGetAppState();
-	setInterval(wsGetAppState, 5000);
+	wsGetAppStatus();
+	setInterval(wsGetAppStatus, 5000);
 //	websocket.send("Sming love WebSockets");
 }
 
@@ -76,10 +37,16 @@ function onMessage(evt) {
     	var sysId = bin.getUint8(wsBinConst.wsSysId);
     	var subCmd = bin.getUint8(wsBinConst.wsSubCmd);
     	console.log.bind(console)(`cmd = ${cmd}, sysId = ${sysId}, subCmd = ${subCmd}`);
+    	
     	if ( cmd == wsBinConst.getResponse && subCmd == wsBinConst.scAppGetStatus) {
     		var counter = bin.getUint32(wsBinConst.wsPayLoadStart, true);
     		var timestamp = bin.getUint32(wsBinConst.wsPayLoadStart + 4, true);
     		console.log.bind(console)(`counter = ${counter}, timestamp = ${timestamp}`);
+    		
+    		document.getElementById("counter").textContent = counter;
+    		var d = new Date();
+    		d.setTime(timestamp * 1000);
+    		document.getElementById("dateTime").textContent = d.toLocaleString();
     	}
   	} else {
     	var json = JSON.parse(evt.data);
