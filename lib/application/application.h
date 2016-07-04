@@ -58,7 +58,7 @@ protected:
 	void _STAReconnect();
 	void _httpOnFile(HttpRequest &request, HttpResponse &response);
 	void _httpOnIndex(HttpRequest &request, HttpResponse &response);
-	void _httpOnStateJson(HttpRequest &request, HttpResponse &response);
+//	void _httpOnStateJson(HttpRequest &request, HttpResponse &response);
 	void _httpOnConfiguration(HttpRequest &request, HttpResponse &response);
 	void _httpOnConfigurationJson(HttpRequest &request, HttpResponse &response);
 	void _httpOnUpdate(HttpRequest &request, HttpResponse &response);

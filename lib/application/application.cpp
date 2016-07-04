@@ -164,7 +164,7 @@ void ApplicationClass::startWebServer()
 	webServer.addPath("/",HttpPathDelegate(&ApplicationClass::_httpOnIndex,this));
 	webServer.addPath("/config",HttpPathDelegate(&ApplicationClass::_httpOnConfiguration,this));
 	webServer.addPath("/config.json",HttpPathDelegate(&ApplicationClass::_httpOnConfigurationJson,this));
-	webServer.addPath("/state.json",HttpPathDelegate(&ApplicationClass::_httpOnStateJson,this));
+//	webServer.addPath("/state.json",HttpPathDelegate(&ApplicationClass::_httpOnStateJson,this));
 	webServer.addPath("/update",HttpPathDelegate(&ApplicationClass::_httpOnUpdate,this));
 	webServer.setDefaultHandler(HttpPathDelegate(&ApplicationClass::_httpOnFile,this));
 	_webServerStarted = true;
@@ -196,15 +196,15 @@ void ApplicationClass::_httpOnIndex(HttpRequest &request, HttpResponse &response
 	response.sendFile("index.html");
 }
 
-void ApplicationClass::_httpOnStateJson(HttpRequest &request, HttpResponse &response)
-{
-	JsonObjectStream* stream = new JsonObjectStream();
-	JsonObject& json = stream->getRoot();
-
-	json["counter"] = _counter;
-
-	response.sendJsonObject(stream);
-}
+//void ApplicationClass::_httpOnStateJson(HttpRequest &request, HttpResponse &response)
+//{
+//	JsonObjectStream* stream = new JsonObjectStream();
+//	JsonObject& json = stream->getRoot();
+//
+//	json["counter"] = _counter;
+//
+//	response.sendJsonObject(stream);
+//}
 
 void ApplicationClass::_httpOnConfiguration(HttpRequest &request, HttpResponse &response)
 {

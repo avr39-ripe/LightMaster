@@ -102,15 +102,15 @@ void AppClass::wsMessageReceived(WebSocket& socket, const String& message)
 		lightSystem->onWSGetRandom(socket);
 	}
 
-	if (command == "setTime")
-	{
-		onWSSetTime(root);
-	}
-
-	if (command == "getAppState")
-	{
-		onWSGetAppState(socket);
-	}
+//	if (command == "setTime")
+//	{
+//		onWSSetTime(root);
+//	}
+//
+//	if (command == "getAppState")
+//	{
+//		onWSGetAppState(socket);
+//	}
 
 }
 
@@ -168,7 +168,7 @@ void AppClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
 		buffer[wsBinConst::wsSysId] = sysId;
 		buffer[wsBinConst::wsSubCmd] = wsBinConst::scAppGetStatus;
 
-		DateTime now = SystemClock.now();
+		DateTime now = SystemClock.now(eTZ_UTC);
 		uint32_t timestamp = now.toUnixTime();
 		os_memcpy((&buffer[wsBinConst::wsPayLoadStart]), &_counter, sizeof(_counter));
 		os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 4]), &timestamp, sizeof(timestamp));
@@ -183,45 +183,45 @@ void AppClass::wsDisconnected(WebSocket& socket)
 	Serial.printf("Websocket DISCONNECTED!\n");
 }
 
-void AppClass::onWSSetTime(JsonObject& jsonRoot)
-{
-	if (jsonRoot["timeZone"].success())
-	{
-		Config.timeZone = jsonRoot["timeZone"];
-		Config.save();
-		SystemClock.setTimeZone(Config.timeZone);
-		DateTime dateTime;
-
-		dateTime.Second = jsonRoot["Second"];
-		dateTime.Minute = jsonRoot["Minute"];
-		dateTime.Hour = jsonRoot["Hour"];
-		dateTime.DayofWeek = jsonRoot["Wday"];
-		dateTime.Day = jsonRoot["Day"];
-		dateTime.Month = jsonRoot["Month"];
-		dateTime.Year = jsonRoot["Year"];
-
-		SystemClock.setTime(dateTime.toUnixTime(), eTZ_UTC);
-		randomSeed(dateTime.toUnixTime());
-
-		dateTime = SystemClock.now(eTZ_Local);
-		Serial.print("Time synced to: ");Serial.println(dateTime.toFullDateTimeString());
-	}
-}
-
-void AppClass::onWSGetAppState(WebSocket& socket)
-{
-	DynamicJsonBuffer jsonBuffer;
-	String buf;
-	JsonObject& root = jsonBuffer.createObject();
-	root["response"] = "getAppState";
-
-	root["counter"] = _counter;
-	String _date_time_str = SystemClock.getSystemTimeString();
-	root["dateTime"] = _date_time_str.c_str();
-
-	root.printTo(buf);
-	socket.sendString(buf);
-}
+//void AppClass::onWSSetTime(JsonObject& jsonRoot)
+//{
+//	if (jsonRoot["timeZone"].success())
+//	{
+//		Config.timeZone = jsonRoot["timeZone"];
+//		Config.save();
+//		SystemClock.setTimeZone(Config.timeZone);
+//		DateTime dateTime;
+//
+//		dateTime.Second = jsonRoot["Second"];
+//		dateTime.Minute = jsonRoot["Minute"];
+//		dateTime.Hour = jsonRoot["Hour"];
+//		dateTime.DayofWeek = jsonRoot["Wday"];
+//		dateTime.Day = jsonRoot["Day"];
+//		dateTime.Month = jsonRoot["Month"];
+//		dateTime.Year = jsonRoot["Year"];
+//
+//		SystemClock.setTime(dateTime.toUnixTime(), eTZ_UTC);
+//		randomSeed(dateTime.toUnixTime());
+//
+//		dateTime = SystemClock.now(eTZ_Local);
+//		Serial.print("Time synced to: ");Serial.println(dateTime.toFullDateTimeString());
+//	}
+//}
+//
+//void AppClass::onWSGetAppState(WebSocket& socket)
+//{
+//	DynamicJsonBuffer jsonBuffer;
+//	String buf;
+//	JsonObject& root = jsonBuffer.createObject();
+//	root["response"] = "getAppState";
+//
+//	root["counter"] = _counter;
+//	String _date_time_str = SystemClock.getSystemTimeString();
+//	root["dateTime"] = _date_time_str.c_str();
+//
+//	root.printTo(buf);
+//	socket.sendString(buf);
+//}
 void AppClass::start()
 {
 	ApplicationClass::start();

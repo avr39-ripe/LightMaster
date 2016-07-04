@@ -39,8 +39,8 @@ public:
 	void wsMessageReceived(WebSocket& socket, const String& message);
 	void wsBinaryReceived(WebSocket& socket, uint8_t* data, size_t size);
 	void wsDisconnected(WebSocket& socket);
-	void onWSSetTime(JsonObject& jsonRoot);
-	void onWSGetAppState(WebSocket& socket);
+//	void onWSSetTime(JsonObject& jsonRoot);
+//	void onWSGetAppState(WebSocket& socket);
 	void wsBinSetter(WebSocket& socket, uint8_t* data, size_t size);
 	void wsBinGetter(WebSocket& socket, uint8_t* data, size_t size);
 	static const uint8_t sysId = 1;
