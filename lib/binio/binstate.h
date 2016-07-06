@@ -56,4 +56,15 @@ private:
 
 };
 
+class BinStateHttpClass
+{
+public:
+	BinStateHttpClass(BinStateClass& state, String name, uint8_t uid)
+	: _state(state), _name(name), _uid(uid) {};
+	onGetState()
+private:
+	BinStateClass& _state;
+	String _name = "state"
+	uint8_t _uid = 0;
+};
 #endif /* LIB_BINIO_BINSTATE_H_ */
