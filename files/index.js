@@ -1,5 +1,90 @@
 'use strict';
 
+function BinStateClass (uid) {
+	this.uid = uid;
+	this._state = 0; //false
+	this._name = "";
+	this._initDone = false;
+	
+	this.wsGetName();
+	this.wsGetState();
+}
+
+BinStateClass.prototype.wsGet = function (cmd) {
+	var ab = new ArrayBuffer(3);
+	var bin = new DataView(ab);
+	
+	bin.setUint8(wsBinConst.wsCmd, wsBinConst.getCmd);
+	bin.setUint8(wsBinConst.wsSysId, 2); //BinStateHttpClass.sysId = 2
+	bin.setUint8(wsBinConst.wsSubCmd, cmd);
+
+	websocket.send(bin.buffer);
+}
+
+BinStateClass.prototype.wsGetName = function () {
+	this.wsGet(1);
+}
+
+BinStateClass.prototype.wsGetState = function () {
+	this.wsGet(2);
+}
+
+BinStateClass.prototype.wsGotName = function (bin) {
+	var uid = bin.getUint8(wsBinConst.wsPayLoadStart, true);
+	var strBuffer = new Uint8Array(bin.byteLength);
+    for (var i = 0; i < strBuffer.length; i++) {
+        strBuffer[i] = bin.getUint8(i);
+    }
+    this._name = new TextDecoder().decode(strBuffer)
+    console.log.bind(console)(`uid = ${uid}, name = ${this._name}`);
+    
+    if ( !this._initDone ) {
+    	this._initDone = true;
+	   	var t = document.querySelector('#BinStateHttpClass');
+	  
+		var clone = document.importNode(t.content, true);
+	  	clone.querySelector('#binState').textContent = `${this._name}`;
+	  	clone.querySelector('#binStatePanel').id = `binStatePanel${this.uid}`;
+		clone.querySelector('#binState').id = `binState${this.uid}`;
+		
+		var container = document.getElementById("panel-container");
+		container.appendChild(clone);	
+    }	
+}
+
+BinStateClass.prototype.wsGotState = function (bin) {
+	var uid = bin.getUint8(wsBinConst.wsPayLoadStart, true);
+	this._state = bin.getUint8(wsBinConst.wsPayLoadStart + 1, true);
+    console.log.bind(console)(`name = {this._name}, uid = ${uid}, state = ${this._state}`);
+    
+    if ( this._initDone ) {
+    	
+    	var panel = document.querySelector(`#binStatePanel${this.uid}`);
+    	
+    	if (this._state) {
+    		panel.classList.remove("panel-primary");
+    		panel.classList.add("panel-danger");	
+    	} else {
+    		panel.classList.remove("panel-danger");
+    		panel.classList.add("panel-primary");
+    	}
+    	
+    }	
+}
+
+BinStateClass.prototype.wsBinProcess = function (bin) {
+	var subCmd = bin.getUint8(wsBinConst.wsSubCmd);
+	
+	if ( subCmd == wsBinConst.scBinStateGetName) {
+		this.wsGotName(bin);
+	}
+	
+	if ( subCmd == wsBinConst.scBinStateGetState) {
+		this.wsGotState(bin);
+	}
+	
+}
+	
 // function wsGetAppState() {
 	// var json = {};
 	// json["command"] = "getAppState";
@@ -22,6 +107,7 @@ function onOpen(evt) {
 	wsGetAppStatus();
 	setInterval(wsGetAppStatus, 5000);
 //	websocket.send("Sming love WebSockets");
+	binState = new BinStateClass(0);
 }
 
 function onClose(evt) {
@@ -49,21 +135,24 @@ function onMessage(evt) {
     		document.getElementById("dateTime").textContent = d.toLocaleString();
     	}
     	
-    	if ( cmd == wsBinConst.getResponse && sysId == 2 && subCmd == wsBinConst.scBinStateGetName ) {
-    		var uid = bin.getUint8(wsBinConst.wsPayLoadStart, true);
-    		var strBuffer = new Uint8Array(bin.byteLength - 1);
-            for (var i = 0; i < strBuffer.length; i++) {
-                strBuffer[i] = bin.getUint8(i);
-            }
-            var name = new TextDecoder().decode(strBuffer)
-            console.log.bind(console)(`uid = ${uid}, name = ${name}`);
+    	if ( cmd == wsBinConst.getResponse && sysId == 2 ) {
+    		binState.wsBinProcess(bin);
     	}
-    	
-		if ( cmd == wsBinConst.getResponse && sysId == 2 && subCmd == wsBinConst.scBinStateGetState ) {
-    		var uid = bin.getUint8(wsBinConst.wsPayLoadStart, true);
-    		var state = bin.getUint8(wsBinConst.wsPayLoadStart + 1, true);
-            console.log.bind(console)(`uid = ${uid}, state = ${state}`);
-    	}
+    	// if ( cmd == wsBinConst.getResponse && sysId == 2 && subCmd == wsBinConst.scBinStateGetName ) {
+    		// var uid = bin.getUint8(wsBinConst.wsPayLoadStart, true);
+    		// var strBuffer = new Uint8Array(bin.byteLength);
+            // for (var i = 0; i < strBuffer.length; i++) {
+                // strBuffer[i] = bin.getUint8(i);
+            // }
+            // var name = new TextDecoder().decode(strBuffer)
+            // console.log.bind(console)(`uid = ${uid}, name = ${name}`);
+    	// }
+//     	
+		// if ( cmd == wsBinConst.getResponse && sysId == 2 && subCmd == wsBinConst.scBinStateGetState ) {
+    		// var uid = bin.getUint8(wsBinConst.wsPayLoadStart, true);
+    		// var state = bin.getUint8(wsBinConst.wsPayLoadStart + 1, true);
+            // console.log.bind(console)(`uid = ${uid}, state = ${state}`);
+    	// }
     	
   	} else {
     	var json = JSON.parse(evt.data);
@@ -120,6 +209,7 @@ function wsBinStateGet(cmd) {
 }
 
 //Here we put some initial code which starts after DOM loaded
+var binState; 
 function onDocumentRedy() {
 	//Init
 	initWS();

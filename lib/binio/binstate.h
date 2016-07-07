@@ -59,10 +59,11 @@ private:
 class BinStateHttpClass
 {
 public:
-	BinStateHttpClass(BinStateClass& state, String name, uint8_t uid)
-	: _state(state), _name(name), _uid(uid) { _updateLength(); };
+	BinStateHttpClass(HttpServer& webServer, BinStateClass& state, String name, uint8_t uid);
+//	: _webServer(webServer), _state(state), _name(name), _uid(uid) { _updateLength(); };
 	void wsBinGetter(WebSocket& socket, uint8_t* data, size_t size);
 	void wsBinSetter(WebSocket& socket, uint8_t* data, size_t size);
+	void wsSendState(uint8_t state);
 	static const uint8_t sysId = 2;
 private:
 	void _updateLength();
@@ -70,5 +71,6 @@ private:
 	String _name;
 	uint16_t _nameLength = 0;
 	uint8_t _uid = 0;
+	HttpServer& _webServer;
 };
 #endif /* LIB_BINIO_BINSTATE_H_ */

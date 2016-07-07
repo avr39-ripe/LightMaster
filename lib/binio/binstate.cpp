@@ -125,6 +125,13 @@ void BinStateHttpClass::_updateLength()
 	Serial.printf("strLen = %u\n",_nameLength);
 }
 
+BinStateHttpClass::BinStateHttpClass(HttpServer& webServer, BinStateClass& state, String name, uint8_t uid)
+: _webServer(webServer), _state(state), _name(name), _uid(uid)
+{
+	_updateLength();
+	_state.onChange(onStateChangeDelegate(&BinStateHttpClass::wsSendState, this));
+};
+
 void BinStateHttpClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
 {
 	uint8_t* buffer = nullptr;
@@ -159,4 +166,25 @@ void BinStateHttpClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t siz
 	{
 		delete buffer;
 	}
+}
+
+void BinStateHttpClass::wsSendState(uint8_t state)
+{
+	uint8_t* buffer = new uint8_t[wsBinConst::wsPayLoadStart + 1 + 1];
+	buffer[wsBinConst::wsCmd] = wsBinConst::getResponse;
+	buffer[wsBinConst::wsSysId] = sysId;
+	buffer[wsBinConst::wsSubCmd] = wsBinConst::scBinStateGetState;
+
+	uint8_t tmpState = state;
+
+	os_memcpy((&buffer[wsBinConst::wsPayLoadStart]), &_uid, sizeof(_uid));
+	os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 1]), &tmpState, sizeof(tmpState));
+
+	WebSocketsList &clients = _webServer.getActiveWebSockets();
+	for (uint8_t i = 0; i < clients.count(); i++)
+	{
+		clients[i].sendBinary(buffer, wsBinConst::wsPayLoadStart + 1 + 1);
+	}
+
+	delete buffer;
 }

@@ -74,7 +74,7 @@ void AppClass::init()
 	binInPoller.add(input);
 	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, 7, "Выкл. все");
 
-	BinStateHttpClass* binStateHttp = new BinStateHttpClass(output->state, "Тушите свет!", 0);
+	BinStateHttpClass* binStateHttp = new BinStateHttpClass(webServer, output->state, "Тушите свет!", 0);
 	_wsBinGetters[binStateHttp->sysId] = WebSocketBinaryDelegate(&BinStateHttpClass::wsBinGetter,binStateHttp);
 
 	lightSystem->addAllOffGroup(output, input, httpButton);
