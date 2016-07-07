@@ -60,11 +60,15 @@ class BinStateHttpClass
 {
 public:
 	BinStateHttpClass(BinStateClass& state, String name, uint8_t uid)
-	: _state(state), _name(name), _uid(uid) {};
-	onGetState()
+	: _state(state), _name(name), _uid(uid) { _updateLength(); };
+	void wsBinGetter(WebSocket& socket, uint8_t* data, size_t size);
+	void wsBinSetter(WebSocket& socket, uint8_t* data, size_t size);
+	static const uint8_t sysId = 2;
 private:
+	void _updateLength();
 	BinStateClass& _state;
-	String _name = "state"
+	String _name;
+	uint16_t _nameLength = 0;
 	uint8_t _uid = 0;
 };
 #endif /* LIB_BINIO_BINSTATE_H_ */

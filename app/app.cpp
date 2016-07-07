@@ -19,6 +19,31 @@ AppClass::AppClass()
 void AppClass::init()
 {
 	ApplicationClass::init();
+
+//	String tmpStr = "Вентилятор";
+//	uint16_t strLen = 0;
+//	char* strPtr = (char*)tmpStr.c_str();
+//
+//	while ( strPtr[strLen] )
+//	{
+//		Serial.printf("strPtr[%u] = %u\n", strLen, strPtr[strLen]);
+//		strLen++;
+//	}
+//	Serial.printf("strLen = %u\n",strLen);
+//
+//	char* copyStr = new char[strLen];
+//
+//	os_memcpy(copyStr, strPtr, strLen);
+//	copyStr[strLen] = '\0';
+//
+//	strLen = 0;
+//	while ( copyStr[strLen] )
+//	{
+//		Serial.printf("copyStr[%u] = %u\n", strLen, copyStr[strLen]);
+//		strLen++;
+//	}
+//	Serial.printf("strLen = %u\n",strLen);
+
 //	ntpClient = new NtpClient("pool.ntp.org", 300);
 	SystemClock.setTimeZone(Config.timeZone);
 	Serial.printf("Time zone: %d\n", Config.timeZone);
@@ -48,6 +73,10 @@ void AppClass::init()
 	BinInClass* input = new BinInMCP23S17Class(*mcp000,7,0);
 	binInPoller.add(input);
 	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, 7, "Выкл. все");
+
+	BinStateHttpClass* binStateHttp = new BinStateHttpClass(output->state, "Тушите свет!", 0);
+	_wsBinGetters[binStateHttp->sysId] = WebSocketBinaryDelegate(&BinStateHttpClass::wsBinGetter,binStateHttp);
+
 	lightSystem->addAllOffGroup(output, input, httpButton);
 	httpButton = new BinHttpButtonClass(webServer, 8, "Антивор");
 	lightSystem->addRandomButton(httpButton);

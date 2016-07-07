@@ -5,6 +5,7 @@
  *      Author: shurik
  */
 #include <binstate.h>
+#include <wsbinconst.h>
 
 BinStateClass::BinStateClass(uint8_t polarity, uint8_t toggleActive)
 {
@@ -109,4 +110,53 @@ void BinStateClass::persistent(uint8_t uid)
 	_uid = uid;
 	_loadBinConfig();
 	_state |= BinState::persistentBit;
+}
+
+void BinStateHttpClass::_updateLength()
+{
+	_nameLength = 0;
+	char* strPtr = (char*)_name.c_str();
+
+	while ( strPtr[_nameLength] )
+	{
+		Serial.printf("strPtr[%u] = %u\n", _nameLength, strPtr[_nameLength]);
+		_nameLength++;
+	}
+	Serial.printf("strLen = %u\n",_nameLength);
+}
+
+void BinStateHttpClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
+{
+	uint8_t* buffer = nullptr;
+	switch (data[wsBinConst::wsSubCmd])
+	{
+	case wsBinConst::scBinStateGetName:
+
+		buffer = new uint8_t[wsBinConst::wsPayLoadStart + 1 + _nameLength];
+		buffer[wsBinConst::wsCmd] = wsBinConst::getResponse;
+		buffer[wsBinConst::wsSysId] = sysId;
+		buffer[wsBinConst::wsSubCmd] = wsBinConst::scBinStateGetName;
+
+		os_memcpy((&buffer[wsBinConst::wsPayLoadStart]), &_uid, sizeof(_uid));
+		os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 1]), _name.c_str(), _nameLength);
+		socket.sendBinary(buffer, wsBinConst::wsPayLoadStart + 1 + _nameLength);
+		break;
+	case wsBinConst::scBinStateGetState:
+		buffer = new uint8_t[wsBinConst::wsPayLoadStart + 1 + 1];
+		buffer[wsBinConst::wsCmd] = wsBinConst::getResponse;
+		buffer[wsBinConst::wsSysId] = sysId;
+		buffer[wsBinConst::wsSubCmd] = wsBinConst::scBinStateGetState;
+
+		uint8_t tmpState = _state.get();
+
+		os_memcpy((&buffer[wsBinConst::wsPayLoadStart]), &_uid, sizeof(_uid));
+		os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 1]), &tmpState, sizeof(tmpState));
+		socket.sendBinary(buffer, wsBinConst::wsPayLoadStart + 1 + 1);
+		break;
+	}
+
+	if (buffer)
+	{
+		delete buffer;
+	}
 }

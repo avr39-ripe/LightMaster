@@ -15,5 +15,8 @@ const wsBinConst = {
 
 // sub-command
 	scAppSetTime	: 1,
-	scAppGetStatus	: 2
+	scAppGetStatus	: 2,
+// sub-commands for BinStateHttpClass sysId=2
+	scBinStateGetName	: 1,
+	scBinStateGetState	: 2
 };
