@@ -68,6 +68,6 @@ RBOOT_RTC_ENABLED = 1
 SPIFF_SIZE      ?= 262144
 #RBOOT_SPIFFS_0  ?= 0x300000
 
-MODULES = app lib/application lib/binio lib/light
-EXTRA_INCLUDES = lib/application lib/binio lib/light
+MODULES = app lib/application lib/binio lib/light lib/wsbinconst
+EXTRA_INCLUDES = lib/application lib/binio lib/light lib/wsbinconst
 

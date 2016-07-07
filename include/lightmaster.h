@@ -9,6 +9,7 @@
 #define INCLUDE_LIGHTMASTER_H_
 #include <SmingCore/SmingCore.h>
 #include <Libraries/MCP23S17/MCP23S17.h>
+#include <wsbinconst.h>
 #include <binin.h>
 #include <binout.h>
 #include <lightgroup.h>
