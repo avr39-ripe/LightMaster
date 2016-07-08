@@ -29,7 +29,8 @@ namespace wsBinConst
 // sub-commands for BinStateHttpClass sysId=2
 	const uint8_t scBinStateGetName = 1;
 	const uint8_t scBinStateGetState = 2;
-
+// sub-commands for BinStatesHttpClass sysId=3
+	const uint8_t scBinStatesGetAll = 1;
 };
 
 

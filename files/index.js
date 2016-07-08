@@ -6,8 +6,8 @@ function BinStateClass (uid) {
 	this._name = "";
 	this._initDone = false;
 	
-	this.wsGetName();
-	this.wsGetState();
+//	this.wsGetName();
+//	this.wsGetState();
 }
 
 BinStateClass.prototype.wsGet = function (cmd) {
@@ -19,6 +19,7 @@ BinStateClass.prototype.wsGet = function (cmd) {
 	bin.setUint8(wsBinConst.wsSubCmd, cmd);
 
 	websocket.send(bin.buffer);
+	console.log.bind(console)(`wsGet cmd = ${cmd}`);
 }
 
 BinStateClass.prototype.wsGetName = function () {
@@ -84,30 +85,17 @@ BinStateClass.prototype.wsBinProcess = function (bin) {
 	}
 	
 }
-	
-// function wsGetAppState() {
-	// var json = {};
-	// json["command"] = "getAppState";
-	// websocket.send(JSON.stringify(json));
-// }
-
-// function onGetAppState(json)
-// {
-	// Object.keys(json).forEach(function(key) {
-		// if(key != "response") {
-				// document.getElementById(key).innerHTML = json[key];
-		// }
-	// });
-// }
 
 //Websockets
 var websocket;
 function onOpen(evt) {
 	console.log.bind(console)("CONNECTED");
-	wsGetAppStatus();
+	// wsGetAppStatus();
 	setInterval(wsGetAppStatus, 5000);
 //	websocket.send("Sming love WebSockets");
 	binState = new BinStateClass(0);
+	binState.wsGetName();
+	binState.wsGetState();
 }
 
 function onClose(evt) {
@@ -138,22 +126,7 @@ function onMessage(evt) {
     	if ( cmd == wsBinConst.getResponse && sysId == 2 ) {
     		binState.wsBinProcess(bin);
     	}
-    	// if ( cmd == wsBinConst.getResponse && sysId == 2 && subCmd == wsBinConst.scBinStateGetName ) {
-    		// var uid = bin.getUint8(wsBinConst.wsPayLoadStart, true);
-    		// var strBuffer = new Uint8Array(bin.byteLength);
-            // for (var i = 0; i < strBuffer.length; i++) {
-                // strBuffer[i] = bin.getUint8(i);
-            // }
-            // var name = new TextDecoder().decode(strBuffer)
-            // console.log.bind(console)(`uid = ${uid}, name = ${name}`);
-    	// }
-//     	
-		// if ( cmd == wsBinConst.getResponse && sysId == 2 && subCmd == wsBinConst.scBinStateGetState ) {
-    		// var uid = bin.getUint8(wsBinConst.wsPayLoadStart, true);
-    		// var state = bin.getUint8(wsBinConst.wsPayLoadStart + 1, true);
-            // console.log.bind(console)(`uid = ${uid}, state = ${state}`);
-    	// }
-    	
+    		
   	} else {
     	var json = JSON.parse(evt.data);
 		console.log.bind(console)("Json recv: " + json);

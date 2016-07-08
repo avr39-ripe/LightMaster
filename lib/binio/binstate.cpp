@@ -129,56 +129,69 @@ BinStateHttpClass::BinStateHttpClass(HttpServer& webServer, BinStateClass& state
 : _webServer(webServer), _state(state), _name(name), _uid(uid)
 {
 	_updateLength();
-	_state.onChange(onStateChangeDelegate(&BinStateHttpClass::wsSendState, this));
+	_state.onChange(onStateChangeDelegate(&BinStateHttpClass::wsSendStateAll, this));
 };
 
 void BinStateHttpClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
 {
-	uint8_t* buffer = nullptr;
 	switch (data[wsBinConst::wsSubCmd])
 	{
 	case wsBinConst::scBinStateGetName:
-
-		buffer = new uint8_t[wsBinConst::wsPayLoadStart + 1 + _nameLength];
-		buffer[wsBinConst::wsCmd] = wsBinConst::getResponse;
-		buffer[wsBinConst::wsSysId] = sysId;
-		buffer[wsBinConst::wsSubCmd] = wsBinConst::scBinStateGetName;
-
-		os_memcpy((&buffer[wsBinConst::wsPayLoadStart]), &_uid, sizeof(_uid));
-		os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 1]), _name.c_str(), _nameLength);
-		socket.sendBinary(buffer, wsBinConst::wsPayLoadStart + 1 + _nameLength);
+		wsSendName(socket);
 		break;
 	case wsBinConst::scBinStateGetState:
-		buffer = new uint8_t[wsBinConst::wsPayLoadStart + 1 + 1];
-		buffer[wsBinConst::wsCmd] = wsBinConst::getResponse;
-		buffer[wsBinConst::wsSysId] = sysId;
-		buffer[wsBinConst::wsSubCmd] = wsBinConst::scBinStateGetState;
-
-		uint8_t tmpState = _state.get();
-
-		os_memcpy((&buffer[wsBinConst::wsPayLoadStart]), &_uid, sizeof(_uid));
-		os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 1]), &tmpState, sizeof(tmpState));
-		socket.sendBinary(buffer, wsBinConst::wsPayLoadStart + 1 + 1);
+		wsSendState(socket);
 		break;
-	}
-
-	if (buffer)
-	{
-		delete buffer;
 	}
 }
 
-void BinStateHttpClass::wsSendState(uint8_t state)
+void BinStateHttpClass::_fillNameBuffer(uint8_t* buffer)
 {
-	uint8_t* buffer = new uint8_t[wsBinConst::wsPayLoadStart + 1 + 1];
+	buffer[wsBinConst::wsCmd] = wsBinConst::getResponse;
+	buffer[wsBinConst::wsSysId] = sysId;
+	buffer[wsBinConst::wsSubCmd] = wsBinConst::scBinStateGetName;
+
+	os_memcpy((&buffer[wsBinConst::wsPayLoadStart]), &_uid, sizeof(_uid));
+	os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 1]), _name.c_str(), _nameLength);
+
+}
+
+void BinStateHttpClass::_fillStateBuffer(uint8_t* buffer)
+{
 	buffer[wsBinConst::wsCmd] = wsBinConst::getResponse;
 	buffer[wsBinConst::wsSysId] = sysId;
 	buffer[wsBinConst::wsSubCmd] = wsBinConst::scBinStateGetState;
 
-	uint8_t tmpState = state;
+	uint8_t tmpState = _state.get();
 
 	os_memcpy((&buffer[wsBinConst::wsPayLoadStart]), &_uid, sizeof(_uid));
 	os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 1]), &tmpState, sizeof(tmpState));
+}
+void BinStateHttpClass::wsSendName(WebSocket& socket)
+{
+	uint8_t* buffer = new uint8_t[wsBinConst::wsPayLoadStart + 1 + _nameLength];
+	_fillNameBuffer(buffer);
+
+	socket.sendBinary(buffer, wsBinConst::wsPayLoadStart + 1 + _nameLength);
+	delete buffer;
+}
+
+void BinStateHttpClass::wsSendState(WebSocket& socket)
+{
+	uint8_t* buffer = new uint8_t[wsBinConst::wsPayLoadStart + 1 + 1];
+
+	_fillStateBuffer(buffer);
+
+	socket.sendBinary(buffer, wsBinConst::wsPayLoadStart + 1 + 1);
+
+	delete buffer;
+}
+
+void BinStateHttpClass::wsSendStateAll(uint8_t state)
+{
+	uint8_t* buffer = new uint8_t[wsBinConst::wsPayLoadStart + 1 + 1];
+
+	_fillStateBuffer(buffer);
 
 	WebSocketsList &clients = _webServer.getActiveWebSockets();
 	for (uint8_t i = 0; i < clients.count(); i++)
@@ -187,4 +200,18 @@ void BinStateHttpClass::wsSendState(uint8_t state)
 	}
 
 	delete buffer;
+}
+
+void BinStatesHttpClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
+{
+	uint8_t* buffer = nullptr;
+	switch (data[wsBinConst::wsSubCmd])
+	{
+	case wsBinConst::scBinStatesGetAll:
+		for (uint8_t i = 0; i < _binStatesHttp.count(); i++)
+		{
+			_binStatesHttp.valueAt(i)->wsSendName(socket);
+		}
+		break;
+	}
 }
