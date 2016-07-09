@@ -211,6 +211,13 @@ void BinStatesHttpClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t si
 		for (uint8_t i = 0; i < _binStatesHttp.count(); i++)
 		{
 			_binStatesHttp.valueAt(i)->wsSendName(socket);
+			_binStatesHttp.valueAt(i)->wsSendState(socket);
+		}
+		break;
+	case wsBinConst::scBinStateGetState:
+		if (_binStatesHttp.contains(data[wsBinConst::wsGetArg]))
+		{
+			_binStatesHttp.valueAt(data[wsBinConst::wsGetArg])->wsSendState(socket);
 		}
 		break;
 	}

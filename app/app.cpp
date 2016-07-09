@@ -49,6 +49,9 @@ void AppClass::init()
 	Serial.printf("Time zone: %d\n", Config.timeZone);
 	lightSystem = new LightSystemClass();
 
+	BinStatesHttpClass* binStatesHttp = new BinStatesHttpClass();
+	_wsBinGetters[binStatesHttp->sysId] = WebSocketBinaryDelegate(&BinStatesHttpClass::wsBinGetter,binStatesHttp);
+
 #ifdef MCP23S17 //use MCP23S17
 	mcp000 = new MCP(0x000, mcp23s17_cs);
 
@@ -68,14 +71,16 @@ void AppClass::init()
 		binInPoller.add(input);
 		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, i, String(zoneNames[i]), &output->state);
 		lightSystem->addLightGroup(output, input, httpButton);
+		BinStateHttpClass* binStateHttp = new BinStateHttpClass(webServer, output->state, String(zoneNames[i]), i);
+		binStatesHttp->add(binStateHttp);
 	}
 	BinOutClass* output = new BinOutMCP23S17Class(*mcp000,7,0);
 	BinInClass* input = new BinInMCP23S17Class(*mcp000,7,0);
 	binInPoller.add(input);
 	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, 7, "Выкл. все");
 
-	BinStateHttpClass* binStateHttp = new BinStateHttpClass(webServer, output->state, "Тушите свет!", 0);
-	_wsBinGetters[binStateHttp->sysId] = WebSocketBinaryDelegate(&BinStateHttpClass::wsBinGetter,binStateHttp);
+	BinStateHttpClass* binStateHttp = new BinStateHttpClass(webServer, output->state, "Тушите свет!", 7);
+	binStatesHttp->add(binStateHttp);
 
 	lightSystem->addAllOffGroup(output, input, httpButton);
 	httpButton = new BinHttpButtonClass(webServer, 8, "Антивор");

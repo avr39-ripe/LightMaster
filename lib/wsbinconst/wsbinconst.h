@@ -15,6 +15,9 @@ namespace wsBinConst
 	const uint8_t wsSysId = 1; //target sysId
 	const uint8_t wsSubCmd = 2; //sub-command type
 	const uint8_t wsPayLoadStart = 3;
+	//alternatively if we need argument to Get value
+	const uint8_t wsPayLoadStartGetArg = 4;
+	const uint8_t wsGetArg = 3;
 
 	const uint8_t reservedCmd = 0;
 	const uint8_t getCmd = 1;
@@ -26,7 +29,7 @@ namespace wsBinConst
 // sub-commands for App sysId=1
 	const uint8_t scAppSetTime = 1;
 	const uint8_t scAppGetStatus = 2;
-// sub-commands for BinStateHttpClass sysId=2
+// sub-commands for BinStateHttpClass sysId=2 and BinStatesHttpClass sysId=3
 	const uint8_t scBinStateGetName = 1;
 	const uint8_t scBinStateGetState = 2;
 // sub-commands for BinStatesHttpClass sysId=3

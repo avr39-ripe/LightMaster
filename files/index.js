@@ -1,13 +1,15 @@
 'use strict';
 
+//BinStateHttpClass
+
 function BinStateClass (uid) {
 	this.uid = uid;
 	this._state = 0; //false
 	this._name = "";
 	this._initDone = false;
 	
-//	this.wsGetName();
-//	this.wsGetState();
+	// this.wsGetName();
+	// this.wsGetState();
 }
 
 BinStateClass.prototype.wsGet = function (cmd) {
@@ -37,7 +39,7 @@ BinStateClass.prototype.wsGotName = function (bin) {
         strBuffer[i] = bin.getUint8(i);
     }
     this._name = new TextDecoder().decode(strBuffer)
-    console.log.bind(console)(`uid = ${uid}, name = ${this._name}`);
+//    console.log.bind(console)(`uid = ${uid}, name = ${this._name}`);
     
     if ( !this._initDone ) {
     	this._initDone = true;
@@ -56,7 +58,7 @@ BinStateClass.prototype.wsGotName = function (bin) {
 BinStateClass.prototype.wsGotState = function (bin) {
 	var uid = bin.getUint8(wsBinConst.wsPayLoadStart, true);
 	this._state = bin.getUint8(wsBinConst.wsPayLoadStart + 1, true);
-    console.log.bind(console)(`name = {this._name}, uid = ${uid}, state = ${this._state}`);
+//    console.log.bind(console)(`name = {this._name}, uid = ${uid}, state = ${this._state}`);
     
     if ( this._initDone ) {
     	
@@ -86,16 +88,45 @@ BinStateClass.prototype.wsBinProcess = function (bin) {
 	
 }
 
+//BinStatesHttpClass
+
+function BinStatesClass () {
+	this._binStatesHttp = {};
+	this.wsGetAll();
+}
+
+BinStatesClass.prototype.wsGetAll = function() {
+	wsBinCmd.Get(websocket, 3, wsBinConst.scBinStatesGetAll);
+}
+
+BinStatesClass.prototype.wsBinProcess = function (bin) {
+	var subCmd = bin.getUint8(wsBinConst.wsSubCmd);
+	var uid = bin.getUint8(wsBinConst.wsPayLoadStart);
+	
+	if ( subCmd == wsBinConst.scBinStateGetName) {
+		if ( !this._binStatesHttp.hasOwnProperty(uid) ) {
+			this._binStatesHttp[uid] = new BinStateClass(uid);
+			this._binStatesHttp[uid].wsGotName(bin);
+		}
+	}
+	
+	if ( subCmd == wsBinConst.scBinStateGetState) {
+		this._binStatesHttp[uid].wsGotState(bin);
+	}
+	
+}
+
 //Websockets
 var websocket;
 function onOpen(evt) {
 	console.log.bind(console)("CONNECTED");
-	// wsGetAppStatus();
+	wsGetAppStatus();
 	setInterval(wsGetAppStatus, 5000);
-//	websocket.send("Sming love WebSockets");
-	binState = new BinStateClass(0);
-	binState.wsGetName();
-	binState.wsGetState();
+	
+	binStates = new BinStatesClass();
+	// binState = new BinStateClass(0);
+	// binState.wsGetName();
+	// binState.wsGetState();
 }
 
 function onClose(evt) {
@@ -115,7 +146,7 @@ function onMessage(evt) {
     	if ( cmd == wsBinConst.getResponse && sysId == 1 && subCmd == wsBinConst.scAppGetStatus ) {
     		var counter = bin.getUint32(wsBinConst.wsPayLoadStart, true);
     		var timestamp = bin.getUint32(wsBinConst.wsPayLoadStart + 4, true);
-    		console.log.bind(console)(`counter = ${counter}, timestamp = ${timestamp}`);
+ //   		console.log.bind(console)(`counter = ${counter}, timestamp = ${timestamp}`);
     		
     		document.getElementById("counter").textContent = counter;
     		var d = new Date();
@@ -123,8 +154,11 @@ function onMessage(evt) {
     		document.getElementById("dateTime").textContent = d.toLocaleString();
     	}
     	
-    	if ( cmd == wsBinConst.getResponse && sysId == 2 ) {
-    		binState.wsBinProcess(bin);
+    	// if ( cmd == wsBinConst.getResponse && sysId == 2 ) {
+    		// binState.wsBinProcess(bin);
+    	// }
+    	if ( cmd == wsBinConst.getResponse && ( sysId == 2 || sysId == 3) ) {
+    		binStates.wsBinProcess(bin);
     	}
     		
   	} else {
@@ -182,7 +216,8 @@ function wsBinStateGet(cmd) {
 }
 
 //Here we put some initial code which starts after DOM loaded
-var binState; 
+//var binState;
+var binStates; 
 function onDocumentRedy() {
 	//Init
 	initWS();
