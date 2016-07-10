@@ -22,8 +22,8 @@ void BinStateClass::set(uint8_t state, uint8_t forceDelegatesCall)
 //	_state = state;
 	state ? _setState(getPolarity()) : _setState(!getPolarity());
 
-	Serial.printf("State set to: %s\n", get() ? "true" : "false");
-	Serial.printf("prevState set to: %s\n", getPrev() ? "true" : "false");
+//	Serial.printf("State set to: %s\n", get() ? "true" : "false");
+//	Serial.printf("prevState set to: %s\n", getPrev() ? "true" : "false");
 	if (_onSet)
 	{
 		_onSet(get()); //Call some external delegate on setting ANY state
@@ -42,11 +42,11 @@ void BinStateClass::set(uint8_t state, uint8_t forceDelegatesCall)
 
 void BinStateClass::toggle(uint8_t state)
 {
-	Serial.println("Toggle called\n");
+//	Serial.println("Toggle called\n");
 	if (state == getToggleActive())
 	{
 		set(!get());
-		Serial.println("Toggle TOGGLED!\n");
+//		Serial.println("Toggle TOGGLED!\n");
 	}
 }
 

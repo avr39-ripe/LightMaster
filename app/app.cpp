@@ -49,6 +49,8 @@ void AppClass::init()
 	Serial.printf("Time zone: %d\n", Config.timeZone);
 	lightSystem = new LightSystemClass();
 
+	system_update_cpu_freq(SYS_CPU_160MHZ);
+
 	BinStatesHttpClass* binStatesHttp = new BinStatesHttpClass();
 	_wsBinGetters[binStatesHttp->sysId] = WebSocketBinaryDelegate(&BinStatesHttpClass::wsBinGetter,binStatesHttp);
 
@@ -71,7 +73,10 @@ void AppClass::init()
 		binInPoller.add(input);
 		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, i, String(zoneNames[i]), &output->state);
 		lightSystem->addLightGroup(output, input, httpButton);
-		BinStateHttpClass* binStateHttp = new BinStateHttpClass(webServer, output->state, String(zoneNames[i]), i);
+
+		//test binState
+		binStates[i] = new BinStateClass();
+		BinStateHttpClass* binStateHttp = new BinStateHttpClass(webServer, *binStates[i], String(zoneNames[i]), i);
 		binStatesHttp->add(binStateHttp);
 	}
 	BinOutClass* output = new BinOutMCP23S17Class(*mcp000,7,0);
@@ -79,8 +84,8 @@ void AppClass::init()
 	binInPoller.add(input);
 	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, 7, "Выкл. все");
 
-	BinStateHttpClass* binStateHttp = new BinStateHttpClass(webServer, output->state, "Тушите свет!", 7);
-	binStatesHttp->add(binStateHttp);
+//	BinStateHttpClass* binStateHttp = new BinStateHttpClass(webServer, output->state, "Тушите свет!", 7);
+//	binStatesHttp->add(binStateHttp);
 
 	lightSystem->addAllOffGroup(output, input, httpButton);
 	httpButton = new BinHttpButtonClass(webServer, 8, "Антивор");
@@ -272,6 +277,11 @@ void AppClass::_loop()
 //	Serial.printf("AppClass loop\n");
 	Serial.printf("Free Heap: %d WS count: %d\n", system_get_free_heap_size(), webServer.getActiveWebSockets().count());
 //	Serial.printf("Random: %d\n", lightSystem->getRandom(8,25));
-	Serial.print("DateTime: ");Serial.println(nowTime.toFullDateTimeString());
+//	Serial.print("DateTime: ");Serial.println(nowTime.toFullDateTimeString());
+
+	for (uint8_t i=0; i<7; i++)
+	{
+		binStates[i]->toggle();
+	}
 }
 

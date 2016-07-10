@@ -29,4 +29,5 @@ extern MCP* mcp000;
 extern BinInPollerClass binInPoller;
 extern LightSystemClass* lightSystem;
 
+extern BinStateClass* binStates[7];
 #endif /* INCLUDE_LIGHTMASTER_H_ */

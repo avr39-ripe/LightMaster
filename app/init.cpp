@@ -8,6 +8,7 @@ MCP* mcp000;
 #endif
 BinInPollerClass binInPoller(100);
 LightSystemClass* lightSystem;
+BinStateClass* binStates[7];
 
 AppClass App;
 

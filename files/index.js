@@ -134,7 +134,7 @@ function onClose(evt) {
 }
 
 function onMessage(evt) {
-	console.log.bind(console)("Message recv: " + evt.data);
+//	console.log.bind(console)("Message recv: " + evt.data);
 	if(evt.data instanceof ArrayBuffer) {
     	var bin = new DataView(evt.data);
     	
@@ -161,16 +161,16 @@ function onMessage(evt) {
     		binStates.wsBinProcess(bin);
     	}
     		
-  	} else {
-    	var json = JSON.parse(evt.data);
-		console.log.bind(console)("Json recv: " + json);
-	
-		if (json.response == "getAppState") {
-			onGetAppState(json);
-		}
-  	}
+  	} 
+  	// else {
+    	// var json = JSON.parse(evt.data);
+		// console.log.bind(console)("Json recv: " + json);
+// 	
+		// if (json.response == "getAppState") {
+			// onGetAppState(json);
+		// }
+//  	}
 
-	//websocket.close();
 }
 
 function onError(evt) {
