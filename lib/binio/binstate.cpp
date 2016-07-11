@@ -55,29 +55,17 @@ void BinStateClass::onSet(onStateChangeDelegate delegateFunction)
 	_onSet = delegateFunction;
 }
 
-void BinStateClass::onChange(onStateChangeDelegate delegateFunction, uint8_t directState)
+void BinStateClass::onChange(onStateChangeDelegate delegateFunction, uint8_t polarity)
 {
-	if (directState)
-	{
-		_onChange.add(delegateFunction);
-	}
-	else
-	{
-		_onChangeInverse.add(delegateFunction);
-	}
-
+//	OnStateChange onStateChange = {delegateFunction, polarity};
+	_onChange.add({delegateFunction, polarity});
 }
 
 void BinStateClass::_callOnChangeDelegates()
 {
 	for (uint8_t i = 0; i < _onChange.count(); i++)
 	{
-		_onChange[i](get());
-	}
-
-	for (uint8_t i = 0; i < _onChangeInverse.count(); i++)
-	{
-		_onChangeInverse[i](!get());
+		_onChange[i].delegateFunction(get() ? _onChange[i].polarity : !_onChange[i].polarity);
 	}
 }
 

@@ -24,6 +24,12 @@ namespace BinState
 	const uint8_t persistentBit = 16u;
 }
 
+struct OnStateChange
+{
+	onStateChangeDelegate delegateFunction;
+	uint8_t polarity;
+};
+
 class BinStateClass
 {
 public:
@@ -40,7 +46,7 @@ public:
 	void setToggleActive(uint8_t toggleActive) { toggleActive ? _state |= BinState::toggleActiveBit : _state &= ~(BinState::toggleActiveBit); };
 	void toggle(uint8_t state = true); //there is argument for use this method in tru/false delegates, can use it without arguments too
 	void onSet(onStateChangeDelegate delegateFunction);
-	void onChange(onStateChangeDelegate delegateFunction, uint8_t directState = true);
+	void onChange(onStateChangeDelegate delegateFunction, uint8_t polarity = true);
 protected:
 private:
 	void _saveBinConfig();
@@ -51,9 +57,7 @@ private:
 	uint8_t _uid = 0; // unic id used if persistent enabled as file name uid, must be unic on device
 	void _callOnChangeDelegates();
 	onStateChangeDelegate _onSet = nullptr; // call this with _state as argument
-	Vector<onStateChangeDelegate> _onChange; // call them with _state as argument
-	Vector<onStateChangeDelegate> _onChangeInverse; // call them with !_state as argument
-
+	Vector<OnStateChange> _onChange = Vector<OnStateChange>(0,1); // call them with _state as argument
 };
 
 class BinStateHttpClass
