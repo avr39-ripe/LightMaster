@@ -66,6 +66,17 @@ void AppClass::init()
 #ifndef MCP23S17 //use GPIO
 //Nothing here
 #else
+	Serial.printf("PRE Free Heap: %d\n", system_get_free_heap_size());
+	for (uint8_t i = 0; i < 7; i++)
+	{
+		//test binState
+		binStates[i] = new BinStateClass();
+//		BinStateHttpClass* binStateHttp = new BinStateHttpClass(webServer, *binStates[i], String(zoneNames[i]), i);
+//		binStatesHttp->add(binStateHttp);
+	}
+	Serial.printf("POST Free Heap: %d\n", system_get_free_heap_size());
+	Serial.printf("Size is ,%d\n", sizeof(BinStateClass));
+
 	for (uint8_t i = 0; i < 7; i++)
 	{
 		BinOutClass* output = new BinOutMCP23S17Class(*mcp000,i,0);
@@ -74,10 +85,7 @@ void AppClass::init()
 		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, i, String(zoneNames[i]), &output->state);
 		lightSystem->addLightGroup(output, input, httpButton);
 
-		//test binState
-		binStates[i] = new BinStateClass();
-		BinStateHttpClass* binStateHttp = new BinStateHttpClass(webServer, *binStates[i], String(zoneNames[i]), i);
-		binStatesHttp->add(binStateHttp);
+
 	}
 	BinOutClass* output = new BinOutMCP23S17Class(*mcp000,7,0);
 	BinInClass* input = new BinInMCP23S17Class(*mcp000,7,0);
