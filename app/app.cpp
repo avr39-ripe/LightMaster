@@ -71,8 +71,8 @@ void AppClass::init()
 	{
 		//test binState
 		binStates[i] = new BinStateClass();
-//		BinStateHttpClass* binStateHttp = new BinStateHttpClass(webServer, *binStates[i], String(zoneNames[i]), i);
-//		binStatesHttp->add(binStateHttp);
+		BinStateHttpClass* binStateHttp = new BinStateHttpClass(webServer, *binStates[i], String(zoneNames[i]), i);
+		binStatesHttp->add(binStateHttp);
 	}
 	Serial.printf("POST Free Heap: %d\n", system_get_free_heap_size());
 	Serial.printf("Size is ,%d\n", sizeof(BinStateClass));
@@ -92,13 +92,22 @@ void AppClass::init()
 	binInPoller.add(input);
 	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, 7, "Выкл. все");
 
-//	BinStateHttpClass* binStateHttp = new BinStateHttpClass(webServer, output->state, "Тушите свет!", 7);
+//	BinStateSharedDeferredClass* pump = new BinStateSharedDeferredClass();
+//	pump->setTrueDelay(10);
+//	pump->setFalseDelay(10);
+//	pump->set(true);
+//	BinStateHttpClass* binStateHttp = new BinStateHttpClass(webServer, *pump, "Насос", 0);
+//	binStatesHttp->add(binStateHttp);
+//	httpButton->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::toggle, (BinStateClass*)pump));
+//
+//	binStateHttp = new BinStateHttpClass(webServer, output->state, "Тушите свет!", 7);
 //	binStatesHttp->add(binStateHttp);
 
 	lightSystem->addAllOffGroup(output, input, httpButton);
 	httpButton = new BinHttpButtonClass(webServer, 8, "Антивор");
 	lightSystem->addRandomButton(httpButton);
 //	lightSystem->randomLight(true);
+
 
 #endif
 

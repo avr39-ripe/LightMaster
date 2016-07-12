@@ -22,6 +22,7 @@ namespace BinState
 	const uint8_t polarityBit = 4u;
 	const uint8_t toggleActiveBit = 8u;
 	const uint8_t persistentBit = 16u;
+	const uint8_t deferredSetBit = 32u;
 }
 
 struct OnStateChange
@@ -34,13 +35,14 @@ class BinStateClass
 {
 public:
 	BinStateClass(uint8_t polarity = true, uint8_t toggleActive = true);
+	virtual ~BinStateClass() {};
 	uint8_t get() { return _state & BinState::stateBit ? getPolarity() : !getPolarity(); };
 	uint8_t getRawState() { return (_state & BinState::stateBit) != 0; };
 	uint8_t getPrev() { return (_state & BinState::prevStateBit) != 0; };
 	uint8_t getPolarity() { return (_state & BinState::polarityBit) != 0; }
 	uint8_t getToggleActive() { return (_state & BinState::toggleActiveBit) != 0; };
 	void persistent(uint8_t uid); //Call this after constructor to save state in file, uid = UNIC on device id
-	void set(uint8_t state, uint8_t forceDelegatesCall);
+	virtual void set(uint8_t state, uint8_t forceDelegatesCall);
 	void set(uint8_t state) { set(state, false); };
 	void setPolarity(uint8_t polarity) { polarity ? _state |= BinState::polarityBit : _state &= ~(BinState::polarityBit); };
 	void setToggleActive(uint8_t toggleActive) { toggleActive ? _state |= BinState::toggleActiveBit : _state &= ~(BinState::toggleActiveBit); };
@@ -48,7 +50,6 @@ public:
 	void onSet(onStateChangeDelegate delegateFunction);
 	void onChange(onStateChangeDelegate delegateFunction, uint8_t polarity = true);
 protected:
-private:
 	void _saveBinConfig();
 	void _loadBinConfig();
 	void _setState(uint8_t state) { state ? _state |= BinState::stateBit : _state &= ~(BinState::stateBit);};
@@ -91,5 +92,22 @@ public:
 	static const uint8_t sysId = 3;
 private:
 	HashMap<uint8_t,BinStateHttpClass*> _binStatesHttp;
+};
+
+class BinStateSharedDeferredClass : public BinStateClass
+{
+public:
+	virtual void set(uint8_t state, uint8_t forceDelegatesCall);
+	virtual void set(uint8_t state) { set(state, false); };
+	void setTrueDelay(uint16_t trueDelay) { _trueDelay = trueDelay; };
+	void setFalseDelay(uint16_t falseDelay) { _falseDelay = falseDelay; };
+private:
+	void _setDeferredState(uint8_t state) { state ? _state |= BinState::deferredSetBit : _state &= ~(BinState::deferredSetBit);};
+	uint8_t _getDefferedState() { return (_state & BinState::deferredSetBit) != 0; };
+	void _deferredSet();
+	uint8_t _consumers = 0;
+	uint16_t _trueDelay = 0;
+	uint16_t _falseDelay = 0;
+	Timer _delayTimer;
 };
 #endif /* LIB_BINIO_BINSTATE_H_ */
