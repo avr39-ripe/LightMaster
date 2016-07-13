@@ -123,7 +123,8 @@ function onOpen(evt) {
 	wsGetAppStatus();
 	setInterval(wsGetAppStatus, 5000);
 	
-	binStates = new BinStatesClass();
+	setTimeout(function() {binStates = new BinStatesClass();}, 1000)
+	//binStates = new BinStatesClass();
 	// binState = new BinStateClass(0);
 	// binState.wsGetName();
 	// binState.wsGetState();
