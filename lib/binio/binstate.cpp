@@ -213,7 +213,7 @@ void BinStatesHttpClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t si
 
 //BinStateSharedDeferredClass
 
-void BinStateSharedDeferredClass::set(uint8_t state, uint8_t forceDelegatesCall)
+void BinStateSharedDeferredClass::set(uint8_t state)
 {
 	if ( state == true)
 	{
@@ -263,5 +263,5 @@ void BinStateSharedDeferredClass::set(uint8_t state, uint8_t forceDelegatesCall)
 void BinStateSharedDeferredClass::_deferredSet()
 {
 	Serial.printf("Fire deferred %s\n", _getDefferedState() ? "true" : "false");
-	BinStateClass::set(_getDefferedState());
+	BinStateClass::set(_getDefferedState(),false);
 }

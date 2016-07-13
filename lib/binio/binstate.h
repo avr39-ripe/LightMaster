@@ -43,7 +43,7 @@ public:
 	uint8_t getToggleActive() { return (_state & BinState::toggleActiveBit) != 0; };
 	void persistent(uint8_t uid); //Call this after constructor to save state in file, uid = UNIC on device id
 	virtual void set(uint8_t state, uint8_t forceDelegatesCall);
-	void set(uint8_t state) { set(state, false); };
+	virtual void set(uint8_t state) { set(state, false); };
 	void setPolarity(uint8_t polarity) { polarity ? _state |= BinState::polarityBit : _state &= ~(BinState::polarityBit); };
 	void setToggleActive(uint8_t toggleActive) { toggleActive ? _state |= BinState::toggleActiveBit : _state &= ~(BinState::toggleActiveBit); };
 	void toggle(uint8_t state = true); //there is argument for use this method in tru/false delegates, can use it without arguments too
@@ -97,8 +97,7 @@ private:
 class BinStateSharedDeferredClass : public BinStateClass
 {
 public:
-	virtual void set(uint8_t state, uint8_t forceDelegatesCall);
-	virtual void set(uint8_t state) { set(state, false); };
+	virtual void set(uint8_t state);
 	void setTrueDelay(uint16_t trueDelay) { _trueDelay = trueDelay; };
 	void setFalseDelay(uint16_t falseDelay) { _falseDelay = falseDelay; };
 private:
