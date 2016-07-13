@@ -20,30 +20,6 @@ void AppClass::init()
 {
 	ApplicationClass::init();
 
-//	String tmpStr = "Вентилятор";
-//	uint16_t strLen = 0;
-//	char* strPtr = (char*)tmpStr.c_str();
-//
-//	while ( strPtr[strLen] )
-//	{
-//		Serial.printf("strPtr[%u] = %u\n", strLen, strPtr[strLen]);
-//		strLen++;
-//	}
-//	Serial.printf("strLen = %u\n",strLen);
-//
-//	char* copyStr = new char[strLen];
-//
-//	os_memcpy(copyStr, strPtr, strLen);
-//	copyStr[strLen] = '\0';
-//
-//	strLen = 0;
-//	while ( copyStr[strLen] )
-//	{
-//		Serial.printf("copyStr[%u] = %u\n", strLen, copyStr[strLen]);
-//		strLen++;
-//	}
-//	Serial.printf("strLen = %u\n",strLen);
-
 //	ntpClient = new NtpClient("pool.ntp.org", 300);
 	SystemClock.setTimeZone(Config.timeZone);
 	Serial.printf("Time zone: %d\n", Config.timeZone);
@@ -65,17 +41,21 @@ void AppClass::init()
 
 #ifndef MCP23S17 //use GPIO
 //Nothing here
+	BinInGPIOClass* startButton = new BinInGPIOClass(15,1); // Start button
+	BinInGPIOClass* stopButton = new BinInGPIOClass(16,0); // Stop button
+	binInPoller.add(startButton);
+	binInPoller.add(stopButton);
 #else
-	Serial.printf("PRE Free Heap: %d\n", system_get_free_heap_size());
-	for (uint8_t i = 0; i < 7; i++)
-	{
-		//test binState
-		binStates[i] = new BinStateClass();
-		BinStateHttpClass* binStateHttp = new BinStateHttpClass(webServer, *binStates[i], String(zoneNames[i]), i);
-		binStatesHttp->add(binStateHttp);
-	}
-	Serial.printf("POST Free Heap: %d\n", system_get_free_heap_size());
-	Serial.printf("Size is ,%d\n", sizeof(BinStateClass));
+//	Serial.printf("PRE Free Heap: %d\n", system_get_free_heap_size());
+//	for (uint8_t i = 0; i < 7; i++)
+//	{
+//		//test binState
+//		binStates[i] = new BinStateClass();
+////		BinStateHttpClass* binStateHttp = new BinStateHttpClass(webServer, *binStates[i], String(zoneNames[i]), i);
+////		binStatesHttp->add(binStateHttp);
+//	}
+//	Serial.printf("POST Free Heap: %d\n", system_get_free_heap_size());
+//	Serial.printf("Size is ,%d\n", sizeof(BinStateClass));
 
 	for (uint8_t i = 0; i < 7; i++)
 	{
@@ -90,28 +70,29 @@ void AppClass::init()
 	BinOutClass* output = new BinOutMCP23S17Class(*mcp000,7,0);
 	BinInClass* input = new BinInMCP23S17Class(*mcp000,7,0);
 	binInPoller.add(input);
-	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, 7, "Выкл. все");
+#endif
 
-//	BinStateSharedDeferredClass* pump = new BinStateSharedDeferredClass();
-//	pump->setTrueDelay(10);
-//	pump->setFalseDelay(10);
+	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, 7, "Выкл. все");
+	BinStateSharedDeferredClass* pump = new BinStateSharedDeferredClass();
+	pump->setTrueDelay(10);
+	pump->setFalseDelay(10);
 //	pump->set(true);
-//	BinStateHttpClass* binStateHttp = new BinStateHttpClass(webServer, *pump, "Насос", 0);
-//	binStatesHttp->add(binStateHttp);
-//	httpButton->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::toggle, (BinStateClass*)pump));
-//
+	BinStateHttpClass* binStateHttp = new BinStateHttpClass(webServer, *pump, "Насос", 0);
+	binStatesHttp->add(binStateHttp);
+	httpButton->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::toggle, (BinStateClass*)pump));
+	startButton->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)pump));
+	stopButton->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)pump));
+
 //	binStateHttp = new BinStateHttpClass(webServer, output->state, "Тушите свет!", 7);
 //	binStatesHttp->add(binStateHttp);
 
-	lightSystem->addAllOffGroup(output, input, httpButton);
+//	lightSystem->addAllOffGroup(output, input, httpButton);
+	lightSystem->addAllOffGroup(httpButton);
 	httpButton = new BinHttpButtonClass(webServer, 8, "Антивор");
+
+	httpButton->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::toggle, (BinStateClass*)pump));
 	lightSystem->addRandomButton(httpButton);
-//	lightSystem->randomLight(true);
 
-
-#endif
-
-//	webServer.addPath("/button",HttpPathDelegate(&BinHttpButtonsClass::onHttp,httpButtons));
 	// Web Sockets configuration
 	webServer.enableWebSockets(true);
 	webServer.setWebSocketConnectionHandler(WebSocketDelegate(&AppClass::wsConnected,this));
@@ -296,9 +277,9 @@ void AppClass::_loop()
 //	Serial.printf("Random: %d\n", lightSystem->getRandom(8,25));
 //	Serial.print("DateTime: ");Serial.println(nowTime.toFullDateTimeString());
 
-	for (uint8_t i=0; i<7; i++)
-	{
-		binStates[i]->toggle();
-	}
+//	for (uint8_t i=0; i<7; i++)
+//	{
+//		binStates[i]->toggle();
+//	}
 }
 
