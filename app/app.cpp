@@ -41,10 +41,10 @@ void AppClass::init()
 
 #ifndef MCP23S17 //use GPIO
 //Nothing here
-	BinInGPIOClass* startButton = new BinInGPIOClass(15,1); // Start button
-	BinInGPIOClass* stopButton = new BinInGPIOClass(16,0); // Stop button
-	binInPoller.add(startButton);
-	binInPoller.add(stopButton);
+	BinInGPIOClass* thStatWarmFloor = new BinInGPIOClass(15,1); // Start button
+	BinInGPIOClass* thStatBedroom = new BinInGPIOClass(16,0); // Stop button
+	binInPoller.add(thStatWarmFloor);
+	binInPoller.add(thStatBedroom);
 #else
 //	Serial.printf("PRE Free Heap: %d\n", system_get_free_heap_size());
 //	for (uint8_t i = 0; i < 7; i++)
@@ -73,15 +73,33 @@ void AppClass::init()
 #endif
 
 	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, 7, "Выкл. все");
-	BinStateSharedDeferredClass* pump = new BinStateSharedDeferredClass();
-	pump->setTrueDelay(10);
-	pump->setFalseDelay(10);
-//	pump->set(true);
-	BinStateHttpClass* binStateHttp = new BinStateHttpClass(webServer, *pump, "Насос", 0);
-	binStatesHttp->add(binStateHttp);
-	httpButton->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::toggle, (BinStateClass*)pump));
-	startButton->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)pump));
-	stopButton->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)pump));
+
+	BinStateSharedDeferredClass* caldron = new BinStateSharedDeferredClass();
+	caldron->setTrueDelay(10);
+	caldron->setFalseDelay(0);
+
+	BinStateSharedDeferredClass* warmFloorPump = new BinStateSharedDeferredClass();
+	warmFloorPump->setTrueDelay(10);
+	warmFloorPump->setFalseDelay(5);
+
+	BinStateClass* bedroomHead = new BinStateClass;
+
+	BinStateHttpClass* caldronState = new BinStateHttpClass(webServer, *caldron, "Котел", 0);
+	binStatesHttp->add(caldronState);
+
+	BinStateHttpClass* warmFloorPumpState = new BinStateHttpClass(webServer, *warmFloorPump, "Насос т. пола", 1);
+	binStatesHttp->add(warmFloorPumpState);
+
+	BinStateHttpClass* bedroomHeadState = new BinStateHttpClass(webServer, *bedroomHead, "Спальня", 2);
+	binStatesHttp->add(bedroomHeadState);
+
+	httpButton->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::toggle, (BinStateClass*)caldron));
+
+	thStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)warmFloorPump));
+	thStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
+
+	thStatBedroom->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)bedroomHead));
+	thStatBedroom->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
 
 //	binStateHttp = new BinStateHttpClass(webServer, output->state, "Тушите свет!", 7);
 //	binStatesHttp->add(binStateHttp);
@@ -90,7 +108,7 @@ void AppClass::init()
 	lightSystem->addAllOffGroup(httpButton);
 	httpButton = new BinHttpButtonClass(webServer, 8, "Антивор");
 
-	httpButton->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::toggle, (BinStateClass*)pump));
+	httpButton->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::toggle, (BinStateClass*)caldron));
 	lightSystem->addRandomButton(httpButton);
 
 	// Web Sockets configuration
