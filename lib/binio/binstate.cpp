@@ -219,7 +219,7 @@ void BinStateSharedDeferredClass::set(uint8_t state)
 	{
 		if ( _consumers == 0 )
 		{
-			if ( _falseDelay > 0 )
+			if ( _trueDelay > 0 )
 			{
 				_setDeferredState(state);
 				_delayTimer.initializeMs(_trueDelay * 1000, TimerDelegate(&BinStateSharedDeferredClass::_deferredSet, this)).start(false);
@@ -228,7 +228,8 @@ void BinStateSharedDeferredClass::set(uint8_t state)
 			else
 			{
 				Serial.printf("Fire nodelay %s\n", state ? "true" : "false");
-				BinStateClass::set(state);
+				_delayTimer.stop();
+				BinStateClass::set(state,false);
 			}
 		}
 		_consumers++;
@@ -243,7 +244,7 @@ void BinStateSharedDeferredClass::set(uint8_t state)
 			Serial.printf("Decrease consumers = %d\n", _consumers);
 		}
 
-		if ( _consumers == 0)
+		if ( _consumers == 0 )
 		{
 			if ( _falseDelay > 0 )
 			{
@@ -254,7 +255,8 @@ void BinStateSharedDeferredClass::set(uint8_t state)
 			else
 			{
 				Serial.printf("Fire nodelay %s\n", state ? "true" : "false");
-				BinStateClass::set(state);
+				_delayTimer.stop();
+				BinStateClass::set(state,false);
 			}
 		}
 	}
