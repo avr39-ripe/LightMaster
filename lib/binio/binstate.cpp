@@ -215,55 +215,35 @@ void BinStatesHttpClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t si
 
 void BinStateSharedDeferredClass::set(uint8_t state)
 {
-	if ( state == true)
+	if ( !state && _consumers > 0 )
 	{
-		if ( _consumers == 0 )
-		{
-			if ( _trueDelay > 0 )
-			{
-				_setDeferredState(state);
-				_delayTimer.initializeMs(_trueDelay * 1000, TimerDelegate(&BinStateSharedDeferredClass::_deferredSet, this)).start(false);
-				Serial.printf("Arm deferred True\n");
-			}
-			else
-			{
-				Serial.printf("Fire nodelay %s\n", state ? "true" : "false");
-				_delayTimer.stop();
-				BinStateClass::set(state,false);
-			}
-		}
-		_consumers++;
-		Serial.printf("Increase consumers = %d\n", _consumers);
+		_consumers--;
+		Serial.printf("Decrease consumers = %d\n", _consumers);
 	}
 
-	if ( state == false )
+	if ( _consumers == 0 && ( (state && _trueDelay > 0) || (!state && _falseDelay > 0) ) )
 	{
-		if ( _consumers > 0 )
-		{
-			_consumers--;
-			Serial.printf("Decrease consumers = %d\n", _consumers);
-		}
+		_setDeferredState(state);
+		_delayTimer.initializeMs( (state ? _trueDelay : _falseDelay) * 1000, TimerDelegate(&BinStateSharedDeferredClass::_deferredSet, this)).start(false);
+		Serial.printf("Arm deferred %s\n", state ? "True" : "False");
+	}
 
-		if ( _consumers == 0 )
-		{
-			if ( _falseDelay > 0 )
-			{
-				_setDeferredState(state);
-				_delayTimer.initializeMs(_falseDelay * 1000, TimerDelegate(&BinStateSharedDeferredClass::_deferredSet, this)).start(false);
-				Serial.printf("Arm deferred False\n");
-			}
-			else
-			{
-				Serial.printf("Fire nodelay %s\n", state ? "true" : "false");
-				_delayTimer.stop();
-				BinStateClass::set(state,false);
-			}
-		}
+	if ( _consumers == 0 && ( (state && _trueDelay == 0) || (!state && _falseDelay == 0) ) )
+	{
+		Serial.printf("Fire nodelay %s\n", state ? "true" : "false");
+		_delayTimer.stop();
+		BinStateClass::set(state, false);
+	}
+
+	if ( state )
+	{
+		_consumers++;
+		Serial.printf("Increase consumers = %d\n", _consumers);
 	}
 }
 
 void BinStateSharedDeferredClass::_deferredSet()
 {
 	Serial.printf("Fire deferred %s\n", _getDefferedState() ? "true" : "false");
-	BinStateClass::set(_getDefferedState(),false);
+	BinStateClass::set(_getDefferedState(), false);
 }
