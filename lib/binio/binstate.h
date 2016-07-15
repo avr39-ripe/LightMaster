@@ -45,7 +45,9 @@ public:
 	virtual void set(uint8_t state, uint8_t forceDelegatesCall);
 	virtual void set(uint8_t state) { set(state, false); };
 	virtual void setTrue(uint8_t state) { if (state) set(true); };
+	virtual void setTrue() { set(true); };
 	virtual void setFalse(uint8_t state) { if (state) set(false); };
+	virtual void setFalse() { set(false); };
 	void setPolarity(uint8_t polarity) { polarity ? _state |= BinState::polarityBit : _state &= ~(BinState::polarityBit); };
 	void setToggleActive(uint8_t toggleActive) { toggleActive ? _state |= BinState::toggleActiveBit : _state &= ~(BinState::toggleActiveBit); };
 	void toggle(uint8_t state = true); //there is argument for use this method in tru/false delegates, can use it without arguments too
