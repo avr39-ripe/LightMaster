@@ -15,6 +15,7 @@
 #include <lightgroup.h>
 #include <binhttpbutton.h>
 #include <lightsystem.h>
+#include <bincycler.h>
 
 //output mode selector: GPIO or MCP23S17
 //#define MCP23S17
@@ -30,4 +31,5 @@ extern BinInPollerClass binInPoller;
 extern LightSystemClass* lightSystem;
 
 extern BinStateClass* binStates[7];
+extern BinCyclerClass* binCycler;
 #endif /* INCLUDE_LIGHTMASTER_H_ */

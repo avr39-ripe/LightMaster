@@ -18,14 +18,14 @@ AppClass::AppClass()
 }
 void AppClass::init()
 {
+	system_update_cpu_freq(SYS_CPU_160MHZ);
+
 	ApplicationClass::init();
 
 //	ntpClient = new NtpClient("pool.ntp.org", 300);
 	SystemClock.setTimeZone(Config.timeZone);
 	Serial.printf("Time zone: %d\n", Config.timeZone);
 	lightSystem = new LightSystemClass();
-
-	system_update_cpu_freq(SYS_CPU_160MHZ);
 
 	BinStatesHttpClass* binStatesHttp = new BinStatesHttpClass();
 	_wsBinGetters[binStatesHttp->sysId] = WebSocketBinaryDelegate(&BinStatesHttpClass::wsBinGetter,binStatesHttp);
@@ -100,6 +100,13 @@ void AppClass::init()
 
 	thStatBedroom->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)bedroomHead));
 	thStatBedroom->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
+
+	BinStateClass* vent = new BinStateClass;
+	BinStateHttpClass* ventState = new BinStateHttpClass(webServer, *vent, "Вентиляция", 3);
+	binStatesHttp->add(ventState);
+
+	binCycler = new BinCyclerClass(*vent, 15, 20);
+	binCycler->state.set(true);
 
 //	binStateHttp = new BinStateHttpClass(webServer, output->state, "Тушите свет!", 7);
 //	binStatesHttp->add(binStateHttp);

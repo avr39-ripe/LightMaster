@@ -19,7 +19,7 @@ public:
 	uint16_t getinterval() { return _interval; };
 	BinStateClass state;
 private:
-	void _enable(uint8_t state);
+	void _enable(uint8_t enableState);
 	void _setTrue();
 	void _setFalse();
 	BinStateClass& _cycleState;

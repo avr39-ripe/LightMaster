@@ -5,7 +5,7 @@
  *      Author: shurik
  */
 
-#include "bincycler.h"
+#include <bincycler.h>
 
 BinCyclerClass::BinCyclerClass(BinStateClass& cycleState, uint16_t duration, uint16_t interval)
 : _cycleState(cycleState), _duration(duration), _interval(interval)
@@ -13,27 +13,27 @@ BinCyclerClass::BinCyclerClass(BinStateClass& cycleState, uint16_t duration, uin
 	state.onChange(onStateChangeDelegate(&BinCyclerClass::_enable, this));
 }
 
-void BinCyclerClass::_enable(uint8_t state)
+void BinCyclerClass::_enable(uint8_t enableState)
 {
-	if (state)
+	if (enableState)
 	{
 		_setTrue();
 	}
 	else
 	{
-		state.set(false);
+		_cycleState.set(false);
 		_timer.stop();
 	}
 }
 
 void BinCyclerClass::_setTrue()
 {
-	state.set(true);
+	_cycleState.set(true);
 	_timer.initializeMs(_duration * 1000, TimerDelegate(&BinCyclerClass::_setFalse, this)).start(false);
 }
 
 void BinCyclerClass::_setFalse()
 {
-	state.set(false);
+	_cycleState.set(false);
 	_timer.initializeMs(_interval * 1000, TimerDelegate(&BinCyclerClass::_setTrue, this)).start(false);
 }
