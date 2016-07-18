@@ -7,7 +7,8 @@
 
 #include <lightsystem.h>
 
-LightSystemClass::LightSystemClass()
+LightSystemClass::LightSystemClass(BinHttpButtonsClass& binHttpButtons)
+: _binHttpButtons(binHttpButtons)
 {
 	_loadBinConfig();
 	_allOffState = new BinStateClass();

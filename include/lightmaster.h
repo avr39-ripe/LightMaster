@@ -28,6 +28,7 @@ extern MCP* mcp000;
 #endif
 
 extern BinInPollerClass binInPoller;
+extern BinHttpButtonsClass* binHttpButtons;
 extern LightSystemClass* lightSystem;
 
 extern BinStateClass* binStates[7];
