@@ -203,14 +203,27 @@ void BinStatesHttpClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t si
 		}
 		break;
 	case wsBinConst::scBinStateGetState:
-		if (_binStatesHttp.contains(data[wsBinConst::wsGetArg]))
+		if (_binStatesHttp.contains(data[wsBinConst::wsGetSetArg]))
 		{
-			_binStatesHttp.valueAt(data[wsBinConst::wsGetArg])->wsSendState(socket);
+			_binStatesHttp.valueAt(data[wsBinConst::wsGetSetArg])->wsSendState(socket);
 		}
 		break;
 	}
 }
 
+void BinStatesHttpClass::wsBinSetter(WebSocket& socket, uint8_t* data, size_t size)
+{
+	uint8_t* buffer = nullptr;
+	switch (data[wsBinConst::wsSubCmd])
+	{
+	case wsBinConst::scBinStateSetState:
+		if (_binStatesHttp.contains(data[wsBinConst::wsGetSetArg]))
+		{
+			_binStatesHttp.valueAt(data[wsBinConst::wsGetSetArg])->setState(data[wsBinConst::wsPayLoadStartGetSetArg]);
+		}
+		break;
+	}
+}
 //BinStateSharedDeferredClass
 
 void BinStateSharedDeferredClass::set(uint8_t state)

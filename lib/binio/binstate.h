@@ -75,6 +75,7 @@ public:
 	void wsSendStateAll(uint8_t state);
 	void wsSendState(WebSocket& socket);
 	void wsSendName(WebSocket& socket);
+	void setState(uint8_t state) { _state.set(state); };
 	uint8_t getUid() { return _uid; };
 	static const uint8_t sysId = 2;
 private:
@@ -92,6 +93,7 @@ class BinStatesHttpClass
 {
 public:
 	void wsBinGetter(WebSocket& socket, uint8_t* data, size_t size);
+	void wsBinSetter(WebSocket& socket, uint8_t* data, size_t size);
 	void add(BinStateHttpClass* binStateHttp) { _binStatesHttp[binStateHttp->getUid()] = binStateHttp; };
 	static const uint8_t sysId = 3;
 private:

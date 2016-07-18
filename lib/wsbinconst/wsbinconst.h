@@ -16,8 +16,8 @@ namespace wsBinConst
 	const uint8_t wsSubCmd = 2; //sub-command type
 	const uint8_t wsPayLoadStart = 3;
 	//alternatively if we need argument to Get value
-	const uint8_t wsPayLoadStartGetArg = 4;
-	const uint8_t wsGetArg = 3;
+	const uint8_t wsPayLoadStartGetSetArg = 4;
+	const uint8_t wsGetSetArg = 3;
 
 	const uint8_t reservedCmd = 0;
 	const uint8_t getCmd = 1;
@@ -32,6 +32,7 @@ namespace wsBinConst
 // sub-commands for BinStateHttpClass sysId=2 and BinStatesHttpClass sysId=3
 	const uint8_t scBinStateGetName = 1;
 	const uint8_t scBinStateGetState = 2;
+	const uint8_t scBinStateSetState = 3;
 // sub-commands for BinStatesHttpClass sysId=3
 	const uint8_t scBinStatesGetAll = 1;
 };

@@ -32,6 +32,10 @@ BinStateClass.prototype.wsGetState = function () {
 	this.wsGet(2);
 }
 
+BinStateClass.prototype.wsSetState = function (state) {
+	wsBinCmd.SetArg(websocket, 3, wsBinConst.scBinStateSetState, this.uid, state);
+}
+
 BinStateClass.prototype.wsGotName = function (bin) {
 	var uid = bin.getUint8(wsBinConst.wsPayLoadStart, true);
 	var strBuffer = new Uint8Array(bin.byteLength);
