@@ -17,8 +17,6 @@ public:
 	BinHttpButtonClass(HttpServer& webServer, uint8_t unitNumber, String name = "Button", BinStateClass *outputState = nullptr);
 //	: BinInClass(unitNumber, 1), _webServer(webServer), _name(name), _output(output) {};
 	virtual ~BinHttpButtonClass() {};
-	void onHttpGetState(HttpRequest &request, HttpResponse &response);
-	void onHttpSetState(HttpRequest &request, HttpResponse &response);
 	String getName() { return _name; };
 	void setName(String name) { _name = name; };
 	uint8_t getOutputState() { return (_outputState == nullptr) ? this->state.get() : _outputState->get(); };
@@ -36,7 +34,6 @@ class BinHttpButtonsClass
 public:
 //	BinHttpButtonsClass::BinHttpButtonsClass(HttpServer& webServer)
 //	: _webServer(webServer) {};
-	void onHttp(HttpRequest &request, HttpResponse &response);
 	void onWSReceiveButton(JsonObject& jsonRoot);
 	void add(BinHttpButtonClass* button);
 	void setButton(uint8_t button, uint8_t state) { _buttons[button]->state.set(state); };
