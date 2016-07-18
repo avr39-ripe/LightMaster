@@ -161,12 +161,12 @@ void AppClass::wsMessageReceived(WebSocket& socket, const String& message)
 
 	if (command == "setButton")
 	{
-		lightSystem->onWSReceiveButton(root);
+		binHttpButtons->onWSReceiveButton(root);
 	}
 
 	if (command == "getButtons")
 	{
-		lightSystem->onWSGetButtons(socket);
+		binHttpButtons->onWSGetButtons(socket);
 	}
 
 	if (command == "setRandom")

@@ -24,8 +24,6 @@ public:
 	void addAllOffGroup(BinInClass* input) { addAllOffGroup(nullptr,input, nullptr); };
 	void addAllOffGroup(BinHttpButtonClass* httpButton) {addAllOffGroup(nullptr, nullptr, httpButton); };
 	void addRandomButton(BinHttpButtonClass* httpButton);
-	void onWSReceiveButton(JsonObject& jsonRoot) { _binHttpButtons.onWSReceiveButton(jsonRoot); };
-	void onWSGetButtons(WebSocket& socket) { _binHttpButtons.onWSGetButtons(socket); };
 	void onWSReceiveRandom(JsonObject& jsonRoot);
 	void onWSGetRandom(WebSocket& socket);
 	void toggleAllOff(uint8_t state);
