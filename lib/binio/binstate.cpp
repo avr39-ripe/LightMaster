@@ -107,10 +107,10 @@ void BinStateHttpClass::_updateLength()
 
 	while ( strPtr[_nameLength] )
 	{
-		Serial.printf("strPtr[%u] = %u\n", _nameLength, strPtr[_nameLength]);
+//		Serial.printf("strPtr[%u] = %u\n", _nameLength, strPtr[_nameLength]);
 		_nameLength++;
 	}
-	Serial.printf("strLen = %u\n",_nameLength);
+//	Serial.printf("strLen = %u\n",_nameLength);
 }
 
 BinStateHttpClass::BinStateHttpClass(HttpServer& webServer, BinStateClass& state, String name, uint8_t uid)
