@@ -25,7 +25,8 @@ void AppClass::init()
 //	ntpClient = new NtpClient("pool.ntp.org", 300);
 	SystemClock.setTimeZone(Config.timeZone);
 	Serial.printf("Time zone: %d\n", Config.timeZone);
-	lightSystem = new LightSystemClass();
+	binHttpButtons = new BinHttpButtonsClass();
+	lightSystem = new LightSystemClass(*binHttpButtons);
 
 	BinStatesHttpClass* binStatesHttp = new BinStatesHttpClass();
 	_wsBinGetters[binStatesHttp->sysId] = WebSocketBinaryDelegate(&BinStatesHttpClass::wsBinGetter,binStatesHttp);
@@ -72,7 +73,6 @@ void AppClass::init()
 	binInPoller.add(input);
 #endif
 
-	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, 7, "Выкл. все");
 
 	BinStateSharedDeferredClass* caldron = new BinStateSharedDeferredClass();
 	caldron->setTrueDelay(10);
@@ -93,7 +93,7 @@ void AppClass::init()
 	BinStateHttpClass* bedroomHeadState = new BinStateHttpClass(webServer, *bedroomHead, "Спальня", 2);
 	binStatesHttp->add(bedroomHeadState);
 
-	httpButton->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::toggle, (BinStateClass*)caldron));
+//	httpButton->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::toggle, (BinStateClass*)caldron));
 
 	thStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)warmFloorPump));
 	thStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
@@ -101,22 +101,37 @@ void AppClass::init()
 	thStatBedroom->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)bedroomHead));
 	thStatBedroom->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
 
+
 	BinStateClass* vent = new BinStateClass;
 	BinStateHttpClass* ventState = new BinStateHttpClass(webServer, *vent, "Вентиляция", 3);
 	binStatesHttp->add(ventState);
 
+	BinStateClass* ventMan = new BinStateClass;
+	ventMan->onChange(onStateChangeDelegate(&BinStateClass::set , vent));
+
 	binCycler = new BinCyclerClass(*vent, 15, 20);
-	binCycler->state.set(true);
+//	binCycler->state.set(true);
+	BinHttpButtonClass* ventAutoButton = new BinHttpButtonClass(webServer, 0, "Вент. авто", &binCycler->state);
+	BinHttpButtonClass* ventManButton = new BinHttpButtonClass(webServer, 1, "Вент. ручной", ventMan);
+	binHttpButtons->add(ventAutoButton);
+	binHttpButtons->add(ventManButton);
+
+	ventAutoButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse , ventMan)); // Order *IS METTER! firstly turn of mutual state!*
+	ventAutoButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle , &binCycler->state));
+	ventManButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse , &binCycler->state)); // Order *IS METTER! firstly turn of mutual state!*
+	ventManButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle , ventMan));
+
 
 //	binStateHttp = new BinStateHttpClass(webServer, output->state, "Тушите свет!", 7);
 //	binStatesHttp->add(binStateHttp);
 
 //	lightSystem->addAllOffGroup(output, input, httpButton);
-	lightSystem->addAllOffGroup(httpButton);
-	httpButton = new BinHttpButtonClass(webServer, 8, "Антивор");
-
-	httpButton->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::toggle, (BinStateClass*)caldron));
-	lightSystem->addRandomButton(httpButton);
+//	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, 0, "Выкл. все");
+//	lightSystem->addAllOffGroup(httpButton);
+//	httpButton = new BinHttpButtonClass(webServer, 3, "Антивор");
+//
+////	httpButton->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::toggle, (BinStateClass*)caldron));
+//	lightSystem->addRandomButton(httpButton);
 
 	// Web Sockets configuration
 	webServer.enableWebSockets(true);
