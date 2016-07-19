@@ -101,11 +101,11 @@ void BinStateClass::persistent(uint8_t uid)
 }
 
 // BinStateHttpClass
-BinStateHttpClass::BinStateHttpClass(HttpServer& webServer, BinStateClass& state, String name, uint8_t uid, BinStateClass* inState)
-: _webServer(webServer), _outState(state), _name(name), _uid(uid), _inState(inState)
+BinStateHttpClass::BinStateHttpClass(HttpServer& webServer, BinStateClass* outState, String name, uint8_t uid, BinStateClass* inState)
+: _webServer(webServer), _outState(outState), _name(name), _uid(uid), _inState(inState)
 {
 	_updateLength();
-	_outState.onChange(onStateChangeDelegate(&BinStateHttpClass::wsSendStateAll, this));
+	_outState->onChange(onStateChangeDelegate(&BinStateHttpClass::wsSendStateAll, this));
 };
 
 void BinStateHttpClass::_updateLength()

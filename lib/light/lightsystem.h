@@ -14,7 +14,7 @@
 
 class LightSystemClass {
 public:
-	LightSystemClass(BinHttpButtonsClass& binHttpButtons);
+	LightSystemClass();
 //	virtual ~LightSystemClass();
 
 	void addLightGroup(BinOutClass* output, BinInClass* input, BinHttpButtonClass* httpButton);
@@ -40,7 +40,6 @@ private:
 	BinOutClass* _allOffOutput = nullptr;
 	Vector<BinInClass*> _inputs;
 	Vector<BinOutClass*> _outputs;
-	BinHttpButtonsClass& _binHttpButtons;
 	BinStateClass* _randomState = nullptr;
 	uint8_t _randomLightGroupIdx = 0;
 	Timer _randomEnablerTimer;

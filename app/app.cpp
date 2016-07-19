@@ -26,7 +26,7 @@ void AppClass::init()
 	SystemClock.setTimeZone(Config.timeZone);
 	Serial.printf("Time zone: %d\n", Config.timeZone);
 	binHttpButtons = new BinHttpButtonsClass();
-	lightSystem = new LightSystemClass(*binHttpButtons);
+	lightSystem = new LightSystemClass();
 
 	BinStatesHttpClass* binStatesHttp = new BinStatesHttpClass();
 	_wsBinGetters[binStatesHttp->sysId] = WebSocketBinaryDelegate(&BinStatesHttpClass::wsBinGetter,binStatesHttp);
@@ -85,13 +85,13 @@ void AppClass::init()
 
 	BinStateClass* bedroomHead = new BinStateClass;
 
-	BinStateHttpClass* caldronState = new BinStateHttpClass(webServer, *caldron, "Котел", 0);
+	BinStateHttpClass* caldronState = new BinStateHttpClass(webServer, caldron, "Котел", 0);
 	binStatesHttp->add(caldronState);
 
-	BinStateHttpClass* warmFloorPumpState = new BinStateHttpClass(webServer, *warmFloorPump, "Насос т. пола", 1);
+	BinStateHttpClass* warmFloorPumpState = new BinStateHttpClass(webServer, warmFloorPump, "Насос т. пола", 1);
 	binStatesHttp->add(warmFloorPumpState);
 
-	BinStateHttpClass* bedroomHeadState = new BinStateHttpClass(webServer, *bedroomHead, "Спальня", 2);
+	BinStateHttpClass* bedroomHeadState = new BinStateHttpClass(webServer, bedroomHead, "Спальня", 2);
 	binStatesHttp->add(bedroomHeadState);
 
 //	httpButton->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::toggle, (BinStateClass*)caldron));
@@ -104,7 +104,7 @@ void AppClass::init()
 
 
 	BinStateClass* vent = new BinStateClass;
-	BinStateHttpClass* ventState = new BinStateHttpClass(webServer, *vent, "Вентиляция", 3);
+	BinStateHttpClass* ventState = new BinStateHttpClass(webServer, vent, "Вентиляция", 3);
 	binStatesHttp->add(ventState);
 
 	BinStateClass* ventMan = new BinStateClass;
@@ -112,10 +112,8 @@ void AppClass::init()
 
 	binCycler = new BinCyclerClass(*vent, 15, 20);
 //	binCycler->state.set(true);
-	BinHttpButtonClass* ventAutoButton = new BinHttpButtonClass(webServer, 0, "Вент. авто", &binCycler->state);
-	BinHttpButtonClass* ventManButton = new BinHttpButtonClass(webServer, 1, "Вент. ручной", ventMan);
-	binHttpButtons->add(ventAutoButton);
-	binHttpButtons->add(ventManButton);
+	BinHttpButtonClass* ventAutoButton = new BinHttpButtonClass(webServer, *binStatesHttp, 0, "Вент. авто", &binCycler->state);
+	BinHttpButtonClass* ventManButton = new BinHttpButtonClass(webServer, *binStatesHttp, 1, "Вент. ручной", ventMan);
 
 	ventAutoButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse , ventMan)); // Order *IS METTER! firstly turn of mutual state!*
 	ventAutoButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle , &binCycler->state));

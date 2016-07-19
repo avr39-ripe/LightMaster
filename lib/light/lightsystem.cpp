@@ -7,8 +7,7 @@
 
 #include <lightsystem.h>
 
-LightSystemClass::LightSystemClass(BinHttpButtonsClass& binHttpButtons)
-: _binHttpButtons(binHttpButtons)
+LightSystemClass::LightSystemClass()
 {
 	_loadBinConfig();
 	_allOffState = new BinStateClass();
@@ -31,7 +30,6 @@ void LightSystemClass::addLightGroup(BinOutClass* output, BinInClass* input, Bin
 	if (httpButton)
 	{
 		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
-		_binHttpButtons.add(httpButton);
 	}
 }
 
@@ -56,10 +54,9 @@ void LightSystemClass::addAllOffGroup(BinOutClass* output, BinInClass* input, Bi
 	}
 	if (httpButton)
 	{
-		httpButton->addOutputState(_allOffState);
+		httpButton->addOutState(_allOffState);
 //		_turnAllState.onChange(onStateChangeDelegate(&BinHttpButtonClass::wsSendButton, httpButton));
 		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, _allOffState));
-		_binHttpButtons.add(httpButton);
 	}
 }
 void LightSystemClass::toggleAllOff(uint8_t state)
@@ -138,10 +135,9 @@ void LightSystemClass::addRandomButton(BinHttpButtonClass* httpButton)
 		_randomState->onChange(onStateChangeDelegate(&LightSystemClass::_randomEnabler, this));
 		_randomState->persistent(2);
 
-		httpButton->addOutputState(_randomState);
+		httpButton->addOutState(_randomState);
 //		_turnAllState.onChange(onStateChangeDelegate(&BinHttpButtonClass::wsSendButton, httpButton));
 		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, _randomState));
-		_binHttpButtons.add(httpButton);
 	}
 }
 
