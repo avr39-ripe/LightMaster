@@ -9,13 +9,18 @@
 
 //BinHttpButtonClass
 
-BinHttpButtonClass::BinHttpButtonClass(HttpServer& webServer, uint8_t unitNumber, String name, BinStateClass *outputState)
-:BinInClass(unitNumber, 1), _webServer(webServer), _name(name), _outputState(outputState)
+BinHttpButtonClass::BinHttpButtonClass(HttpServer& webServer, BinStatesHttpClass& binStatesHttp, uint8_t unitNumber, String name, BinStateClass *outputState)
+:BinInClass(unitNumber, 1), _binStatesHttp(binStatesHttp), _name(name), _outputState(outputState)
 {
 	if (outputState)
 	{
-		outputState->onChange(onStateChangeDelegate(&BinHttpButtonClass::wsSendButton, this));
+		_binStateHttp = new BinStateHttpClass(webServer, *outputState, name, unitNumber, &state);
 	}
+	else
+	{
+		_binStateHttp = new BinStateHttpClass(webServer, state, name, unitNumber, &state);
+	}
+
 }
 
 void BinHttpButtonClass::addOutputState(BinStateClass *outputState)
@@ -26,23 +31,7 @@ void BinHttpButtonClass::addOutputState(BinStateClass *outputState)
 		outputState->onChange(onStateChangeDelegate(&BinHttpButtonClass::wsSendButton, this));
 	}
 }
-void BinHttpButtonClass::wsSendButton(uint8_t state)
-{
-	DynamicJsonBuffer jsonBuffer;
-	JsonObject& root = jsonBuffer.createObject();
-	root["response"] = "getButton";
-	root["button"] = getUnitNumber();
-	root["state"] = state;
-//	root.prettyPrintTo(Serial);
-	String buf;
-	root.printTo(buf);
-	WebSocketsList &clients = _webServer.getActiveWebSockets();
-	for (int i = 0; i < clients.count(); i++)
-	{
-		clients[i].sendString(buf);
-	}
 
-}
 //BinHttpButtonsClass
 
 void BinHttpButtonsClass::add(BinHttpButtonClass* button)

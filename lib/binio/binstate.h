@@ -68,22 +68,23 @@ protected:
 class BinStateHttpClass
 {
 public:
-	BinStateHttpClass(HttpServer& webServer, BinStateClass& state, String name, uint8_t uid);
+	BinStateHttpClass(HttpServer& webServer, BinStateClass& outState, String name, uint8_t uid, BinStateClass* inState = nullptr);
 //	: _webServer(webServer), _state(state), _name(name), _uid(uid) { _updateLength(); };
 	void wsBinGetter(WebSocket& socket, uint8_t* data, size_t size);
 	void wsBinSetter(WebSocket& socket, uint8_t* data, size_t size);
 	void wsSendStateAll(uint8_t state);
 	void wsSendState(WebSocket& socket);
 	void wsSendName(WebSocket& socket);
-	void setState(uint8_t state) { _state.set(state); };
-	uint8_t getState() { return _state.get(); };
+	void setState(uint8_t state) { if (_inState) { _inState->set(state); }; };
+	uint8_t getState() { return _outState.get(); };
 	uint8_t getUid() { return _uid; };
 	static const uint8_t sysId = 2;
 private:
 	void _updateLength();
 	void _fillNameBuffer(uint8_t* buffer);
 	void _fillStateBuffer(uint8_t* buffer);
-	BinStateClass& _state;
+	BinStateClass& _outState;
+	BinStateClass* _inState = nullptr;
 	String _name;
 	uint16_t _nameLength = 0;
 	uint8_t _uid = 0;

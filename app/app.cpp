@@ -160,16 +160,6 @@ void AppClass::wsMessageReceived(WebSocket& socket, const String& message)
 	String command = root["command"];
 //	Serial.printf("Command str: %s\n", command.c_str());
 
-	if (command == "setButton")
-	{
-		binHttpButtons->onWSReceiveButton(root);
-	}
-
-	if (command == "getButtons")
-	{
-		binHttpButtons->onWSGetButtons(socket);
-	}
-
 	if (command == "setRandom")
 	{
 		lightSystem->onWSReceiveRandom(root);

@@ -14,18 +14,17 @@
 class BinHttpButtonClass : public BinInClass
 {
 public:
-	BinHttpButtonClass(HttpServer& webServer, uint8_t unitNumber, String name = "Button", BinStateClass *outputState = nullptr);
+	BinHttpButtonClass(HttpServer& webServer, BinStatesHttpClass& binStatesHttp, uint8_t unitNumber, String name = "Button", BinStateClass *outputState = nullptr);
 	virtual ~BinHttpButtonClass() {};
 	String getName() { return _name; };
 	void setName(String name) { _name = name; };
-	uint8_t getOutputState() { return (_outputState == nullptr) ? this->state.get() : _outputState->get(); };
 	void addOutputState(BinStateClass *outputState);
-	void wsSendButton(uint8_t state);
 	uint8_t _readUnit() {}; //Do not used here
 private:
+	BinStateHttpClass* _binStateHttp;
 	String _name; //Name on button to display on the web
 	BinStateClass* _outputState = nullptr; //optional BinStateClass reference to get state from
-	HttpServer& _webServer;
+	BinStatesHttpClass& _binStatesHttp;
 };
 
 class BinHttpButtonsClass

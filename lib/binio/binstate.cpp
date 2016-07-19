@@ -101,6 +101,12 @@ void BinStateClass::persistent(uint8_t uid)
 }
 
 // BinStateHttpClass
+BinStateHttpClass::BinStateHttpClass(HttpServer& webServer, BinStateClass& state, String name, uint8_t uid, BinStateClass* inState)
+: _webServer(webServer), _outState(state), _name(name), _uid(uid), _inState(inState)
+{
+	_updateLength();
+	_outState.onChange(onStateChangeDelegate(&BinStateHttpClass::wsSendStateAll, this));
+};
 
 void BinStateHttpClass::_updateLength()
 {
@@ -114,13 +120,6 @@ void BinStateHttpClass::_updateLength()
 	}
 //	Serial.printf("strLen = %u\n",_nameLength);
 }
-
-BinStateHttpClass::BinStateHttpClass(HttpServer& webServer, BinStateClass& state, String name, uint8_t uid)
-: _webServer(webServer), _state(state), _name(name), _uid(uid)
-{
-	_updateLength();
-	_state.onChange(onStateChangeDelegate(&BinStateHttpClass::wsSendStateAll, this));
-};
 
 void BinStateHttpClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
 {
