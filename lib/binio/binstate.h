@@ -76,6 +76,7 @@ public:
 	void wsSendState(WebSocket& socket);
 	void wsSendName(WebSocket& socket);
 	void setState(uint8_t state) { _state.set(state); };
+	uint8_t getState() { return _state.get(); };
 	uint8_t getUid() { return _uid; };
 	static const uint8_t sysId = 2;
 private:

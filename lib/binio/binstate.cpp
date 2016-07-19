@@ -100,6 +100,8 @@ void BinStateClass::persistent(uint8_t uid)
 	_state |= BinState::persistentBit;
 }
 
+// BinStateHttpClass
+
 void BinStateHttpClass::_updateLength()
 {
 	_nameLength = 0;
@@ -150,7 +152,7 @@ void BinStateHttpClass::_fillStateBuffer(uint8_t* buffer)
 	buffer[wsBinConst::wsSysId] = sysId;
 	buffer[wsBinConst::wsSubCmd] = wsBinConst::scBinStateGetState;
 
-	uint8_t tmpState = _state.get();
+	uint8_t tmpState = getState();
 
 	os_memcpy((&buffer[wsBinConst::wsPayLoadStart]), &_uid, sizeof(_uid));
 	os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 1]), &tmpState, sizeof(tmpState));
