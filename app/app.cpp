@@ -25,7 +25,6 @@ void AppClass::init()
 //	ntpClient = new NtpClient("pool.ntp.org", 300);
 	SystemClock.setTimeZone(Config.timeZone);
 	Serial.printf("Time zone: %d\n", Config.timeZone);
-	binHttpButtons = new BinHttpButtonsClass();
 	lightSystem = new LightSystemClass();
 
 	BinStatesHttpClass* binStatesHttp = new BinStatesHttpClass();
@@ -112,7 +111,7 @@ void AppClass::init()
 
 	binCycler = new BinCyclerClass(*vent, 15, 20);
 //	binCycler->state.set(true);
-	BinHttpButtonClass* ventAutoButton = new BinHttpButtonClass(webServer, *binStatesHttp, 0, "Вент. авто", &binCycler->state);
+	BinHttpButtonClass* ventAutoButton = new BinHttpButtonClass(webServer, *binStatesHttp, 0, "Вент. автомат", &binCycler->state);
 	BinHttpButtonClass* ventManButton = new BinHttpButtonClass(webServer, *binStatesHttp, 1, "Вент. ручной", ventMan);
 
 	ventAutoButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse , ventMan)); // Order *IS METTER! firstly turn of mutual state!*

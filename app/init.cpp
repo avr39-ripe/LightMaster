@@ -7,7 +7,6 @@ NtpClient* ntpClient;
 MCP* mcp000;
 #endif
 BinInPollerClass binInPoller(100);
-BinHttpButtonsClass* binHttpButtons;
 LightSystemClass* lightSystem;
 BinStateClass* binStates[7];
 BinCyclerClass* binCycler;

@@ -5,7 +5,7 @@
  *      Author: shurik
  */
 #include <binstate.h>
-#include <wsbinconst.h>
+
 
 BinStateClass::BinStateClass(uint8_t polarity, uint8_t toggleActive)
 {
@@ -191,6 +191,22 @@ void BinStateHttpClass::wsSendStateAll(uint8_t state)
 	delete buffer;
 }
 
+void BinStateHttpClass::setState(uint8_t state)
+{
+	Serial.printf("Inside setState!!!\n");
+
+	if (_inState != nullptr)
+	{
+		Serial.printf("inState set\n");
+		_inState->set(state);
+	}
+	else
+	{
+		Serial.printf("outState set\n");
+		_outState->set(state);
+	}
+};
+
 void BinStatesHttpClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
 {
 	uint8_t* buffer = nullptr;
@@ -215,12 +231,14 @@ void BinStatesHttpClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t si
 void BinStatesHttpClass::wsBinSetter(WebSocket& socket, uint8_t* data, size_t size)
 {
 	uint8_t* buffer = nullptr;
+	Serial.printf("BinStatesHttp -> wsBinSetter -> wsGetSetArg = %d\n", data[wsBinConst::wsGetSetArg]);
 	switch (data[wsBinConst::wsSubCmd])
 	{
 	case wsBinConst::scBinStateSetState:
 		if (_binStatesHttp.contains(data[wsBinConst::wsGetSetArg]))
 		{
-			_binStatesHttp.valueAt(data[wsBinConst::wsGetSetArg])->setState(data[wsBinConst::wsPayLoadStartGetSetArg]);
+			Serial.printf("BinStatesHttp -> wsBinSetter -> wsGetSetArg -> ELEMENT FOUND!\n");
+			_binStatesHttp[data[wsBinConst::wsGetSetArg]]->setState(data[wsBinConst::wsPayLoadStartGetSetArg]);
 		}
 		break;
 	}

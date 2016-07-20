@@ -35,6 +35,9 @@ namespace wsBinConst
 	const uint8_t scBinStateSetState = 3;
 // sub-commands for BinStatesHttpClass sysId=3
 	const uint8_t scBinStatesGetAll = 1;
+// BinHttp State/Buttons base uid
+	const uint8_t uidHttpState = 0;
+	const uint8_t uidHttpButton = 127;
 };
 
 

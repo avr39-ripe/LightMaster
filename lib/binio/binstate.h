@@ -8,6 +8,7 @@
 #ifndef LIB_BINIO_BINSTATE_H_
 #define LIB_BINIO_BINSTATE_H_
 #include <SmingCore/SmingCore.h>
+#include <wsbinconst.h>
 
 #ifndef ONSTATECHANGEDELEGATE_TYPE_DEFINED
 #define ONSTATECHANGEDELEGATE
@@ -76,7 +77,7 @@ public:
 	void wsSendState(WebSocket& socket);
 	void wsSendName(WebSocket& socket);
 	void addOutState(BinStateClass *outState) { if (outState) { _outState = outState; }; };
-	void setState(uint8_t state) { if (_inState) { _inState->set(state); }; };
+	void setState(uint8_t state);
 	uint8_t getState() { return _outState->get(); };
 	uint8_t getUid() { return _uid; };
 	static const uint8_t sysId = 2;

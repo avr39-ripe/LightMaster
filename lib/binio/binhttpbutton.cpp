@@ -14,11 +14,11 @@ BinHttpButtonClass::BinHttpButtonClass(HttpServer& webServer, BinStatesHttpClass
 {
 	if (outputState)
 	{
-		_binStateHttp = new BinStateHttpClass(webServer, outputState, name, unitNumber, &state);
+		_binStateHttp = new BinStateHttpClass(webServer, outputState, name, wsBinConst::uidHttpButton + unitNumber, &state);
 	}
 	else
 	{
-		_binStateHttp = new BinStateHttpClass(webServer, &state, name, unitNumber, &state);
+		_binStateHttp = new BinStateHttpClass(webServer, &state, name, wsBinConst::uidHttpButton + unitNumber, &state);
 	}
 	_binStatesHttp.add(_binStateHttp);
 }
