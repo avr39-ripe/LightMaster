@@ -99,8 +99,9 @@ BinStateClass.prototype.wsSetState = function (state) {
 BinStateClass.prototype.wsGotName = function (bin) {
 	var uid = bin.getUint8(wsBinConst.wsPayLoadStart, true);
 	var strBuffer = new Uint8Array(bin.byteLength);
-    for (var i = 0; i < strBuffer.length; i++) {
-        strBuffer[i] = bin.getUint8(i);
+    for (var i = 0; i < strBuffer.length - (wsBinConst.wsPayLoadStart + 1); i++) {
+        strBuffer[i] = bin.getUint8(wsBinConst.wsPayLoadStart + 1 + i);
+//        console.log.bind(console)(`uid = ${uid}, strBuffer[${i}] = ${bin.getUint8(wsBinConst.wsPayLoadStart + 1 + i)}`);
     }
     this._name = new TextDecoder().decode(strBuffer)
 //    console.log.bind(console)(`uid = ${uid}, name = ${this._name}`);
