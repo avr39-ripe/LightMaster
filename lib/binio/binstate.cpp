@@ -219,6 +219,26 @@ void BinStatesHttpClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t si
 			_binStatesHttp.valueAt(i)->wsSendState(socket);
 		}
 		break;
+	case wsBinConst::scBinStatesGetAllStates:
+		for (uint8_t i = 0; i < _binStatesHttp.count(); i++)
+		{
+			if ( _binStatesHttp.keyAt(i) < wsBinConst::uidHttpButton )
+			{
+				_binStatesHttp.valueAt(i)->wsSendName(socket);
+				_binStatesHttp.valueAt(i)->wsSendState(socket);
+			}
+		}
+		break;
+	case wsBinConst::scBinStatesGetAllButtons:
+		for (uint8_t i = 0; i < _binStatesHttp.count(); i++)
+		{
+			if ( _binStatesHttp.keyAt(i) >= wsBinConst::uidHttpButton )
+			{
+				_binStatesHttp.valueAt(i)->wsSendName(socket);
+				_binStatesHttp.valueAt(i)->wsSendState(socket);
+			}
+		}
+		break;
 	case wsBinConst::scBinStateGetState:
 		if (_binStatesHttp.contains(data[wsBinConst::wsGetSetArg]))
 		{

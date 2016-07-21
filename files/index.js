@@ -7,7 +7,10 @@ function onOpen(evt) {
 	wsGetAppStatus();
 	setInterval(wsGetAppStatus, 5000);
 	
-	setTimeout(function() {binStates = new BinStatesClass();}, 1000)
+	binStates = new BinStatesClass();
+	
+	setTimeout(function() { binStates.wsGetAllButtons(); }, 500)
+	setTimeout(function() { binStates.wsGetAllStates(); }, 500)
 	//binStates = new BinStatesClass();
 	// binState = new BinStateClass(0);
 	// binState.wsGetName();

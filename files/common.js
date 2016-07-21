@@ -26,7 +26,9 @@ const wsBinConst = {
 	scBinStateGetState	: 2,
 	scBinStateSetState	: 3,
 // sub-commands for BinStatesHttpClass sysId=3
-	scBinStatesGetAll	: 1,
+	scBinStatesGetAll		: 10,
+	scBinStatesGetAllStates	: 20,
+	scBinStatesGetAllButtons	: 30,
 // BinHttp State/Buttons base numbers
 	uidHttpState		: 0,
 	uidHttpButton		: 127
@@ -115,6 +117,7 @@ BinStateClass.prototype.wsGotName = function (bin) {
 	  		clone.querySelector('#binState').textContent = `${this._name}`;
 	  		clone.querySelector('#binStatePanel').id = `binStatePanel${this.uid}`;
 	  		clone.querySelector('#binState').id = `binState${this.uid}`
+	  		var container = document.getElementById("Container-BinStateHttpClassStates");
     	}
 	   			
 		if ( this.isButton(uid) ) {
@@ -125,9 +128,9 @@ BinStateClass.prototype.wsGotName = function (bin) {
 			clone.querySelector('#binStateButton').addEventListener('mousedown', this);
 			clone.querySelector('#binStateButton').addEventListener('mouseup', this);
 			clone.querySelector('#binStateButton').id = `binStateButton${this.uid}`
+			var container = document.getElementById("Container-BinStateHttpClassButtons");
 		}
-				
-		var container = document.getElementById("panel-container");
+		
 		container.appendChild(clone);	
     }	
 }
@@ -197,11 +200,19 @@ BinStateClass.prototype.handleEvent = function(event) {
 
 function BinStatesClass () {
 	this._binStatesHttp = {};
-	this.wsGetAll();
+//	this.wsGetAll();
 }
 
 BinStatesClass.prototype.wsGetAll = function() {
 	wsBinCmd.Get(websocket, 3, wsBinConst.scBinStatesGetAll);
+}
+
+BinStatesClass.prototype.wsGetAllStates = function() {
+	wsBinCmd.Get(websocket, 3, wsBinConst.scBinStatesGetAllStates);
+}
+
+BinStatesClass.prototype.wsGetAllButtons = function() {
+	wsBinCmd.Get(websocket, 3, wsBinConst.scBinStatesGetAllButtons);
 }
 
 BinStatesClass.prototype.wsBinProcess = function (bin) {
