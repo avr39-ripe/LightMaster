@@ -193,18 +193,18 @@ void BinStateHttpClass::wsSendStateAll(uint8_t state)
 
 void BinStateHttpClass::setState(uint8_t state)
 {
-	Serial.printf("Inside setState!!!\n");
+//	Serial.printf("Inside setState!!!\n");
 
-	if (_inState != nullptr)
+	if (_inState)
 	{
-		Serial.printf("inState set\n");
+//		Serial.printf("inState set\n");
 		_inState->set(state);
 	}
-	else
-	{
-		Serial.printf("outState set\n");
-		_outState->set(state);
-	}
+//	else
+//	{
+////		Serial.printf("outState set\n");
+//		_outState->set(state);
+//	}
 };
 
 void BinStatesHttpClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
@@ -222,7 +222,7 @@ void BinStatesHttpClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t si
 	case wsBinConst::scBinStateGetState:
 		if (_binStatesHttp.contains(data[wsBinConst::wsGetSetArg]))
 		{
-			_binStatesHttp.valueAt(data[wsBinConst::wsGetSetArg])->wsSendState(socket);
+			_binStatesHttp[data[wsBinConst::wsGetSetArg]]->wsSendState(socket);
 		}
 		break;
 	}
@@ -231,13 +231,13 @@ void BinStatesHttpClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t si
 void BinStatesHttpClass::wsBinSetter(WebSocket& socket, uint8_t* data, size_t size)
 {
 	uint8_t* buffer = nullptr;
-	Serial.printf("BinStatesHttp -> wsBinSetter -> wsGetSetArg = %d\n", data[wsBinConst::wsGetSetArg]);
+//	Serial.printf("BinStatesHttp -> wsBinSetter -> wsGetSetArg = %d\n", data[wsBinConst::wsGetSetArg]);
 	switch (data[wsBinConst::wsSubCmd])
 	{
 	case wsBinConst::scBinStateSetState:
 		if (_binStatesHttp.contains(data[wsBinConst::wsGetSetArg]))
 		{
-			Serial.printf("BinStatesHttp -> wsBinSetter -> wsGetSetArg -> ELEMENT FOUND!\n");
+//			Serial.printf("BinStatesHttp -> wsBinSetter -> wsGetSetArg -> ELEMENT FOUND!\n");
 			_binStatesHttp[data[wsBinConst::wsGetSetArg]]->setState(data[wsBinConst::wsPayLoadStartGetSetArg]);
 		}
 		break;
