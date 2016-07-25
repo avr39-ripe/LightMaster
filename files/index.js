@@ -10,7 +10,7 @@ function onOpen(evt) {
 	binStates = new BinStatesClass();
 	
 	setTimeout(function() { binStates.wsGetAllButtons(); }, 500)
-	setTimeout(function() { binStates.wsGetAllStates(); }, 500)
+	setTimeout(function() { binStates.wsGetAllStates(); }, 850)
 	//binStates = new BinStatesClass();
 	// binState = new BinStateClass(0);
 	// binState.wsGetName();
