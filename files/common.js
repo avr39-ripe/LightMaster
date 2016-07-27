@@ -231,3 +231,30 @@ BinStatesClass.prototype.wsBinProcess = function (bin) {
 	}
 	
 }
+
+function AppStatusClass() {
+	this._counter = 0;
+	this._timestamp = 0;
+	this._initDone = false;
+}
+
+AppStatusClass.prototype.wsGetAppStatus() {
+	wsBinCmd.Get(websocket, 1, wsBinConst.scAppGetStatus);
+}
+
+AppStatusClass.prototype.wsBinProcess = function (bin) {
+	var subCmd = bin.getUint8(wsBinConst.wsSubCmd);
+	if (subCmd == wsBinConst.wsBinConst.scAppGetStatus) {
+		this._counter = bin.getUint32(wsBinConst.wsPayLoadStart, true);
+    	this._timestamp = bin.getUint32(wsBinConst.wsPayLoadStart + 4, true);
+		
+		if (! this._initDone) {
+			this._initDone = true;
+			// Put template render code here
+		}
+		document.getElementById("counter").textContent = counter;
+		var d = new Date();
+		d.setTime(timestamp * 1000);
+		document.getElementById("dateTime").textContent = d.toLocaleString();
+	}
+}
