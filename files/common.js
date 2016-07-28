@@ -69,9 +69,6 @@ function BinStateClass (uid) {
 	this._state = 0; //false
 	this._name = "";
 	this._initDone = false;
-	
-	// this.wsGetName();
-	// this.wsGetState();
 }
 
 BinStateClass.prototype.wsGet = function (cmd) {
@@ -99,7 +96,7 @@ BinStateClass.prototype.wsSetState = function (state) {
 }
 
 BinStateClass.prototype.wsGotName = function (bin) {
-	var uid = bin.getUint8(wsBinConst.wsPayLoadStart, true);
+//	var uid = bin.getUint8(wsBinConst.wsPayLoadStart, true);
 	var strBuffer = new Uint8Array(bin.byteLength);
     for (var i = 0; i < strBuffer.length - (wsBinConst.wsPayLoadStart + 1); i++) {
         strBuffer[i] = bin.getUint8(wsBinConst.wsPayLoadStart + 1 + i);
@@ -136,7 +133,7 @@ BinStateClass.prototype.wsGotName = function (bin) {
 }
 
 BinStateClass.prototype.wsGotState = function (bin) {
-	var uid = bin.getUint8(wsBinConst.wsPayLoadStart, true);
+//	var uid = bin.getUint8(wsBinConst.wsPayLoadStart, true);
 	this._state = bin.getUint8(wsBinConst.wsPayLoadStart + 1, true);
 //    console.log.bind(console)(`name = {this._name}, uid = ${uid}, state = ${this._state}`);
     
@@ -197,10 +194,21 @@ BinStateClass.prototype.handleEvent = function(event) {
 }
 
 //BinStatesHttpClass
+// @param states - render/process states
+// @param  buttons - render/process buttons
 
 function BinStatesClass () {
 	this._binStatesHttp = {};
-//	this.wsGetAll();
+	this._states = false;
+	this._buttons = false;
+}
+
+BinStatesClass.prototype.enableStates = function( states ) {
+	this._states = states;
+}
+
+BinStatesClass.prototype.enableButtons = function( buttons ) {
+	this._buttons = buttons;
 }
 
 BinStatesClass.prototype.wsGetAll = function() {
