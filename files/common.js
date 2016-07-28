@@ -114,7 +114,7 @@ BinStateClass.prototype.wsGotName = function (bin) {
     	if ( this.isState(uid) ) {
     		var t = document.querySelector('#BinStateHttpClass');
 	  		var clone = document.importNode(t.content, true);
-	  		clone.querySelector('#binState').textContent = `${this._name}`;
+	  		clone.querySelector('#binState').textContent = this._name;
 	  		clone.querySelector('#binStatePanel').id = `binStatePanel${this.uid}`;
 	  		clone.querySelector('#binState').id = `binState${this.uid}`
 	  		var container = document.getElementById("Container-BinStateHttpClassStates");
@@ -123,7 +123,7 @@ BinStateClass.prototype.wsGotName = function (bin) {
 		if ( this.isButton(uid) ) {
 			var t = document.querySelector('#BinStateHttpClassButton');
 	  		var clone = document.importNode(t.content, true);
-	  		clone.querySelector('#binStateButton').textContent = `${this._name}`;
+	  		clone.querySelector('#binStateButton').textContent = this._name;
 	  			  		
 			clone.querySelector('#binStateButton').addEventListener('mousedown', this);
 			clone.querySelector('#binStateButton').addEventListener('mouseup', this);
@@ -238,23 +238,33 @@ function AppStatusClass() {
 	this._initDone = false;
 }
 
-AppStatusClass.prototype.wsGetAppStatus() {
+AppStatusClass.prototype.init = function() {
+	this.wsGetAppStatus()
+	setInterval(this.wsGetAppStatus, 5000);
+}
+
+AppStatusClass.prototype.wsGetAppStatus = function() {
 	wsBinCmd.Get(websocket, 1, wsBinConst.scAppGetStatus);
 }
 
 AppStatusClass.prototype.wsBinProcess = function (bin) {
 	var subCmd = bin.getUint8(wsBinConst.wsSubCmd);
-	if (subCmd == wsBinConst.wsBinConst.scAppGetStatus) {
+	if (subCmd == wsBinConst.scAppGetStatus) {
 		this._counter = bin.getUint32(wsBinConst.wsPayLoadStart, true);
     	this._timestamp = bin.getUint32(wsBinConst.wsPayLoadStart + 4, true);
+		var d = new Date();
+		d.setTime(this._timestamp * 1000);
+		var dateStr = d.toLocaleString().replace(/,\ /,'<br>');
 		
 		if (! this._initDone) {
 			this._initDone = true;
-			// Put template render code here
+			var t = document.querySelector('#AppStatusClass');
+	  		var clone = document.importNode(t.content, true);
+			var container = document.getElementById("Container-AppStatusClass");
+			container.appendChild(clone);	
 		}
-		document.getElementById("counter").textContent = counter;
-		var d = new Date();
-		d.setTime(timestamp * 1000);
-		document.getElementById("dateTime").textContent = d.toLocaleString();
+		
+  		document.querySelector('#AppStatusClassCounter').textContent = this._counter;
+		document.querySelector('#AppStatusClassDateTime').innerHTML = dateStr;
 	}
 }

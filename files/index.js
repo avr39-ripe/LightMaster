@@ -1,5 +1,6 @@
 'use strict';
 
+var appStatus;
 var binStates;
 //Websockets
 var websocket;
@@ -7,8 +8,8 @@ var websocket;
 function onOpen(evt) {
 	console.log.bind(console)("CONNECTED");
 	
-	wsGetAppStatus();
-	setInterval(wsGetAppStatus, 5000);
+	appStatus = new AppStatusClass();
+	appStatus.init();
 	
 	binStates = new BinStatesClass();
 	setTimeout(function() { binStates.wsGetAllButtons(); }, 500)
@@ -25,14 +26,8 @@ function onMessage(evt) {
     	var subCmd = bin.getUint8(wsBinConst.wsSubCmd);
     	console.log.bind(console)(`cmd = ${cmd}, sysId = ${sysId}, subCmd = ${subCmd}`);
     	
-    	if ( cmd == wsBinConst.getResponse && sysId == 1 && subCmd == wsBinConst.scAppGetStatus ) {
-    		var counter = bin.getUint32(wsBinConst.wsPayLoadStart, true);
-    		var timestamp = bin.getUint32(wsBinConst.wsPayLoadStart + 4, true);
-    		
-    		document.getElementById("counter").textContent = counter;
-    		var d = new Date();
-    		d.setTime(timestamp * 1000);
-    		document.getElementById("dateTime").textContent = d.toLocaleString();
+    	if ( cmd == wsBinConst.getResponse && sysId == 1 ) {
+    		appStatus.wsBinProcess(bin);
     	}
     	
     	if ( cmd == wsBinConst.getResponse && ( sysId == 2 || sysId == 3) ) {
@@ -58,17 +53,6 @@ function initWS() {
 	websocket.onmessage = function(evt) { onMessage(evt) };
 	websocket.onerror = function(evt) { onError(evt) };
 	websocket.binaryType = 'arraybuffer';
-}
-
-function wsGetAppStatus() {
-	var ab = new ArrayBuffer(3);
-	var bin = new DataView(ab);
-	
-	bin.setUint8(wsBinConst.wsCmd, wsBinConst.getCmd);
-	bin.setUint8(wsBinConst.wsSysId, 1); //AppClass.sysId = 1
-	bin.setUint8(wsBinConst.wsSubCmd, wsBinConst.scAppGetStatus);
-	
-	websocket.send(bin.buffer);
 }
 
 //Here we put some initial code which starts after DOM loaded
