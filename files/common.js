@@ -171,6 +171,19 @@ BinStateClass.prototype.renderState = function () {
     	}	
 }
 
+BinStateClass.prototype.remove = function () {
+		var selector = this.isState() ?  `#binStateDiv${this.uid}` : `#binStateButtonDiv${this.uid}`
+
+		var removeElement = document.querySelector(selector);
+		this.removeChilds(removeElement);
+		removeElement.remove();
+}
+
+BinStateClass.prototype.removeChilds = function (node) {
+    var last;
+    while (last = node.lastChild) node.removeChild(last);
+}
+
 BinStateClass.prototype.wsBinProcess = function (bin) {
 	var subCmd = bin.getUint8(wsBinConst.wsSubCmd);
 	
@@ -204,16 +217,36 @@ BinStateClass.prototype.handleEvent = function(event) {
 
 function BinStatesClass () {
 	this._binStatesHttp = {};
-	this._states = false;
-	this._buttons = false;
+	this._statesEnable = false;
+	this._buttonsEnable = false;
 }
 
-BinStatesClass.prototype.enableStates = function( states ) {
-	this._states = states;
+BinStatesClass.prototype.enableStates = function( statesEnable ) {
+	this._statesEnable = statesEnable;
+	if (! this._statesEnable) {
+		Object.keys(this._binStatesHttp).forEach(function(uid) {
+			if ( this.isState(uid) ) {
+				_binStatesHttp[uid].remove();
+				delete _binStatesHttp[uid];
+			}
+		});
+	} else {
+		this.wsGetAllStates();
+	}
 }
 
-BinStatesClass.prototype.enableButtons = function( buttons ) {
-	this._buttons = buttons;
+BinStatesClass.prototype.enableButtons = function( buttonsEnable ) {
+	this._buttonsEnable = buttonsEnable;
+	if (! this._buttonsEnable) {
+		Object.keys(this._binStatesHttp).forEach(function(uid) {
+			if ( this.isButton(uid) ) {
+				_binStatesHttp[uid].remove();
+				delete _binStatesHttp[uid];
+			}
+		});
+	} else {
+		this.wsGetAllButtons();
+	}
 }
 
 BinStatesClass.prototype.wsGetAll = function() {
@@ -232,18 +265,24 @@ BinStatesClass.prototype.wsBinProcess = function (bin) {
 	var subCmd = bin.getUint8(wsBinConst.wsSubCmd);
 	var uid = bin.getUint8(wsBinConst.wsPayLoadStart);
 	
-	if (subCmd == wsBinConst.scBinStateGetName) {
-		if ( !this._binStatesHttp.hasOwnProperty(uid) ) {
-			this._binStatesHttp[uid] = new BinStateClass(uid);
+	if ( (this.isState(uid) && this._statesEnable) || (this.isButton(uid) && this._buttonsEnable ) ) {
+		if (subCmd == wsBinConst.scBinStateGetName) {
+			if ( !this._binStatesHttp.hasOwnProperty(uid) ) {
+				this._binStatesHttp[uid] = new BinStateClass(uid);
+			}
 			this._binStatesHttp[uid].wsGotName(bin);
+		}
+		
+		if (subCmd == wsBinConst.scBinStateGetState) {
+			this._binStatesHttp[uid].wsGotState(bin);
 		}
 	}
 	
-	if (subCmd == wsBinConst.scBinStateGetState) {
-		this._binStatesHttp[uid].wsGotState(bin);
-	}
 	
 }
+
+BinStatesClass.prototype.isButton = function (uid) { return uid >= wsBinConst.uidHttpButton; }
+BinStatesClass.prototype.isState = function (uid) { return uid < wsBinConst.uidHttpButton; }
 
 function AppStatusClass() {
 	this._counter = 0;

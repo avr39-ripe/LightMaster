@@ -12,8 +12,10 @@ function onOpen(evt) {
 	appStatus.init();
 	
 	binStates = new BinStatesClass();
-	setTimeout(function() { binStates.wsGetAllButtons(); }, 500)
-	setTimeout(function() { binStates.wsGetAllStates(); }, 850)
+	// setTimeout(function() { binStates.wsGetAllButtons(); }, 500);
+	// setTimeout(function() { binStates.wsGetAllStates(); }, 850);
+	setTimeout(function() { binStates.enableButtons(true); }, 500);
+	setTimeout(function() { binStates.enableStates(true); }, 850);
 }
 
 function onMessage(evt) {
