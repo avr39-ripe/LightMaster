@@ -68,7 +68,7 @@ function BinStateClass (uid) {
 	this.uid = uid;
 	this._state = 0; //false
 	this._name = "";
-	this._initDone = false;
+	this.render();
 }
 
 BinStateClass.prototype.wsGet = function (cmd) {
@@ -96,50 +96,57 @@ BinStateClass.prototype.wsSetState = function (state) {
 }
 
 BinStateClass.prototype.wsGotName = function (bin) {
-//	var uid = bin.getUint8(wsBinConst.wsPayLoadStart, true);
 	var strBuffer = new Uint8Array(bin.byteLength);
     for (var i = 0; i < strBuffer.length - (wsBinConst.wsPayLoadStart + 1); i++) {
         strBuffer[i] = bin.getUint8(wsBinConst.wsPayLoadStart + 1 + i);
 //        console.log.bind(console)(`uid = ${uid}, strBuffer[${i}] = ${bin.getUint8(wsBinConst.wsPayLoadStart + 1 + i)}`);
     }
     this._name = new TextDecoder().decode(strBuffer)
-//    console.log.bind(console)(`uid = ${uid}, name = ${this._name}`);
-    
-    if ( !this._initDone ) {
-    	this._initDone = true;
-    	
-    	if ( this.isState(uid) ) {
-    		var t = document.querySelector('#BinStateHttpClass');
-	  		var clone = document.importNode(t.content, true);
-	  		clone.querySelector('#binState').textContent = this._name;
-	  		clone.querySelector('#binStatePanel').id = `binStatePanel${this.uid}`;
-	  		clone.querySelector('#binState').id = `binState${this.uid}`
-	  		var container = document.getElementById("Container-BinStateHttpClassStates");
-    	}
-	   			
-		if ( this.isButton(uid) ) {
-			var t = document.querySelector('#BinStateHttpClassButton');
-	  		var clone = document.importNode(t.content, true);
-	  		clone.querySelector('#binStateButton').textContent = this._name;
-	  			  		
-			clone.querySelector('#binStateButton').addEventListener('mousedown', this);
-			clone.querySelector('#binStateButton').addEventListener('mouseup', this);
-			clone.querySelector('#binStateButton').id = `binStateButton${this.uid}`
-			var container = document.getElementById("Container-BinStateHttpClassButtons");
-		}
-		
-		container.appendChild(clone);	
-    }	
+    this.renderName();
 }
 
 BinStateClass.prototype.wsGotState = function (bin) {
-//	var uid = bin.getUint8(wsBinConst.wsPayLoadStart, true);
 	this._state = bin.getUint8(wsBinConst.wsPayLoadStart + 1, true);
-//    console.log.bind(console)(`name = {this._name}, uid = ${uid}, state = ${this._state}`);
-    
-    if ( this._initDone ) {
-    	
-    	if ( this.isState(uid)) {
+	this.renderState();
+}
+
+BinStateClass.prototype.render = function () {
+	if ( this.isState() ) {
+		var t = document.querySelector('#BinStateHttpClass');
+		var clone = document.importNode(t.content, true);
+//		clone.querySelector('#binState').textContent = this._name;
+		clone.querySelector('#binStateDiv').id = `binStateDiv${this.uid}`;
+		clone.querySelector('#binStatePanel').id = `binStatePanel${this.uid}`;
+		clone.querySelector('#binState').id = `binState${this.uid}`
+		var container = document.getElementById("Container-BinStateHttpClassStates");
+	}
+			
+	if ( this.isButton() ) {
+		var t = document.querySelector('#BinStateHttpClassButton');
+		var clone = document.importNode(t.content, true);
+//		clone.querySelector('#binStateButton').textContent = this._name;
+		clone.querySelector('#binStateButtonDiv').id = `binStateButtonDiv${this.uid}`
+		clone.querySelector('#binStateButton').addEventListener('mousedown', this);
+		clone.querySelector('#binStateButton').addEventListener('mouseup', this);
+		clone.querySelector('#binStateButton').id = `binStateButton${this.uid}`
+		var container = document.getElementById("Container-BinStateHttpClassButtons");
+	}
+	
+	container.appendChild(clone);	
+}
+
+BinStateClass.prototype.renderName = function () {
+	if ( this.isState() ) {
+		document.querySelector(`#binState${this.uid}`).textContent = this._name;
+	}
+	
+	if ( this.isButton() ) {
+		document.querySelector(`#binStateButton${this.uid}`).textContent = this._name;
+	}
+}
+
+BinStateClass.prototype.renderState = function () {
+	if ( this.isState()) {
 	    	var panel = document.querySelector(`#binStatePanel${this.uid}`);
 	    	
 	    	if (this._state) {
@@ -151,7 +158,7 @@ BinStateClass.prototype.wsGotState = function (bin) {
 	    	}
     	}
     	
-    	if ( this.isButton(uid)) {
+    	if ( this.isButton()) {
     		var panel = document.querySelector(`#binStateButton${this.uid}`);
 	    	
 	    	if (this._state) {
@@ -161,9 +168,7 @@ BinStateClass.prototype.wsGotState = function (bin) {
 	    		panel.classList.remove("btn-warning");
 	    		panel.classList.add("btn-primary");
 	    	}
-    	}
-    	
-    }	
+    	}	
 }
 
 BinStateClass.prototype.wsBinProcess = function (bin) {
@@ -179,8 +184,8 @@ BinStateClass.prototype.wsBinProcess = function (bin) {
 	
 }
 
-BinStateClass.prototype.isButton = (uid) => uid >= wsBinConst.uidHttpButton;
-BinStateClass.prototype.isState = (uid) => uid < wsBinConst.uidHttpButton;
+BinStateClass.prototype.isButton = function () { return this.uid >= wsBinConst.uidHttpButton; }
+BinStateClass.prototype.isState = function () { return this.uid < wsBinConst.uidHttpButton; }
 
 BinStateClass.prototype.handleEvent = function(event) {
 	switch(event.type) {
