@@ -222,30 +222,36 @@ function BinStatesClass () {
 }
 
 BinStatesClass.prototype.enableStates = function( statesEnable ) {
-	this._statesEnable = statesEnable;
-	if (! this._statesEnable) {
-		Object.keys(this._binStatesHttp).forEach(function(uid) {
-			if ( this.isState(uid) ) {
-				_binStatesHttp[uid].remove();
-				delete _binStatesHttp[uid];
-			}
-		});
-	} else {
-		this.wsGetAllStates();
+	if ( statesEnable != this._statesEnable ) {
+		this._statesEnable = statesEnable;
+		if (! this._statesEnable) {
+			var self = this
+			Object.keys(this._binStatesHttp).forEach(function(uid) {
+				if ( self.isState(uid) ) {
+					self._binStatesHttp[uid].remove();
+					delete self._binStatesHttp[uid];
+				}
+			});
+		} else {
+			this.wsGetAllStates();
+		}	
 	}
 }
 
 BinStatesClass.prototype.enableButtons = function( buttonsEnable ) {
-	this._buttonsEnable = buttonsEnable;
-	if (! this._buttonsEnable) {
-		Object.keys(this._binStatesHttp).forEach(function(uid) {
-			if ( this.isButton(uid) ) {
-				_binStatesHttp[uid].remove();
-				delete _binStatesHttp[uid];
-			}
-		});
-	} else {
-		this.wsGetAllButtons();
+	if ( buttonsEnable != this._buttonsEnable ) {
+		this._buttonsEnable = buttonsEnable;
+		if (! this._buttonsEnable) {
+			var self = this
+			Object.keys(this._binStatesHttp).forEach(function(uid) {
+				if ( self.isButton(uid) ) {
+					self._binStatesHttp[uid].remove();
+					delete self._binStatesHttp[uid];
+				}
+			});
+		} else {
+			this.wsGetAllButtons();
+		}	
 	}
 }
 
