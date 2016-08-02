@@ -293,12 +293,9 @@ BinStatesClass.prototype.isState = function (uid) { return uid < wsBinConst.uidH
 function AppStatusClass() {
 	this._counter = 0;
 	this._timestamp = 0;
-	this._initDone = false;
-}
-
-AppStatusClass.prototype.init = function() {
-	this.wsGetAppStatus()
-	setInterval(this.wsGetAppStatus, 5000);
+	this._dateStr = "";
+	this._timer = 0;
+	this._enable = false;
 }
 
 AppStatusClass.prototype.wsGetAppStatus = function() {
@@ -312,17 +309,43 @@ AppStatusClass.prototype.wsBinProcess = function (bin) {
     	this._timestamp = bin.getUint32(wsBinConst.wsPayLoadStart + 4, true);
 		var d = new Date();
 		d.setTime(this._timestamp * 1000);
-		var dateStr = d.toLocaleString().replace(/,\ /,'<br>');
-		
-		if (! this._initDone) {
-			this._initDone = true;
-			var t = document.querySelector('#AppStatusClass');
-	  		var clone = document.importNode(t.content, true);
-			var container = document.getElementById("Container-AppStatusClass");
-			container.appendChild(clone);	
-		}
-		
-  		document.querySelector('#AppStatusClassCounter').textContent = this._counter;
-		document.querySelector('#AppStatusClassDateTime').innerHTML = dateStr;
+		this._dateStr = d.toLocaleString().replace(/,\ /,'<br>');
+		this.renderStatus();
+	}
+}
+
+AppStatusClass.prototype.render = function () {
+	var t = document.querySelector('#AppStatusClass');
+	var clone = document.importNode(t.content, true);
+	var container = document.getElementById("Container-AppStatusClass");
+	container.appendChild(clone);
+}
+
+AppStatusClass.prototype.renderStatus = function () {
+	document.querySelector('#AppStatusClassCounter').textContent = this._counter;
+	document.querySelector('#AppStatusClassDateTime').innerHTML = this._dateStr;
+}
+
+AppStatusClass.prototype.remove = function () {
+		var removeElement = document.querySelector('#Container-AppStatusClass');
+		this.removeChilds(removeElement);
+}
+
+AppStatusClass.prototype.removeChilds = function (node) {
+    var last;
+    while (last = node.lastChild) node.removeChild(last);
+}
+
+AppStatusClass.prototype.enable = function( enable ) {
+	if ( enable != this._enable ) {
+		this._enable = enable;
+		if (! this._enable) {
+			clearInterval(this._timer);
+			this.remove();
+		} else {
+			this.render();
+			this.wsGetAppStatus()
+			this._timer = setInterval(this.wsGetAppStatus, 5000);
+		}	
 	}
 }

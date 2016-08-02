@@ -9,7 +9,7 @@ function onOpen(evt) {
 	console.log.bind(console)("CONNECTED");
 	
 	appStatus = new AppStatusClass();
-	appStatus.init();
+	appStatus.enable(true);
 	
 	binStates = new BinStatesClass();
 	// setTimeout(function() { binStates.wsGetAllButtons(); }, 500);
