@@ -42,8 +42,8 @@ void AppClass::init()
 
 #ifndef MCP23S17 //use GPIO
 //Nothing here
-	BinInGPIOClass* thStatWarmFloor = new BinInGPIOClass(15,1); // Start button
-	BinInGPIOClass* thStatBedroom = new BinInGPIOClass(16,0); // Stop button
+	BinInGPIOClass* thStatWarmFloor = new BinInGPIOClass(12,0); // Start button
+	BinInGPIOClass* thStatBedroom = new BinInGPIOClass(13,0); // Stop button
 	binInPoller.add(thStatWarmFloor);
 	binInPoller.add(thStatBedroom);
 #else
@@ -73,16 +73,21 @@ void AppClass::init()
 	binInPoller.add(input);
 #endif
 
-
+	BinOutGPIOClass* caldronOut = new BinOutGPIOClass(15,0);
 	BinStateSharedDeferredClass* caldron = new BinStateSharedDeferredClass();
 	caldron->setTrueDelay(10);
 	caldron->setFalseDelay(0);
+	caldron->onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)&caldronOut->state));
 
+	BinOutGPIOClass* warmFloorPumpOut = new BinOutGPIOClass(4,0);
 	BinStateSharedDeferredClass* warmFloorPump = new BinStateSharedDeferredClass();
 	warmFloorPump->setTrueDelay(10);
 	warmFloorPump->setFalseDelay(5);
+	warmFloorPump->onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)&warmFloorPumpOut->state));
 
-	BinStateClass* bedroomHead = new BinStateClass;
+	BinOutGPIOClass* bedroomHeadOut = new BinOutGPIOClass(5,0);
+	BinStateClass* bedroomHead = &bedroomHeadOut->state;
+//	BinStateClass* bedroomHead = new BinStateClass;
 
 	BinStateHttpClass* caldronState = new BinStateHttpClass(webServer, caldron, "Котел", 0);
 	binStatesHttp->add(caldronState);
@@ -102,7 +107,19 @@ void AppClass::init()
 	thStatBedroom->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
 
 
-	BinStateClass* vent = new BinStateClass;
+	//WEB THERMOSTAT MOCKUP
+	BinHttpButtonClass* webThStatWarmFloor = new BinHttpButtonClass(webServer, *binStatesHttp, 2, "Тстат т. пол", warmFloorPump);
+	BinHttpButtonClass* webThStatBedroom = new BinHttpButtonClass(webServer, *binStatesHttp, 3, "Тстат спальня", bedroomHead);
+
+	webThStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)warmFloorPump));
+	webThStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
+
+	webThStatBedroom->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)bedroomHead));
+	webThStatBedroom->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
+	//WEB THERMOSTAT MOCKUP
+	BinOutGPIOClass* ventOut = new BinOutGPIOClass(16,0);
+	BinStateClass* vent = &ventOut->state;
+//	BinStateClass* vent = new BinStateClass;
 	BinStateHttpClass* ventState = new BinStateHttpClass(webServer, vent, "Вентиляция", 3);
 	binStatesHttp->add(ventState);
 
