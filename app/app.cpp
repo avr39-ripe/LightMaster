@@ -21,6 +21,7 @@ void AppClass::init()
 	system_update_cpu_freq(SYS_CPU_160MHZ);
 
 	ApplicationClass::init();
+	_loadConfig();
 
 //	ntpClient = new NtpClient("pool.ntp.org", 300);
 	SystemClock.setTimeZone(Config.timeZone);
@@ -76,8 +77,8 @@ void AppClass::init()
 #endif
 
 	BinOutGPIOClass* caldronOut = new BinOutGPIOClass(15,0);
-	BinStateSharedDeferredClass* caldron = new BinStateSharedDeferredClass();
-	caldron->setTrueDelay(10);
+	caldron = new BinStateSharedDeferredClass();
+	caldron->setTrueDelay(caldronOnDelay);
 	caldron->setFalseDelay(0);
 	caldron->onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)&caldronOut->state));
 
@@ -139,7 +140,7 @@ void AppClass::init()
 	BinStateClass* ventMan = new BinStateClass;
 	ventMan->onChange(onStateChangeDelegate(&BinStateClass::set , vent));
 
-	binCycler = new BinCyclerClass(*vent, 15, 20);
+	binCycler = new BinCyclerClass(*vent, ventCycleDuration, ventCycleInterval);
 //	binCycler->state.set(true);
 	BinHttpButtonClass* ventAutoButton = new BinHttpButtonClass(webServer, *binStatesHttp, 0, "Вент. автомат", &binCycler->state);
 	BinHttpButtonClass* ventManButton = new BinHttpButtonClass(webServer, *binStatesHttp, 1, "Вент. ручной", ventMan);
@@ -235,11 +236,37 @@ void AppClass::wsBinaryReceived(WebSocket& socket, uint8_t* data, size_t size)
 	}
 }
 
+void AppClass::_loadConfig()
+{
+		Serial.printf("Try to load App bin cfg..\n");
+	if (fileExist("app.conf"))
+	{
+		Serial.printf("Will load App bin cfg..\n");
+		file_t file = fileOpen("app.conf", eFO_ReadOnly);
+		fileSeek(file, 0, eSO_FileStart);
+		fileRead(file, &ventCycleDuration, sizeof(ventCycleDuration));
+		fileRead(file, &ventCycleInterval, sizeof(ventCycleInterval));
+		fileRead(file, &caldronOnDelay, sizeof(caldronOnDelay));
+		fileClose(file);
+	}
+}
+
+void AppClass::_saveConfig()
+{
+	Serial.printf("Try to save App bin cfg..\n");
+	file_t file = fileOpen("app.conf", eFO_CreateIfNotExist | eFO_WriteOnly);
+	fileWrite(file, &ventCycleDuration, sizeof(ventCycleDuration));
+	fileWrite(file, &ventCycleInterval, sizeof(ventCycleInterval));
+	fileWrite(file, &caldronOnDelay, sizeof(caldronOnDelay));
+	fileClose(file);
+}
+
 void AppClass::wsBinSetter(WebSocket& socket, uint8_t* data, size_t size)
 {
 	switch (data[wsBinConst::wsSubCmd])
 	{
 	case wsBinConst::scAppSetTime:
+	{
 		uint32_t timestamp = 0;
 		os_memcpy(&timestamp, (&data[wsBinConst::wsPayLoadStart]), 4);
 		if (Config.timeZone != data[wsBinConst::wsPayLoadStart + 4])
@@ -251,14 +278,29 @@ void AppClass::wsBinSetter(WebSocket& socket, uint8_t* data, size_t size)
 		SystemClock.setTime(timestamp, eTZ_UTC);
 		break;
 	}
+	case wsBinConst::scAppConfigSet:
+	{
+		os_memcpy(&ventCycleDuration, (&data[wsBinConst::wsPayLoadStart]), 2);
+		os_memcpy(&ventCycleInterval, (&data[wsBinConst::wsPayLoadStart + 2]), 2);
+		os_memcpy(&caldronOnDelay, (&data[wsBinConst::wsPayLoadStart + 4]), 2);
+
+		binCycler->setDuration(ventCycleDuration);
+		binCycler->setInterval(ventCycleInterval);
+		caldron->setTrueDelay(caldronOnDelay);
+		_saveConfig();
+		break;
+	}
+	}
 }
 
 void AppClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
 {
+	uint8_t* buffer;
 	switch (data[wsBinConst::wsSubCmd])
 	{
 	case wsBinConst::scAppGetStatus:
-		uint8_t* buffer = new uint8_t[wsBinConst::wsPayLoadStart + 4 + 4];
+	{
+		buffer = new uint8_t[wsBinConst::wsPayLoadStart + 4 + 4];
 		buffer[wsBinConst::wsCmd] = wsBinConst::getResponse;
 		buffer[wsBinConst::wsSysId] = sysId;
 		buffer[wsBinConst::wsSubCmd] = wsBinConst::scAppGetStatus;
@@ -270,6 +312,22 @@ void AppClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
 		socket.sendBinary(buffer, wsBinConst::wsPayLoadStart + 4 + 4);
 		delete buffer;
 		break;
+	}
+	case wsBinConst::scAppConfigGet:
+	{
+		buffer = new uint8_t[wsBinConst::wsPayLoadStart + 2 + 2 + 2];
+		buffer[wsBinConst::wsCmd] = wsBinConst::getResponse;
+		buffer[wsBinConst::wsSysId] = sysId;
+		buffer[wsBinConst::wsSubCmd] = wsBinConst::scAppConfigGet;
+
+		os_memcpy((&buffer[wsBinConst::wsPayLoadStart]), &ventCycleDuration, sizeof(ventCycleDuration));
+		os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 2]), &ventCycleInterval, sizeof(ventCycleInterval));
+		os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 4]), &caldronOnDelay, sizeof(caldronOnDelay));
+
+		socket.sendBinary(buffer, wsBinConst::wsPayLoadStart + 2 + 2 + 2);
+		delete buffer;
+		break;
+	}
 	}
 }
 
