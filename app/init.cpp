@@ -9,6 +9,7 @@ MCP* mcp000;
 BinInPollerClass binInPoller(100);
 LightSystemClass* lightSystem;
 BinStateClass* binStates[7];
+BinStateSharedDeferredClass* caldron;
 BinCyclerClass* binCycler;
 
 AppClass App;

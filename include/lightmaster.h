@@ -31,5 +31,6 @@ extern BinInPollerClass binInPoller;
 extern LightSystemClass* lightSystem;
 
 extern BinStateClass* binStates[7];
+extern BinStateSharedDeferredClass* caldron;
 extern BinCyclerClass* binCycler;
 #endif /* INCLUDE_LIGHTMASTER_H_ */
