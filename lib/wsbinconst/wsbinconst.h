@@ -29,6 +29,8 @@ namespace wsBinConst
 // sub-commands for App sysId=1
 	const uint8_t scAppSetTime = 1;
 	const uint8_t scAppGetStatus = 2;
+	const uint8_t scAppConfigGet = 3;
+	const uint8_t scAppConfigSet = 4;
 // sub-commands for BinStateHttpClass sysId=2 and BinStatesHttpClass sysId=3
 	const uint8_t scBinStateGetName = 1;
 	const uint8_t scBinStateGetState = 2;
