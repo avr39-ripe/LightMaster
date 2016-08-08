@@ -76,7 +76,9 @@
 								<input type="url" required class="form-control" id="updateURL" name="updateURL" value="{updateURL}">
 								<br>
 								<button type="button" id="settings_update_fw" class="btn btn-danger">Update Firmware</button>
-								<button type="button" id="settings_switch_fw" class="btn btn-primary">Switch Firmware</button>							
+								<button type="button" id="settings_switch_fw" class="btn btn-primary">Switch Firmware</button>
+								<br>
+								<button type="button" id="sync_datetime" class="btn btn-success">Sync Date/Time</button>							
 							</div>
 							<button type="submit" class="btn btn-success">Save settings</button>
 					  		<button type="button" id="settings_cancel" class="btn btn-link">Cancel</button>
@@ -84,40 +86,34 @@
 					</div>
 				</div>
 			</div>
-						
-			<!-- Random mode config -->
-			<div>
-				<div class="panel panel-default">
-					<div class="panel-heading">
-						<h3 class="panel-title">Random mode settings</h3>
-					</div>
-					<div class="panel-body">
-						<form id="form_random" action="#" method="post">
-							<div class="form-group">
-								<label for="startTime">Start time, minutes from 0:00</label>
-								<input type="number" required class="form-control" min="0" max="1439" step="1" id="startTime" class="form-control" value="">
-								<label for="stopoTime">Stop Time, minutes from 0:00</label>
-								<input type="number" required class="form-control" min="0" max="1439" step="1" id="stopTime" class="form-control" value="">
-								<label for="minOn">Min on time, min</label>
-								<input type="number" required class="form-control" min="1" max="360" step="1" id="minOn" class="form-control" value="">
-								<label for="maxOn">Max on, min</label>
-								<input type="number" required class="form-control" min="1" max="360" step="1" id="maxOn" class="form-control" value="">
-								<label for="minOff">Min off time, min</label>
-								<input type="number" required class="form-control" min="1" max="360" step="1" id="minOff" class="form-control" value="">
-								<label for="maxOff">Max off time, min</label>
-								<input type="number" required class="form-control" min="1" max="360" step="1" id="maxOff" class="form-control" value="">
-								<br>
-								<button type="button" id="sync_datetime" class="btn btn-success">Sync Date/Time</button>
-							</div>
-							<button type="submit" class="btn btn-success">Save settings</button>
-					  		<button type="button" id="random_cancel" class="btn btn-link">Cancel</button>
-						</form>
-					</div>
-				</div>
-			</div>
+			
+			<div class="row" id="Container-AppConfigClass"><br/></div>	
 		</div> <!-- /col -->
 	</div> <!-- /row -->
 
 	</div> <!-- /container -->
   </body>
+ <template id="AppConfigClass">
+	<div id="AppConfigClassDiv">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h3 class="panel-title">Global settings</h3>
+		</div>
+		<div class="panel-body">
+			<form id="AppConfigClassForm" action="#" method="post">
+				<div class="form-group">
+					<label for="ventCycleDuration">Вентиляция - длительность цикла, минуты</label>
+					<input type="number" required class="form-control" min="1" max="1439" step="1" id="AppConfigClass-ventCycleDuration" class="form-control" value="">
+					<label for="ventCycleInterval">Вентиляция - длительность паузы, минуты</label>
+					<input type="number" required class="form-control" min="1" max="1439" step="1" id="AppConfigClass-ventCycleInterval" class="form-control" value="">
+					<label for="caldronOnDelay">Отопление - задержка включения котла, минуты</label>
+					<input type="number" required class="form-control" min="1" max="60" step="1" id="AppConfigClass-caldronOnDelay" class="form-control" value="">
+				</div>
+				<button type="submit" class="btn btn-success">Save settings</button>
+		  		<button type="button" id="AppConfigCancel" class="btn btn-link">Cancel</button>
+			</form>
+		</div>
+	</div>
+	</div>
+ </template> 
 </html>

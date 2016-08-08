@@ -21,6 +21,8 @@ const wsBinConst = {
 // sub-command
 	scAppSetTime	: 1,
 	scAppGetStatus	: 2,
+	scAppConfigGet	: 3,
+	scAppConfigSet	: 4,
 // sub-commands for BinStateHttpClass sysId=2 and BinStatesHttpClass sysId=3
 	scBinStateGetName	: 1,
 	scBinStateGetState	: 2,
@@ -345,6 +347,64 @@ AppStatusClass.prototype.enable = function( enable ) {
 		} else {
 			this.render();
 			this.wsGetAppStatus()
+			this._timer = setInterval(this.wsGetAppStatus, 5000);
+		}	
+	}
+}
+
+//AppConfigClass
+function AppConfigClass() {
+	this._ventCycleDuration = 0;
+	this._ventCycleInterval = 0;
+	this._caldronOnDelay = 0;
+	this._enable = false;
+}
+
+AppConfigClass.prototype.wsGetAppConfig = function() {
+	wsBinCmd.Get(websocket, 1, wsBinConst.scAppConfigGet);
+}
+
+AppConfigClass.prototype.wsBinProcess = function (bin) {
+	var subCmd = bin.getUint8(wsBinConst.wsSubCmd);
+	if (subCmd == wsBinConst.scAppConfigGet) {
+		this._ventCycleDuration = bin.getUint16(wsBinConst.wsPayLoadStart, true);
+    	this._ventCycleInterval = bin.getUint16(wsBinConst.wsPayLoadStart + 2, true);
+    	this._caldronOnDelay = bin.getUint16(wsBinConst.wsPayLoadStart + 4, true);
+		this.renderConfig();
+	}
+}
+
+AppConfigClass.prototype.render = function () {
+	var t = document.querySelector('#AppConfigClass');
+	var clone = document.importNode(t.content, true);
+	var container = document.getElementById("Container-AppConfigClass");
+	container.appendChild(clone);
+}
+
+AppConfigClass.prototype.renderConfig = function () {
+	document.querySelector('#AppConfigClass-ventCycleDuration').value = this._ventCycleDuration;
+	document.querySelector('#AppConfigClass-ventCycleInterval').value = this._ventCycleInterval;
+	document.querySelector('#AppConfigClass-caldronOnDelay').value = this._caldronOnDelay;
+}
+
+AppConfigClass.prototype.remove = function () {
+		var removeElement = document.querySelector('#Container-AppConfigClass');
+		this.removeChilds(removeElement);
+}
+
+AppConfigClass.prototype.removeChilds = function (node) {
+    var last;
+    while (last = node.lastChild) node.removeChild(last);
+}
+
+AppConfigClass.prototype.enable = function( enable ) {
+	if ( enable != this._enable ) {
+		this._enable = enable;
+		if (! this._enable) {
+			this.remove();
+		} else {
+			this.render();
+			this.wsGetAppConfig()
 			this._timer = setInterval(this.wsGetAppStatus, 5000);
 		}	
 	}

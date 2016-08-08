@@ -1,5 +1,7 @@
 'use strict';
 
+var appConfig;
+
 function get_config() {
     fetch('/config.json')
   	.then(function(response) {
@@ -66,7 +68,8 @@ function post_fw(action) {
 var websocket;
 function onOpen(evt) {
 	console.log.bind(console)("CONNECTED");
-	wsGetRandom();
+	appConfig = new AppConfigClass();
+	appConfig.enable(true);;
 //	websocket.send("Sming love WebSockets");
 }
 
@@ -76,12 +79,24 @@ function onClose(evt) {
 
 function onMessage(evt) {
 	console.log.bind(console)("Message recv: " + evt.data);
-	var json = JSON.parse(evt.data);
-	console.log.bind(console)("Json recv: " + json);
-	
-	if (json.response == "getRandom") {
-		onGetRandom(json);
+	if(evt.data instanceof ArrayBuffer) {
+		var bin = new DataView(evt.data);
+		
+		var cmd = bin.getUint8(wsBinConst.wsCmd);
+		var sysId = bin.getUint8(wsBinConst.wsSysId);
+		var subCmd = bin.getUint8(wsBinConst.wsSubCmd);
+		console.log.bind(console)(`cmd = ${cmd}, sysId = ${sysId}, subCmd = ${subCmd}`);
+		
+		if ( cmd == wsBinConst.getResponse && sysId == 1 ) {
+			appConfig.wsBinProcess(bin);
+		}	
 	}
+	// var json = JSON.parse(evt.data);
+	// console.log.bind(console)("Json recv: " + json);
+// 	
+	// if (json.response == "getRandom") {
+		// onGetRandom(json);
+	// }
 	//websocket.close();
 }
 
