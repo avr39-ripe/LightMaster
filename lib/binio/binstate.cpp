@@ -276,7 +276,7 @@ void BinStateSharedDeferredClass::set(uint8_t state)
 	if ( _consumers == 0 && ( (state && _trueDelay > 0) || (!state && _falseDelay > 0) ) )
 	{
 		_setDeferredState(state);
-		_delayTimer.initializeMs( (state ? _trueDelay : _falseDelay) * 1000, TimerDelegate(&BinStateSharedDeferredClass::_deferredSet, this)).start(false);
+		_delayTimer.initializeMs( (state ? _trueDelay : _falseDelay) * 60000, TimerDelegate(&BinStateSharedDeferredClass::_deferredSet, this)).start(false);
 		Serial.printf("Arm deferred %s\n", state ? "True" : "False");
 	}
 

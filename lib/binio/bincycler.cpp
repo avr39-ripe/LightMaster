@@ -29,11 +29,11 @@ void BinCyclerClass::_enable(uint8_t enableState)
 void BinCyclerClass::_setTrue()
 {
 	_cycleState.set(true);
-	_timer.initializeMs(_duration * 1000, TimerDelegate(&BinCyclerClass::_setFalse, this)).start(false);
+	_timer.initializeMs(_duration * 60000, TimerDelegate(&BinCyclerClass::_setFalse, this)).start(false);
 }
 
 void BinCyclerClass::_setFalse()
 {
 	_cycleState.set(false);
-	_timer.initializeMs(_interval * 1000, TimerDelegate(&BinCyclerClass::_setTrue, this)).start(false);
+	_timer.initializeMs(_interval * 60000, TimerDelegate(&BinCyclerClass::_setTrue, this)).start(false);
 }
