@@ -83,10 +83,11 @@ void AppClass::init()
 	caldron->onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)&caldronOut->state));
 
 	BinOutGPIOClass* warmFloorPumpOut = new BinOutGPIOClass(4,0);
-	BinStateSharedDeferredClass* warmFloorPump = new BinStateSharedDeferredClass();
-	warmFloorPump->setTrueDelay(10);
-	warmFloorPump->setFalseDelay(5);
-	warmFloorPump->onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)&warmFloorPumpOut->state));
+	BinStateClass* warmFloorPump = &warmFloorPumpOut->state;
+//	BinStateSharedDeferredClass* warmFloorPump = new BinStateSharedDeferredClass();
+//	warmFloorPump->setTrueDelay(10);
+//	warmFloorPump->setFalseDelay(5);
+//	warmFloorPump->onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)&warmFloorPumpOut->state));
 
 	BinOutGPIOClass* bedroomHeadOut = new BinOutGPIOClass(5,0);
 	BinStateClass* bedroomHead = &bedroomHeadOut->state;
@@ -109,7 +110,7 @@ void AppClass::init()
 
 //	httpButton->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::toggle, (BinStateClass*)caldron));
 
-	thStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)warmFloorPump));
+	thStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)warmFloorPump));
 	thStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
 
 	thStatBedroom->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)bedroomHead));
@@ -122,7 +123,7 @@ void AppClass::init()
 	BinHttpButtonClass* webThStatBedroom = new BinHttpButtonClass(webServer, *binStatesHttp, 3, "Тстат спальня", bedroomHead);
 	BinHttpButtonClass* webThStatHall = new BinHttpButtonClass(webServer, *binStatesHttp, 4, "Тстат холл", hallHead);
 
-	webThStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)warmFloorPump));
+	webThStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)warmFloorPump));
 	webThStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
 
 	webThStatBedroom->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)bedroomHead));
