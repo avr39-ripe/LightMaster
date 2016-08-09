@@ -26,7 +26,6 @@ void AppClass::init()
 //	ntpClient = new NtpClient("pool.ntp.org", 300);
 	SystemClock.setTimeZone(Config.timeZone);
 	Serial.printf("Time zone: %d\n", Config.timeZone);
-	lightSystem = new LightSystemClass();
 
 	BinStatesHttpClass* binStatesHttp = new BinStatesHttpClass();
 	_wsBinGetters[binStatesHttp->sysId] = WebSocketBinaryDelegate(&BinStatesHttpClass::wsBinGetter,binStatesHttp);
@@ -84,14 +83,9 @@ void AppClass::init()
 
 	BinOutGPIOClass* warmFloorPumpOut = new BinOutGPIOClass(4,0);
 	BinStateClass* warmFloorPump = &warmFloorPumpOut->state;
-//	BinStateSharedDeferredClass* warmFloorPump = new BinStateSharedDeferredClass();
-//	warmFloorPump->setTrueDelay(10);
-//	warmFloorPump->setFalseDelay(5);
-//	warmFloorPump->onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)&warmFloorPumpOut->state));
 
 	BinOutGPIOClass* bedroomHeadOut = new BinOutGPIOClass(5,0);
 	BinStateClass* bedroomHead = &bedroomHeadOut->state;
-//	BinStateClass* bedroomHead = new BinStateClass;
 
 	BinOutGPIOClass* hallHeadOut = new BinOutGPIOClass(2,0);
 	BinStateClass* hallHead = &hallHeadOut->state;
@@ -108,7 +102,6 @@ void AppClass::init()
 	BinStateHttpClass* hallHeadState = new BinStateHttpClass(webServer, hallHead, "Холл", 4);
 	binStatesHttp->add(hallHeadState);
 
-//	httpButton->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::toggle, (BinStateClass*)caldron));
 
 	thStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)warmFloorPump));
 	thStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
@@ -134,7 +127,6 @@ void AppClass::init()
 	//WEB THERMOSTAT MOCKUP
 	BinOutGPIOClass* ventOut = new BinOutGPIOClass(16,0);
 	BinStateClass* vent = &ventOut->state;
-//	BinStateClass* vent = new BinStateClass;
 	BinStateHttpClass* ventState = new BinStateHttpClass(webServer, vent, "Вентиляция", 3);
 	binStatesHttp->add(ventState);
 
@@ -142,7 +134,7 @@ void AppClass::init()
 	ventMan->onChange(onStateChangeDelegate(&BinStateClass::set , vent));
 
 	binCycler = new BinCyclerClass(*vent, ventCycleDuration, ventCycleInterval);
-//	binCycler->state.set(true);
+
 	BinHttpButtonClass* ventAutoButton = new BinHttpButtonClass(webServer, *binStatesHttp, 0, "Вент. автомат", &binCycler->state);
 	BinHttpButtonClass* ventManButton = new BinHttpButtonClass(webServer, *binStatesHttp, 1, "Вент. ручной", ventMan);
 
@@ -150,18 +142,6 @@ void AppClass::init()
 	ventAutoButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle , &binCycler->state));
 	ventManButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse , &binCycler->state)); // Order *IS METTER! firstly turn of mutual state!*
 	ventManButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle , ventMan));
-
-
-//	binStateHttp = new BinStateHttpClass(webServer, output->state, "Тушите свет!", 7);
-//	binStatesHttp->add(binStateHttp);
-
-//	lightSystem->addAllOffGroup(output, input, httpButton);
-//	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, 0, "Выкл. все");
-//	lightSystem->addAllOffGroup(httpButton);
-//	httpButton = new BinHttpButtonClass(webServer, 3, "Антивор");
-//
-////	httpButton->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::toggle, (BinStateClass*)caldron));
-//	lightSystem->addRandomButton(httpButton);
 
 	// Web Sockets configuration
 	webServer.enableWebSockets(true);
@@ -189,15 +169,15 @@ void AppClass::wsMessageReceived(WebSocket& socket, const String& message)
 	String command = root["command"];
 //	Serial.printf("Command str: %s\n", command.c_str());
 
-	if (command == "setRandom")
-	{
-		lightSystem->onWSReceiveRandom(root);
-	}
-
-	if (command == "getRandom")
-	{
-		lightSystem->onWSGetRandom(socket);
-	}
+//	if (command == "setRandom")
+//	{
+//		lightSystem->onWSReceiveRandom(root);
+//	}
+//
+//	if (command == "getRandom")
+//	{
+//		lightSystem->onWSGetRandom(socket);
+//	}
 
 //	if (command == "setTime")
 //	{
@@ -337,45 +317,6 @@ void AppClass::wsDisconnected(WebSocket& socket)
 	Serial.printf("Websocket DISCONNECTED!\n");
 }
 
-//void AppClass::onWSSetTime(JsonObject& jsonRoot)
-//{
-//	if (jsonRoot["timeZone"].success())
-//	{
-//		Config.timeZone = jsonRoot["timeZone"];
-//		Config.save();
-//		SystemClock.setTimeZone(Config.timeZone);
-//		DateTime dateTime;
-//
-//		dateTime.Second = jsonRoot["Second"];
-//		dateTime.Minute = jsonRoot["Minute"];
-//		dateTime.Hour = jsonRoot["Hour"];
-//		dateTime.DayofWeek = jsonRoot["Wday"];
-//		dateTime.Day = jsonRoot["Day"];
-//		dateTime.Month = jsonRoot["Month"];
-//		dateTime.Year = jsonRoot["Year"];
-//
-//		SystemClock.setTime(dateTime.toUnixTime(), eTZ_UTC);
-//		randomSeed(dateTime.toUnixTime());
-//
-//		dateTime = SystemClock.now(eTZ_Local);
-//		Serial.print("Time synced to: ");Serial.println(dateTime.toFullDateTimeString());
-//	}
-//}
-//
-//void AppClass::onWSGetAppState(WebSocket& socket)
-//{
-//	DynamicJsonBuffer jsonBuffer;
-//	String buf;
-//	JsonObject& root = jsonBuffer.createObject();
-//	root["response"] = "getAppState";
-//
-//	root["counter"] = _counter;
-//	String _date_time_str = SystemClock.getSystemTimeString();
-//	root["dateTime"] = _date_time_str.c_str();
-//
-//	root.printTo(buf);
-//	socket.sendString(buf);
-//}
 void AppClass::start()
 {
 	ApplicationClass::start();
@@ -386,17 +327,8 @@ void AppClass::start()
 
 void AppClass::_loop()
 {
-	DateTime nowTime = SystemClock.now(eTZ_Local);
-
 	ApplicationClass::_loop();
 //	Serial.printf("AppClass loop\n");
 	Serial.printf("Free Heap: %d WS count: %d\n", system_get_free_heap_size(), webServer.getActiveWebSockets().count());
-//	Serial.printf("Random: %d\n", lightSystem->getRandom(8,25));
-//	Serial.print("DateTime: ");Serial.println(nowTime.toFullDateTimeString());
-
-//	for (uint8_t i=0; i<7; i++)
-//	{
-//		binStates[i]->toggle();
-//	}
 }
 

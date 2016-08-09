@@ -176,7 +176,7 @@ function onDocumentRedy() {
 	document.getElementById('settings_update_fw').addEventListener('click', function() { post_fw("update"); });
 	document.getElementById('settings_switch_fw').addEventListener('click', function() { post_fw("switch"); });
 //	document.getElementById('form_random').addEventListener('submit', sendRandom);
-	document.getElementById('random_cancel').addEventListener('click', wsGetRandom);
+//	document.getElementById('random_cancel').addEventListener('click', wsGetRandom);
 	document.getElementById('sync_datetime').addEventListener('click', sendTime);
 
 }
