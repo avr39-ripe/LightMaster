@@ -360,6 +360,21 @@ function AppConfigClass() {
 	this._enable = false;
 }
 
+AppConfigClass.prototype.wsSetAppConfig = function () {
+		var ab = new ArrayBuffer(wsBinConst.wsPayLoadStart + 2 + 2 + 2);
+		var bin = new DataView(ab);
+		
+		bin.setUint8(wsBinConst.wsCmd, wsBinConst.setCmd);
+		bin.setUint8(wsBinConst.wsSysId, 1); //App sysid
+		bin.setUint8(wsBinConst.wsSubCmd, wsBinConst.scAppConfigSet);
+		bin.setUint16(wsBinConst.wsPayLoadStart, this._ventCycleDuration, true);
+		bin.setUint16(wsBinConst.wsPayLoadStart + 2, this._ventCycleInterval, true);
+		bin.setUint16(wsBinConst.wsPayLoadStart + 4, this._caldronOnDelay, true);
+	
+		websocket.send(bin.buffer);
+		console.log.bind(console)(`wsSetAppConfig`);
+	}
+
 AppConfigClass.prototype.wsGetAppConfig = function() {
 	wsBinCmd.Get(websocket, 1, wsBinConst.scAppConfigGet);
 }
@@ -377,6 +392,8 @@ AppConfigClass.prototype.wsBinProcess = function (bin) {
 AppConfigClass.prototype.render = function () {
 	var t = document.querySelector('#AppConfigClass');
 	var clone = document.importNode(t.content, true);
+	clone.querySelector('#AppConfigClassForm').addEventListener('submit', this);
+	clone.querySelector('#AppConfigCancel').addEventListener('click', this);
 	var container = document.getElementById("Container-AppConfigClass");
 	container.appendChild(clone);
 }
@@ -407,5 +424,24 @@ AppConfigClass.prototype.enable = function( enable ) {
 			this.wsGetAppConfig()
 			this._timer = setInterval(this.wsGetAppStatus, 5000);
 		}	
+	}
+}
+
+AppConfigClass.prototype.getFormValues = function () {
+	this._ventCycleDuration = document.querySelector('#AppConfigClass-ventCycleDuration').value;
+	this._ventCycleInterval = document.querySelector('#AppConfigClass-ventCycleInterval').value;
+	this._caldronOnDelay = document.querySelector('#AppConfigClass-caldronOnDelay').value;
+}
+
+AppConfigClass.prototype.handleEvent = function(event) {
+	switch(event.type) {
+		case 'submit':
+			event.preventDefault();
+			this.getFormValues();
+	        this.wsSetAppConfig();
+	        break;
+        case 'click':
+            this.wsGetAppConfig();
+            break;
 	}
 }
