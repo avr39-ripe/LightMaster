@@ -273,14 +273,14 @@ void BinStateSharedDeferredClass::set(uint8_t state)
 		Serial.printf("Decrease consumers = %d\n", _consumers);
 	}
 
-	if ( _consumers == 0 && ( (state && _trueDelay > 0) || (!state && _falseDelay > 0) ) )
+	if ( _consumers == 0 && ( ((state && _trueDelay > 0) || (!state && _falseDelay > 0)) && !_nodelay) )
 	{
 		_setDeferredState(state);
 		_delayTimer.initializeMs( (state ? _trueDelay : _falseDelay) * 60000, TimerDelegate(&BinStateSharedDeferredClass::_deferredSet, this)).start(false);
 		Serial.printf("Arm deferred %s\n", state ? "True" : "False");
 	}
 
-	if ( _consumers == 0 && ( (state && _trueDelay == 0) || (!state && _falseDelay == 0) ) )
+	if ( (_consumers == 0 && ( (state && _trueDelay == 0) || (!state && _falseDelay == 0) || _nodelay)) || ( state && _consumers > 0 && _nodelay && _delayTimer.isStarted()) )
 	{
 		Serial.printf("Fire nodelay %s\n", state ? "true" : "false");
 		_delayTimer.stop();
@@ -294,8 +294,15 @@ void BinStateSharedDeferredClass::set(uint8_t state)
 	}
 }
 
+void BinStateSharedDeferredClass::setNow(uint8_t state)
+{
+	_nodelay = true;
+	set(state);
+	_nodelay = false;
+}
 void BinStateSharedDeferredClass::_deferredSet()
 {
 	Serial.printf("Fire deferred %s\n", _getDefferedState() ? "true" : "false");
 	BinStateClass::set(_getDefferedState(), false);
+	_delayTimer.stop();
 }

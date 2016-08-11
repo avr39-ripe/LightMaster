@@ -108,6 +108,7 @@ class BinStateSharedDeferredClass : public BinStateClass
 {
 public:
 	virtual void set(uint8_t state);
+	void setNow(uint8_t state);
 	void setTrueDelay(uint16_t trueDelay) { _trueDelay = trueDelay; };
 	void setFalseDelay(uint16_t falseDelay) { _falseDelay = falseDelay; };
 private:
@@ -117,6 +118,7 @@ private:
 	uint8_t _consumers = 0;
 	uint16_t _trueDelay = 0;
 	uint16_t _falseDelay = 0;
+	uint8_t _nodelay = false;
 	Timer _delayTimer;
 };
 #endif /* LIB_BINIO_BINSTATE_H_ */
