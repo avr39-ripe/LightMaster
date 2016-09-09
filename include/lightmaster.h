@@ -18,17 +18,18 @@
 #include <bincycler.h>
 
 //output mode selector: GPIO or MCP23S17
-//#define MCP23S17
+#define MCP23S17
 
 extern NtpClient* ntpClient;
 
 #ifdef MCP23S17 //use MCP23S17
 const uint8_t mcp23s17_cs = 15;
 extern MCP* mcp000;
+extern MCP* mcp001;
+extern MCP* mcp002;
+
 #endif
 
 extern BinInPollerClass binInPoller;
 
-extern BinStateSharedDeferredClass* caldron;
-extern BinCyclerClass* binCycler;
 #endif /* INCLUDE_LIGHTMASTER_H_ */

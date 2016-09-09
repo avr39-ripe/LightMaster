@@ -38,6 +38,21 @@ void AppClass::init()
 	mcp000->pinMode(0xFF00); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
 	mcp000->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
 	mcp000->digitalWrite(0x00FF); //Set all PORTA to 0xFF for simple relay which is active LOW
+
+	mcp001 = new MCP(0x001, mcp23s17_cs);
+
+	mcp001->begin();
+	mcp001->pinMode(0xFF00); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
+	mcp001->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
+	mcp001->digitalWrite(0x00FF); //Set all PORTA to 0xFF for simple relay which is active LOW
+
+	mcp002 = new MCP(0x002, mcp23s17_cs);
+
+	mcp002->begin();
+	mcp002->pinMode(0xFF00); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
+	mcp002->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
+	mcp002->digitalWrite(0x00FF); //Set all PORTA to 0xFF for simple relay which is active LOW
+
 #endif
 
 #ifndef MCP23S17 //use GPIO
@@ -60,88 +75,105 @@ void AppClass::init()
 //	Serial.printf("POST Free Heap: %d\n", system_get_free_heap_size());
 //	Serial.printf("Size is ,%d\n", sizeof(BinStateClass));
 
-	for (uint8_t i = 0; i < 7; i++)
+	for (uint8_t i = 0; i < 8; i++)
 	{
 		BinOutClass* output = new BinOutMCP23S17Class(*mcp000,i,0);
 		BinInClass* input = new BinInMCP23S17Class(*mcp000,i,0);
 		binInPoller.add(input);
-		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, i, String(zoneNames[i]), &output->state);
-		lightSystem->addLightGroup(output, input, httpButton);
+//		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, i, String("Комната" + i), &output->state);
+		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, i, String("Комната") + String(i), &output->state);
+		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
+		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
+//		lightSystem->addLightGroup(output, input, httpButton);
 
 
 	}
-	BinOutClass* output = new BinOutMCP23S17Class(*mcp000,7,0);
-	BinInClass* input = new BinInMCP23S17Class(*mcp000,7,0);
-	binInPoller.add(input);
+
+	for (uint8_t i = 0; i < 8; i++)
+	{
+		BinOutClass* output = new BinOutMCP23S17Class(*mcp001,i,0);
+		BinInClass* input = new BinInMCP23S17Class(*mcp001,i,0);
+		binInPoller.add(input);
+//		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, i, String("Комната" + i), &output->state);
+		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 8 + i, String("Комната") + String(8 + i), &output->state);
+		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
+		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
+//		lightSystem->addLightGroup(output, input, httpButton);
+
+
+	}
+//	BinOutClass* output = new BinOutMCP23S17Class(*mcp000,7,0);
+//	BinInClass* input = new BinInMCP23S17Class(*mcp000,7,0);
+//	binInPoller.add(input);
 #endif
 
-	BinOutGPIOClass* caldronOut = new BinOutGPIOClass(15,0);
-	caldron = new BinStateSharedDeferredClass();
-	caldron->setTrueDelay(caldronOnDelay);
-	caldron->setFalseDelay(0);
-	caldron->onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)&caldronOut->state));
-
-	BinOutGPIOClass* warmFloorPumpOut = new BinOutGPIOClass(4,0);
-	BinStateClass* warmFloorPump = &warmFloorPumpOut->state;
-
-	BinOutGPIOClass* bedroomHeadOut = new BinOutGPIOClass(5,0);
-	BinStateClass* bedroomHead = &bedroomHeadOut->state;
-
-	BinOutGPIOClass* hallHeadOut = new BinOutGPIOClass(2,0);
-	BinStateClass* hallHead = &hallHeadOut->state;
-
-	BinStateHttpClass* caldronState = new BinStateHttpClass(webServer, caldron, "Котел", 0);
-	binStatesHttp->add(caldronState);
-
-	BinStateHttpClass* warmFloorPumpState = new BinStateHttpClass(webServer, warmFloorPump, "Насос т. пола", 1);
-	binStatesHttp->add(warmFloorPumpState);
-
-	BinStateHttpClass* bedroomHeadState = new BinStateHttpClass(webServer, bedroomHead, "Спальня", 2);
-	binStatesHttp->add(bedroomHeadState);
-
-	BinStateHttpClass* hallHeadState = new BinStateHttpClass(webServer, hallHead, "Холл", 4);
-	binStatesHttp->add(hallHeadState);
-
-
-	thStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)warmFloorPump));
-	thStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::setNow, (BinStateSharedDeferredClass*)caldron));
-
-	thStatBedroom->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)bedroomHead));
-	thStatBedroom->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
-
-	thStatHall->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)hallHead));
-	thStatHall->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
-	//WEB THERMOSTAT MOCKUP
-	BinHttpButtonClass* webThStatWarmFloor = new BinHttpButtonClass(webServer, *binStatesHttp, 2, "Тстат т. пол", warmFloorPump);
-	BinHttpButtonClass* webThStatBedroom = new BinHttpButtonClass(webServer, *binStatesHttp, 3, "Тстат спальня", bedroomHead);
-	BinHttpButtonClass* webThStatHall = new BinHttpButtonClass(webServer, *binStatesHttp, 4, "Тстат холл", hallHead);
-
-	webThStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)warmFloorPump));
-	webThStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::setNow, (BinStateSharedDeferredClass*)caldron));
-
-	webThStatBedroom->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)bedroomHead));
-	webThStatBedroom->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
-
-	webThStatHall->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)hallHead));
-	webThStatHall->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
-	//WEB THERMOSTAT MOCKUP
-	BinOutGPIOClass* ventOut = new BinOutGPIOClass(16,0);
-	BinStateClass* vent = &ventOut->state;
-	BinStateHttpClass* ventState = new BinStateHttpClass(webServer, vent, "Вентиляция", 3);
-	binStatesHttp->add(ventState);
-
-	BinStateClass* ventMan = new BinStateClass;
-	ventMan->onChange(onStateChangeDelegate(&BinStateClass::set , vent));
-
-	binCycler = new BinCyclerClass(*vent, ventCycleDuration, ventCycleInterval);
-
-	BinHttpButtonClass* ventAutoButton = new BinHttpButtonClass(webServer, *binStatesHttp, 0, "Вент. автомат", &binCycler->state);
-	BinHttpButtonClass* ventManButton = new BinHttpButtonClass(webServer, *binStatesHttp, 1, "Вент. ручной", ventMan);
-
-	ventAutoButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse , ventMan)); // Order *IS METTER! firstly turn of mutual state!*
-	ventAutoButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle , &binCycler->state));
-	ventManButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse , &binCycler->state)); // Order *IS METTER! firstly turn of mutual state!*
-	ventManButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle , ventMan));
+//	BinOutGPIOClass* caldronOut = new BinOutGPIOClass(15,0);
+//	caldron = new BinStateSharedDeferredClass();
+//	caldron->setTrueDelay(caldronOnDelay);
+//	caldron->setFalseDelay(0);
+//	caldron->onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)&caldronOut->state));
+//
+//	BinOutGPIOClass* warmFloorPumpOut = new BinOutGPIOClass(4,0);
+//	BinStateClass* warmFloorPump = &warmFloorPumpOut->state;
+//
+//	BinOutGPIOClass* bedroomHeadOut = new BinOutGPIOClass(5,0);
+//	BinStateClass* bedroomHead = &bedroomHeadOut->state;
+//
+//	BinOutGPIOClass* hallHeadOut = new BinOutGPIOClass(2,0);
+//	BinStateClass* hallHead = &hallHeadOut->state;
+//
+//	BinStateHttpClass* caldronState = new BinStateHttpClass(webServer, caldron, "Котел", 0);
+//	binStatesHttp->add(caldronState);
+//
+//	BinStateHttpClass* warmFloorPumpState = new BinStateHttpClass(webServer, warmFloorPump, "Насос т. пола", 1);
+//	binStatesHttp->add(warmFloorPumpState);
+//
+//	BinStateHttpClass* bedroomHeadState = new BinStateHttpClass(webServer, bedroomHead, "Спальня", 2);
+//	binStatesHttp->add(bedroomHeadState);
+//
+//	BinStateHttpClass* hallHeadState = new BinStateHttpClass(webServer, hallHead, "Холл", 4);
+//	binStatesHttp->add(hallHeadState);
+//
+//
+//	thStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)warmFloorPump));
+//	thStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::setNow, (BinStateSharedDeferredClass*)caldron));
+//
+//	thStatBedroom->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)bedroomHead));
+//	thStatBedroom->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
+//
+//	thStatHall->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)hallHead));
+//	thStatHall->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
+//	//WEB THERMOSTAT MOCKUP
+//	BinHttpButtonClass* webThStatWarmFloor = new BinHttpButtonClass(webServer, *binStatesHttp, 2, "Тстат т. пол", warmFloorPump);
+//	BinHttpButtonClass* webThStatBedroom = new BinHttpButtonClass(webServer, *binStatesHttp, 3, "Тстат спальня", bedroomHead);
+//	BinHttpButtonClass* webThStatHall = new BinHttpButtonClass(webServer, *binStatesHttp, 4, "Тстат холл", hallHead);
+//
+//	webThStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)warmFloorPump));
+//	webThStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::setNow, (BinStateSharedDeferredClass*)caldron));
+//
+//	webThStatBedroom->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)bedroomHead));
+//	webThStatBedroom->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
+//
+//	webThStatHall->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)hallHead));
+//	webThStatHall->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
+//	//WEB THERMOSTAT MOCKUP
+//	BinOutGPIOClass* ventOut = new BinOutGPIOClass(16,0);
+//	BinStateClass* vent = &ventOut->state;
+//	BinStateHttpClass* ventState = new BinStateHttpClass(webServer, vent, "Вентиляция", 3);
+//	binStatesHttp->add(ventState);
+//
+//	BinStateClass* ventMan = new BinStateClass;
+//	ventMan->onChange(onStateChangeDelegate(&BinStateClass::set , vent));
+//
+//	binCycler = new BinCyclerClass(*vent, ventCycleDuration, ventCycleInterval);
+//
+//	BinHttpButtonClass* ventAutoButton = new BinHttpButtonClass(webServer, *binStatesHttp, 0, "Вент. автомат", &binCycler->state);
+//	BinHttpButtonClass* ventManButton = new BinHttpButtonClass(webServer, *binStatesHttp, 1, "Вент. ручной", ventMan);
+//
+//	ventAutoButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse , ventMan)); // Order *IS METTER! firstly turn of mutual state!*
+//	ventAutoButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle , &binCycler->state));
+//	ventManButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse , &binCycler->state)); // Order *IS METTER! firstly turn of mutual state!*
+//	ventManButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle , ventMan));
 
 	// Web Sockets configuration
 	webServer.enableWebSockets(true);
@@ -261,14 +293,14 @@ void AppClass::wsBinSetter(WebSocket& socket, uint8_t* data, size_t size)
 	}
 	case wsBinConst::scAppConfigSet:
 	{
-		os_memcpy(&ventCycleDuration, (&data[wsBinConst::wsPayLoadStart]), 2);
-		os_memcpy(&ventCycleInterval, (&data[wsBinConst::wsPayLoadStart + 2]), 2);
-		os_memcpy(&caldronOnDelay, (&data[wsBinConst::wsPayLoadStart + 4]), 2);
-
-		binCycler->setDuration(ventCycleDuration);
-		binCycler->setInterval(ventCycleInterval);
-		caldron->setTrueDelay(caldronOnDelay);
-		_saveConfig();
+//		os_memcpy(&ventCycleDuration, (&data[wsBinConst::wsPayLoadStart]), 2);
+//		os_memcpy(&ventCycleInterval, (&data[wsBinConst::wsPayLoadStart + 2]), 2);
+//		os_memcpy(&caldronOnDelay, (&data[wsBinConst::wsPayLoadStart + 4]), 2);
+//
+//		binCycler->setDuration(ventCycleDuration);
+//		binCycler->setInterval(ventCycleInterval);
+//		caldron->setTrueDelay(caldronOnDelay);
+//		_saveConfig();
 		break;
 	}
 	}
