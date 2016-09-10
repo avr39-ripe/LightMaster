@@ -68,8 +68,8 @@ function post_fw(action) {
 var websocket;
 function onOpen(evt) {
 	console.log.bind(console)("CONNECTED");
-	appConfig = new AppConfigClass();
-	appConfig.enable(true);;
+//	appConfig = new AppConfigClass();
+//	appConfig.enable(true);
 //	websocket.send("Sming love WebSockets");
 }
 
