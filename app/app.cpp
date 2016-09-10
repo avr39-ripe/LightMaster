@@ -87,6 +87,8 @@ void AppClass::init()
 		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 
 		allOff->onChange(onStateChangeDelegate(&BinStateClass::setFalse, &output->state));
+		input->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
+		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
 	}
 
 	for (uint8_t i = 0; i < 8; i++)
@@ -99,6 +101,8 @@ void AppClass::init()
 		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 
 		allOff->onChange(onStateChangeDelegate(&BinStateClass::setFalse, &output->state));
+		input->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
+		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
 	}
 //	BinOutGPIOClass* ventOut = new BinOutGPIOClass(16,0);
 //	BinStateClass* vent = &ventOut->state;
