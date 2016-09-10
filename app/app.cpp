@@ -75,18 +75,18 @@ void AppClass::init()
 //	Serial.printf("POST Free Heap: %d\n", system_get_free_heap_size());
 //	Serial.printf("Size is ,%d\n", sizeof(BinStateClass));
 
+	BinStateClass* allOff = new BinStateClass();
+
 	for (uint8_t i = 0; i < 8; i++)
 	{
 		BinOutClass* output = new BinOutMCP23S17Class(*mcp000,i,0);
 		BinInClass* input = new BinInMCP23S17Class(*mcp000,i,0);
 		binInPoller.add(input);
-//		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, i, String("Комната" + i), &output->state);
 		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, i, String("Комната") + String(i), &output->state);
 		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
-//		lightSystem->addLightGroup(output, input, httpButton);
 
-
+		allOff->onChange(onStateChangeDelegate(&BinStateClass::setFalse, &output->state));
 	}
 
 	for (uint8_t i = 0; i < 8; i++)
@@ -94,17 +94,19 @@ void AppClass::init()
 		BinOutClass* output = new BinOutMCP23S17Class(*mcp001,i,0);
 		BinInClass* input = new BinInMCP23S17Class(*mcp001,i,0);
 		binInPoller.add(input);
-//		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, i, String("Комната" + i), &output->state);
 		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 8 + i, String("Комната") + String(8 + i), &output->state);
 		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
-//		lightSystem->addLightGroup(output, input, httpButton);
 
-
+		allOff->onChange(onStateChangeDelegate(&BinStateClass::setFalse, &output->state));
 	}
-//	BinOutClass* output = new BinOutMCP23S17Class(*mcp000,7,0);
-//	BinInClass* input = new BinInMCP23S17Class(*mcp000,7,0);
-//	binInPoller.add(input);
+//	BinOutGPIOClass* ventOut = new BinOutGPIOClass(16,0);
+//	BinStateClass* vent = &ventOut->state;
+
+	BinStateHttpClass* allOffState = new BinStateHttpClass(webServer, allOff, "Выкл. все", 0);
+	binStatesHttp->add(allOffState);
+	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 16, "Выкл. все", allOff);
+	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, allOff));
 #endif
 
 //	BinOutGPIOClass* caldronOut = new BinOutGPIOClass(15,0);
