@@ -75,14 +75,29 @@ void AppClass::init()
 //	Serial.printf("POST Free Heap: %d\n", system_get_free_heap_size());
 //	Serial.printf("Size is ,%d\n", sizeof(BinStateClass));
 
+	Serial.printf("Pre ARRAY Free Heap: %d\n", system_get_free_heap_size());
+
+//	BinOutClass** outputs = new BinOutClass*[16];
+//	BinInClass** inputs = new BinInClass*[16];
+//	BinHttpButtonClass** httpButtons = new BinHttpButtonClass*[16];
+	BinOutClass* outputs[16];
+	BinInClass* inputs[16];
+	BinHttpButtonClass* httpButtons[16];
+
+	Serial.printf("Post ARRAY Free Heap: %d\n", system_get_free_heap_size());
+
 	BinStateClass* allOff = new BinStateClass();
+//	BinStateClass* imHome = new BinStateClass();
 
 	for (uint8_t i = 0; i < 8; i++)
 	{
 		BinOutClass* output = new BinOutMCP23S17Class(*mcp000,i,0);
+		outputs[i] = output;
 		BinInClass* input = new BinInMCP23S17Class(*mcp000,i,0);
+		inputs[i] = input;
 		binInPoller.add(input);
 		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, i, String("Комната") + String(i), &output->state);
+		httpButtons[i] = httpButton;
 		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 
@@ -94,9 +109,12 @@ void AppClass::init()
 	for (uint8_t i = 0; i < 8; i++)
 	{
 		BinOutClass* output = new BinOutMCP23S17Class(*mcp001,i,0);
+		outputs[8 + i] = output;
 		BinInClass* input = new BinInMCP23S17Class(*mcp001,i,0);
 		binInPoller.add(input);
+		inputs[8 + i] = input;
 		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 8 + i, String("Комната") + String(8 + i), &output->state);
+		httpButtons[8 + i] = httpButton;
 		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 
@@ -111,6 +129,23 @@ void AppClass::init()
 	binStatesHttp->add(allOffState);
 	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 16, "Выкл. все", allOff);
 	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, allOff));
+
+//	BinStateHttpClass* imHomeState = new BinStateHttpClass(webServer, imHome, "Я дома!", 2);
+//	binStatesHttp->add(imHomeState);
+	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 17, "Я дома!");
+	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
+	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[15]->state));
+	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[14]->state));
+	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[0]->state));
+	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[1]->state));
+
+//	Serial.printf("Pre DEALLOCATE ARRAY Free Heap: %d\n", system_get_free_heap_size());
+
+//	delete[] outputs;
+//	delete[] inputs;
+//	delete[] httpButtons;
+
+//	Serial.printf("Post DEALLOCATE ARRAY Free Heap: %d\n", system_get_free_heap_size());
 #endif
 
 //	BinOutGPIOClass* caldronOut = new BinOutGPIOClass(15,0);
