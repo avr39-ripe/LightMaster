@@ -87,7 +87,7 @@ void AppClass::init()
 	Serial.printf("Post ARRAY Free Heap: %d\n", system_get_free_heap_size());
 
 	BinStateClass* allOff = new BinStateClass();
-	allOff->persistent(0);
+
 //	BinStateClass* imHome = new BinStateClass();
 
 	for (uint8_t i = 0; i < 8; i++)
@@ -123,17 +123,39 @@ void AppClass::init()
 		input->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
 		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
 	}
+
+	for (uint8_t i = 0; i < 3; i++)
+	{
+		BinOutClass* output = new BinOutMCP23S17Class(*mcp002,i,0);
+		outputs[16 + i] = output;
+		BinInClass* input = new BinInMCP23S17Class(*mcp002,i,0);
+		binInPoller.add(input);
+		inputs[16 + i] = input;
+		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 16 + i, String("Комната") + String(16 + i), &output->state);
+		httpButtons[16 + i] = httpButton;
+		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
+		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
+
+		allOff->onChange(onStateChangeDelegate(&BinStateClass::setFalse, &output->state));
+		input->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
+		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
+	}
 //	BinOutGPIOClass* ventOut = new BinOutGPIOClass(16,0);
 //	BinStateClass* vent = &ventOut->state;
 
+	BinOutClass* output = new BinOutMCP23S17Class(*mcp002,3,0);
+	allOff->onChange(onStateChangeDelegate(&BinStateClass::set, &output->state));
+
 	BinStateHttpClass* allOffState = new BinStateHttpClass(webServer, allOff, "Выкл. все", 0);
 	binStatesHttp->add(allOffState);
-	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 16, "Выкл. все", allOff);
+	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 25, "Выкл. все", allOff);
 	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, allOff));
+
+	allOff->persistent(0);
 
 //	BinStateHttpClass* imHomeState = new BinStateHttpClass(webServer, imHome, "Я дома!", 2);
 //	binStatesHttp->add(imHomeState);
-	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 17, "Я дома!");
+	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 26, "Я дома!");
 	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
 	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[15]->state));
 	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[14]->state));
