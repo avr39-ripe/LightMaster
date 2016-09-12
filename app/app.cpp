@@ -87,6 +87,7 @@ void AppClass::init()
 	Serial.printf("Post ARRAY Free Heap: %d\n", system_get_free_heap_size());
 
 	BinStateClass* allOff = new BinStateClass();
+	allOff->persistent(0);
 //	BinStateClass* imHome = new BinStateClass();
 
 	for (uint8_t i = 0; i < 8; i++)
