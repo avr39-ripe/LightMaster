@@ -8,7 +8,7 @@
 
 #include <lightmaster.h>
 
-char zoneNames[][20] = {{"Прихожая"},{"Холл"},{"Столовая"},{"Кухня"},{"Низ холла"},{"Спальня 1"},{"Спальня 2"}};
+//char zoneNames[][20] = {{"Прихожая"},{"Холл"},{"Столовая"},{"Кухня"},{"Низ холла"},{"Спальня 1"},{"Спальня 2"}};
 //AppClass
 AppClass::AppClass()
 :ApplicationClass()
@@ -18,6 +18,9 @@ AppClass::AppClass()
 }
 void AppClass::init()
 {
+	char zoneNames[][27] = {{"Кухня вход"},{"Кухня стол"},{"Кухня"},{"Коридор"},{"Улица"},{"Холл 1 лево"},{"Холл 1 право"}, {"Холл 1 низ"}, \
+							{"Холл 2 лево"},{"Холл 2 право"},{"Холл 2 низ"},{"Спальня"},{"Спальня лево"},{"Спальня право"},{"Санузел"},\
+							{"С/у зеркало"},{"С/у вентилятор"}, {"Котельная"}};
 	system_update_cpu_freq(SYS_CPU_160MHZ);
 
 	ApplicationClass::init();
@@ -97,7 +100,7 @@ void AppClass::init()
 		BinInClass* input = new BinInMCP23S17Class(*mcp000,i,0);
 		inputs[i] = input;
 		binInPoller.add(input);
-		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, i, String("Комната") + String(i), &output->state);
+		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, i, zoneNames[i], &output->state);
 		httpButtons[i] = httpButton;
 		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
@@ -114,7 +117,7 @@ void AppClass::init()
 		BinInClass* input = new BinInMCP23S17Class(*mcp001,i,0);
 		binInPoller.add(input);
 		inputs[8 + i] = input;
-		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 8 + i, String("Комната") + String(8 + i), &output->state);
+		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 8 + i, zoneNames[8 + i], &output->state);
 		httpButtons[8 + i] = httpButton;
 		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
@@ -124,14 +127,14 @@ void AppClass::init()
 		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
 	}
 
-	for (uint8_t i = 0; i < 3; i++)
+	for (uint8_t i = 0; i < 2; i++)
 	{
 		BinOutClass* output = new BinOutMCP23S17Class(*mcp002,i,0);
 		outputs[16 + i] = output;
 		BinInClass* input = new BinInMCP23S17Class(*mcp002,i,0);
 		binInPoller.add(input);
 		inputs[16 + i] = input;
-		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 16 + i, String("Комната") + String(16 + i), &output->state);
+		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 16 + i, zoneNames[16 + i], &output->state);
 		httpButtons[16 + i] = httpButton;
 		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
@@ -143,8 +146,12 @@ void AppClass::init()
 //	BinOutGPIOClass* ventOut = new BinOutGPIOClass(16,0);
 //	BinStateClass* vent = &ventOut->state;
 
-	BinOutClass* output = new BinOutMCP23S17Class(*mcp002,3,0);
+	BinOutClass* output = new BinOutMCP23S17Class(*mcp002,2,0);
 	allOff->onChange(onStateChangeDelegate(&BinStateClass::set, &output->state));
+
+	BinInClass* input = new BinInMCP23S17Class(*mcp002,2,0);
+	binInPoller.add(input);
+	input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, allOff));
 
 	BinStateHttpClass* allOffState = new BinStateHttpClass(webServer, allOff, "Выкл. все", 0);
 	binStatesHttp->add(allOffState);
@@ -157,10 +164,9 @@ void AppClass::init()
 //	binStatesHttp->add(imHomeState);
 	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 26, "Я дома!");
 	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
-	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[15]->state));
-	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[14]->state));
 	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[0]->state));
-	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[1]->state));
+	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[3]->state));
+	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[4]->state));
 
 //	Serial.printf("Pre DEALLOCATE ARRAY Free Heap: %d\n", system_get_free_heap_size());
 
