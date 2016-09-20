@@ -1,7 +1,7 @@
 'use strict';
 
 //wsBinProtocol constants
-const wsBinConst = {
+var wsBinConst = {
 //Frame header offsets
 	wsCmd			: 0, //Command type
 	wsSysId			: 1, //target sysId
@@ -37,7 +37,7 @@ const wsBinConst = {
 };
 
 
-const wsBinCmd = {
+var wsBinCmd = {
 	Get	: function (socket, sysId, subCmd) {
 		var ab = new ArrayBuffer(3);
 		var bin = new DataView(ab);
@@ -47,7 +47,7 @@ const wsBinCmd = {
 		bin.setUint8(wsBinConst.wsSubCmd, subCmd);
 	
 		socket.send(bin.buffer);
-		console.log.bind(console)(`wsGet sysId = ${sysId}, subCmd = ${subCmd}`);
+//		console.log.bind(console)(`wsGet sysId = ${sysId}, subCmd = ${subCmd}`);
 	},
 	SetArg: function (socket, sysId, subCmd, setArg, setValue) {
 		var ab = new ArrayBuffer(5);
@@ -60,7 +60,7 @@ const wsBinCmd = {
 		bin.setUint8(wsBinConst.wsPayLoadStartGetSetArg, setValue);
 	
 		socket.send(bin.buffer);
-		console.log.bind(console)(`wsGet sysId = ${sysId}, subCmd = ${subCmd}`);
+//		console.log.bind(console)(`wsGet sysId = ${sysId}, subCmd = ${subCmd}`);
 	}
 }
 
@@ -82,7 +82,7 @@ BinStateClass.prototype.wsGet = function (cmd) {
 	bin.setUint8(wsBinConst.wsSubCmd, cmd);
 
 	websocket.send(bin.buffer);
-	console.log.bind(console)(`wsGet cmd = ${cmd}`);
+//	console.log.bind(console)(`wsGet cmd = ${cmd}`);
 }
 
 BinStateClass.prototype.wsGetName = function () {
@@ -372,7 +372,7 @@ AppConfigClass.prototype.wsSetAppConfig = function () {
 		bin.setUint16(wsBinConst.wsPayLoadStart + 4, this._caldronOnDelay, true);
 	
 		websocket.send(bin.buffer);
-		console.log.bind(console)(`wsSetAppConfig`);
+//		console.log.bind(console)(`wsSetAppConfig`);
 	}
 
 AppConfigClass.prototype.wsGetAppConfig = function() {
