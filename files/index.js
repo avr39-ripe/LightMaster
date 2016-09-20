@@ -6,7 +6,7 @@ var binStates;
 var websocket;
 
 function onOpen(evt) {
-	console.log.bind(console)("CONNECTED");
+//	console.log.bind(console)("CONNECTED");
 	
 	appStatus = new AppStatusClass();
 	appStatus.enable(true);
@@ -26,7 +26,7 @@ function onMessage(evt) {
     	var cmd = bin.getUint8(wsBinConst.wsCmd);
     	var sysId = bin.getUint8(wsBinConst.wsSysId);
     	var subCmd = bin.getUint8(wsBinConst.wsSubCmd);
-    	console.log.bind(console)(`cmd = ${cmd}, sysId = ${sysId}, subCmd = ${subCmd}`);
+//    	console.log.bind(console)(`cmd = ${cmd}, sysId = ${sysId}, subCmd = ${subCmd}`);
     	
     	if ( cmd == wsBinConst.getResponse && sysId == 1 ) {
     		appStatus.wsBinProcess(bin);
@@ -40,11 +40,11 @@ function onMessage(evt) {
 }
 
 function onClose(evt) {
-	console.log.bind(console)("DISCONNECTED");
+//	console.log.bind(console)("DISCONNECTED");
 }
 
 function onError(evt) {
-	console.log.bind(console)("ERROR: " + evt.data);
+//	console.log.bind(console)("ERROR: " + evt.data);
 }
 
 function initWS() {
