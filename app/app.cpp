@@ -10,12 +10,6 @@
 
 char zoneNames[][20] = {{"Прихожая"},{"Холл"},{"Столовая"},{"Кухня"},{"Низ холла"},{"Спальня 1"},{"Спальня 2"}};
 //AppClass
-AppClass::AppClass()
-:ApplicationClass()
-{
-	_wsBinSetters[sysId] = WebSocketBinaryDelegate(&AppClass::wsBinSetter,this);
-	_wsBinGetters[sysId] = WebSocketBinaryDelegate(&AppClass::wsBinGetter,this);
-}
 void AppClass::init()
 {
 	system_update_cpu_freq(SYS_CPU_160MHZ);
@@ -28,8 +22,8 @@ void AppClass::init()
 	Serial.printf("Time zone: %d\n", Config.timeZone);
 
 	BinStatesHttpClass* binStatesHttp = new BinStatesHttpClass();
-	_wsBinGetters[binStatesHttp->sysId] = WebSocketBinaryDelegate(&BinStatesHttpClass::wsBinGetter,binStatesHttp);
-	_wsBinSetters[binStatesHttp->sysId] = WebSocketBinaryDelegate(&BinStatesHttpClass::wsBinSetter,binStatesHttp);
+	wsAddBinGetter(binStatesHttp->sysId, WebSocketBinaryDelegate(&BinStatesHttpClass::wsBinGetter,binStatesHttp));
+	wsAddBinSetter(binStatesHttp->sysId, WebSocketBinaryDelegate(&BinStatesHttpClass::wsBinSetter,binStatesHttp));
 
 #ifdef MCP23S17 //use MCP23S17
 	mcp000 = new MCP(0x000, mcp23s17_cs);
@@ -49,17 +43,6 @@ void AppClass::init()
 	binInPoller.add(thStatBedroom);
 	binInPoller.add(thStatHall);
 #else
-//	Serial.printf("PRE Free Heap: %d\n", system_get_free_heap_size());
-//	for (uint8_t i = 0; i < 7; i++)
-//	{
-//		//test binState
-//		binStates[i] = new BinStateClass();
-////		BinStateHttpClass* binStateHttp = new BinStateHttpClass(webServer, *binStates[i], String(zoneNames[i]), i);
-////		binStatesHttp->add(binStateHttp);
-//	}
-//	Serial.printf("POST Free Heap: %d\n", system_get_free_heap_size());
-//	Serial.printf("Size is ,%d\n", sizeof(BinStateClass));
-
 	for (uint8_t i = 0; i < 7; i++)
 	{
 		BinOutClass* output = new BinOutMCP23S17Class(*mcp000,i,0);
@@ -143,77 +126,53 @@ void AppClass::init()
 	ventManButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse , &binCycler->state)); // Order *IS METTER! firstly turn of mutual state!*
 	ventManButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle , ventMan));
 
-	// Web Sockets configuration
-	webServer.enableWebSockets(true);
-	webServer.setWebSocketConnectionHandler(WebSocketDelegate(&AppClass::wsConnected,this));
-	webServer.setWebSocketMessageHandler(WebSocketMessageDelegate(&AppClass::wsMessageReceived,this));
-	webServer.setWebSocketBinaryHandler(WebSocketBinaryDelegate(&AppClass::wsBinaryReceived,this));
-	webServer.setWebSocketDisconnectionHandler(WebSocketDelegate(&AppClass::wsDisconnected,this));
 //	Serial.printf("AppClass init done!\n");
 }
 
-//WebSocket handling
-void AppClass::wsConnected(WebSocket& socket)
+
+void AppClass::wsBinSetter(WebSocket& socket, uint8_t* data, size_t size)
 {
-	Serial.printf("Websocket CONNECTED!\n");
-}
+	ApplicationClass::wsBinSetter(socket, data, size);
 
-void AppClass::wsMessageReceived(WebSocket& socket, const String& message)
-{
-	Serial.printf("WebSocket message received:\r\n%s\r\n", message.c_str());
-	String msg = message;
-	DynamicJsonBuffer jsonBuffer;
-	JsonObject& root = jsonBuffer.parseObject(msg);
-	//Uncomment next line for extra debuginfo
-//	root.prettyPrintTo(Serial);
-	String command = root["command"];
-//	Serial.printf("Command str: %s\n", command.c_str());
-
-//	if (command == "setRandom")
-//	{
-//		lightSystem->onWSReceiveRandom(root);
-//	}
-//
-//	if (command == "getRandom")
-//	{
-//		lightSystem->onWSGetRandom(socket);
-//	}
-
-//	if (command == "setTime")
-//	{
-//		onWSSetTime(root);
-//	}
-//
-//	if (command == "getAppState")
-//	{
-//		onWSGetAppState(socket);
-//	}
-
-}
-
-void AppClass::wsBinaryReceived(WebSocket& socket, uint8_t* data, size_t size)
-{
-	Serial.printf("Websocket binary data recieved, size: %d\r\n", size);
-	Serial.printf("Opcode: %d\n", data[0]);
-
-	if ( data[wsBinConst::wsCmd] == wsBinConst::setCmd)
+	switch (data[wsBinConst::wsSubCmd])
 	{
-		Serial.printf("wsSetCmd\n");
-		if (_wsBinSetters.contains(data[wsBinConst::wsSysId]))
-		{
-			Serial.printf("wsSysId = %d setter called!\n", data[wsBinConst::wsSysId]);
-			_wsBinSetters[data[wsBinConst::wsSysId]](socket, data, size);
-		}
+	case wsBinConst::scAppConfigSet:
+	{
+		os_memcpy(&ventCycleDuration, (&data[wsBinConst::wsPayLoadStart]), 2);
+		os_memcpy(&ventCycleInterval, (&data[wsBinConst::wsPayLoadStart + 2]), 2);
+		os_memcpy(&caldronOnDelay, (&data[wsBinConst::wsPayLoadStart + 4]), 2);
+
+		binCycler->setDuration(ventCycleDuration);
+		binCycler->setInterval(ventCycleInterval);
+		caldron->setTrueDelay(caldronOnDelay);
+		_saveConfig();
+		break;
 	}
+	}
+}
 
-	if ( data[wsBinConst::wsCmd] == wsBinConst::getCmd)
+void AppClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
+{
+	ApplicationClass::wsBinGetter(socket, data, size);
+
+	uint8_t* buffer;
+	switch (data[wsBinConst::wsSubCmd])
 	{
-		Serial.printf("wsGetCmd\n");
-		if (_wsBinGetters.contains(data[wsBinConst::wsSysId]))
-		{
-			Serial.printf("wsSysId = %d getter called!\n", data[wsBinConst::wsSysId]);
-			_wsBinGetters[data[wsBinConst::wsSysId]](socket, data, size);
-		}
+	case wsBinConst::scAppConfigGet:
+	{
+		buffer = new uint8_t[wsBinConst::wsPayLoadStart + 2 + 2 + 2];
+		buffer[wsBinConst::wsCmd] = wsBinConst::getResponse;
+		buffer[wsBinConst::wsSysId] = sysId;
+		buffer[wsBinConst::wsSubCmd] = wsBinConst::scAppConfigGet;
+
+		os_memcpy((&buffer[wsBinConst::wsPayLoadStart]), &ventCycleDuration, sizeof(ventCycleDuration));
+		os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 2]), &ventCycleInterval, sizeof(ventCycleInterval));
+		os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 4]), &caldronOnDelay, sizeof(caldronOnDelay));
+
+		socket.sendBinary(buffer, wsBinConst::wsPayLoadStart + 2 + 2 + 2);
+		delete buffer;
+		break;
+	}
 	}
 }
 
@@ -240,81 +199,6 @@ void AppClass::_saveConfig()
 	fileWrite(file, &ventCycleInterval, sizeof(ventCycleInterval));
 	fileWrite(file, &caldronOnDelay, sizeof(caldronOnDelay));
 	fileClose(file);
-}
-
-void AppClass::wsBinSetter(WebSocket& socket, uint8_t* data, size_t size)
-{
-	switch (data[wsBinConst::wsSubCmd])
-	{
-	case wsBinConst::scAppSetTime:
-	{
-		uint32_t timestamp = 0;
-		os_memcpy(&timestamp, (&data[wsBinConst::wsPayLoadStart]), 4);
-		if (Config.timeZone != data[wsBinConst::wsPayLoadStart + 4])
-		{
-			Config.timeZone = data[wsBinConst::wsPayLoadStart + 4];
-			Config.save();
-			SystemClock.setTimeZone(Config.timeZone);
-		}
-		SystemClock.setTime(timestamp, eTZ_UTC);
-		break;
-	}
-	case wsBinConst::scAppConfigSet:
-	{
-		os_memcpy(&ventCycleDuration, (&data[wsBinConst::wsPayLoadStart]), 2);
-		os_memcpy(&ventCycleInterval, (&data[wsBinConst::wsPayLoadStart + 2]), 2);
-		os_memcpy(&caldronOnDelay, (&data[wsBinConst::wsPayLoadStart + 4]), 2);
-
-		binCycler->setDuration(ventCycleDuration);
-		binCycler->setInterval(ventCycleInterval);
-		caldron->setTrueDelay(caldronOnDelay);
-		_saveConfig();
-		break;
-	}
-	}
-}
-
-void AppClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
-{
-	uint8_t* buffer;
-	switch (data[wsBinConst::wsSubCmd])
-	{
-	case wsBinConst::scAppGetStatus:
-	{
-		buffer = new uint8_t[wsBinConst::wsPayLoadStart + 4 + 4];
-		buffer[wsBinConst::wsCmd] = wsBinConst::getResponse;
-		buffer[wsBinConst::wsSysId] = sysId;
-		buffer[wsBinConst::wsSubCmd] = wsBinConst::scAppGetStatus;
-
-		DateTime now = SystemClock.now(eTZ_UTC);
-		uint32_t timestamp = now.toUnixTime();
-		os_memcpy((&buffer[wsBinConst::wsPayLoadStart]), &_counter, sizeof(_counter));
-		os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 4]), &timestamp, sizeof(timestamp));
-		socket.sendBinary(buffer, wsBinConst::wsPayLoadStart + 4 + 4);
-		delete buffer;
-		break;
-	}
-	case wsBinConst::scAppConfigGet:
-	{
-		buffer = new uint8_t[wsBinConst::wsPayLoadStart + 2 + 2 + 2];
-		buffer[wsBinConst::wsCmd] = wsBinConst::getResponse;
-		buffer[wsBinConst::wsSysId] = sysId;
-		buffer[wsBinConst::wsSubCmd] = wsBinConst::scAppConfigGet;
-
-		os_memcpy((&buffer[wsBinConst::wsPayLoadStart]), &ventCycleDuration, sizeof(ventCycleDuration));
-		os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 2]), &ventCycleInterval, sizeof(ventCycleInterval));
-		os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 4]), &caldronOnDelay, sizeof(caldronOnDelay));
-
-		socket.sendBinary(buffer, wsBinConst::wsPayLoadStart + 2 + 2 + 2);
-		delete buffer;
-		break;
-	}
-	}
-}
-
-void AppClass::wsDisconnected(WebSocket& socket)
-{
-	Serial.printf("Websocket DISCONNECTED!\n");
 }
 
 void AppClass::start()
