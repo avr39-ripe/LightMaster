@@ -1,6 +1,7 @@
 #ifndef INCLUDE_APPLICATION_H_
 #define INCLUDE_APPLICATION_H_
 #include <SmingCore/SmingCore.h>
+#include <wsbinconst.h>
 
 // If you want, you can define settings globally in Operation System ENV
 // or better in Eclipse Environment Variables
@@ -45,6 +46,10 @@ public:
 	HttpServer webServer; // instance of web server for application
 	void startWebServer(); // Start Application WebServer
 	rBootHttpUpdate* otaUpdater = 0;
+	static const uint8_t sysId = 1;
+	void wsAddBinSetter(uint8_t sysId, WebSocketBinaryDelegate wsBinSetterDelegate);
+	void wsAddBinGetter(uint8_t sysId, WebSocketBinaryDelegate wsBinGetterDelegate);
+
 	void OtaUpdate_CallBack(bool result);
 	void OtaUpdate();
 	void Switch();
@@ -58,16 +63,24 @@ protected:
 	void _STAReconnect();
 	void _httpOnFile(HttpRequest &request, HttpResponse &response);
 	void _httpOnIndex(HttpRequest &request, HttpResponse &response);
-//	void _httpOnStateJson(HttpRequest &request, HttpResponse &response);
 	void _httpOnConfiguration(HttpRequest &request, HttpResponse &response);
 	void _httpOnConfigurationJson(HttpRequest &request, HttpResponse &response);
 	void _httpOnUpdate(HttpRequest &request, HttpResponse &response);
 	void _handleWifiConfig(JsonObject& root);
+	void wsConnected(WebSocket& socket);
+	void wsDisconnected(WebSocket& socket);
+	void wsMessageReceived(WebSocket& socket, const String& message);
+	void wsBinaryReceived(WebSocket& socket, uint8_t* data, size_t size);
+	virtual void wsBinSetter(WebSocket& socket, uint8_t* data, size_t size);
+	virtual void wsBinGetter(WebSocket& socket, uint8_t* data, size_t size);
 	uint32_t _counter = 0; // Kind of heartbeat counter
 //	uint16_t _loopInterval;
 	Timer _loopTimer; // Timer for serving loop
 	Timer _reconnectTimer; // Timer for STA reconnect routine
 	uint8_t _webServerStarted = false;
+
+	HashMap<uint8_t,WebSocketBinaryDelegate> _wsBinSetters;
+	HashMap<uint8_t,WebSocketBinaryDelegate> _wsBinGetters;
 
 };
 #endif /* INCLUDE_HEATCONTROL_H_ */

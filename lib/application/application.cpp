@@ -1,13 +1,6 @@
 #include <application.h>
-//#include <user_config.h>
 
 //ApplicationClass App;
-
-//void init()
-//{
-//	App.init();
-//	App.start();
-//}
 
 void ApplicationClass::init()
 {
@@ -48,6 +41,16 @@ void ApplicationClass::init()
 	WifiEvents.onStationConnect(onStationConnectDelegate(&ApplicationClass::_STAConnect, this));
 	WifiEvents.onStationAuthModeChange(onStationAuthModeChangeDelegate(&ApplicationClass::_STAAuthModeChange, this));
 	WifiEvents.onStationGotIP(onStationGotIPDelegate(&ApplicationClass::_STAGotIP, this));
+
+	// Web Sockets configuration
+	webServer.enableWebSockets(true);
+	webServer.setWebSocketConnectionHandler(WebSocketDelegate(&ApplicationClass::wsConnected,this));
+	webServer.setWebSocketMessageHandler(WebSocketMessageDelegate(&ApplicationClass::wsMessageReceived,this));
+	webServer.setWebSocketBinaryHandler(WebSocketBinaryDelegate(&ApplicationClass::wsBinaryReceived,this));
+	webServer.setWebSocketDisconnectionHandler(WebSocketDelegate(&ApplicationClass::wsDisconnected,this));
+
+	wsAddBinSetter(sysId, WebSocketBinaryDelegate(&ApplicationClass::wsBinSetter,this));
+	wsAddBinGetter(sysId, WebSocketBinaryDelegate(&ApplicationClass::wsBinGetter,this));
 
 	startWebServer();
 }
@@ -195,16 +198,6 @@ void ApplicationClass::_httpOnIndex(HttpRequest &request, HttpResponse &response
 	response.setCache(86400, true); // It's important to use cache for better performance.
 	response.sendFile("index.html");
 }
-
-//void ApplicationClass::_httpOnStateJson(HttpRequest &request, HttpResponse &response)
-//{
-//	JsonObjectStream* stream = new JsonObjectStream();
-//	JsonObject& json = stream->getRoot();
-//
-//	json["counter"] = _counter;
-//
-//	response.sendJsonObject(stream);
-//}
 
 void ApplicationClass::_httpOnConfiguration(HttpRequest &request, HttpResponse &response)
 {
@@ -458,4 +451,98 @@ void ApplicationClass::_httpOnUpdate(HttpRequest &request, HttpResponse &respons
 				}
 			} // Request Body Not Empty
 		} // Request method is POST
+}
+//WebSocket handling
+void ApplicationClass::wsConnected(WebSocket& socket)
+{
+	Serial.printf("WS CONN!\n");
+}
+
+void ApplicationClass::wsDisconnected(WebSocket& socket)
+{
+	Serial.printf("WS DISCONN!\n");
+}
+
+void ApplicationClass::wsMessageReceived(WebSocket& socket, const String& message)
+{
+	Serial.printf("WS msg recv: %s\n", message.c_str());
+}
+
+void ApplicationClass::wsBinaryReceived(WebSocket& socket, uint8_t* data, size_t size)
+{
+	Serial.printf("WS bin data recv, size: %d\r\n", size);
+	Serial.printf("Opcode: %d\n", data[0]);
+
+	if ( data[wsBinConst::wsCmd] == wsBinConst::setCmd)
+	{
+		Serial.printf("wsSetCmd\n");
+		if (_wsBinSetters.contains(data[wsBinConst::wsSysId]))
+		{
+			Serial.printf("wsSysId = %d setter called!\n", data[wsBinConst::wsSysId]);
+			_wsBinSetters[data[wsBinConst::wsSysId]](socket, data, size);
+		}
+	}
+
+	if ( data[wsBinConst::wsCmd] == wsBinConst::getCmd)
+	{
+		Serial.printf("wsGetCmd\n");
+		if (_wsBinGetters.contains(data[wsBinConst::wsSysId]))
+		{
+			Serial.printf("wsSysId = %d getter called!\n", data[wsBinConst::wsSysId]);
+			_wsBinGetters[data[wsBinConst::wsSysId]](socket, data, size);
+		}
+	}
+}
+
+void ApplicationClass::wsBinSetter(WebSocket& socket, uint8_t* data, size_t size)
+{
+	switch (data[wsBinConst::wsSubCmd])
+	{
+	case wsBinConst::scAppSetTime:
+	{
+		uint32_t timestamp = 0;
+		os_memcpy(&timestamp, (&data[wsBinConst::wsPayLoadStart]), 4);
+		if (Config.timeZone != data[wsBinConst::wsPayLoadStart + 4])
+		{
+			Config.timeZone = data[wsBinConst::wsPayLoadStart + 4];
+			Config.save();
+			SystemClock.setTimeZone(Config.timeZone);
+		}
+		SystemClock.setTime(timestamp, eTZ_UTC);
+		break;
+	}
+	}
+}
+
+void ApplicationClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
+{
+	uint8_t* buffer;
+	switch (data[wsBinConst::wsSubCmd])
+	{
+	case wsBinConst::scAppGetStatus:
+	{
+		buffer = new uint8_t[wsBinConst::wsPayLoadStart + 4 + 4];
+		buffer[wsBinConst::wsCmd] = wsBinConst::getResponse;
+		buffer[wsBinConst::wsSysId] = sysId;
+		buffer[wsBinConst::wsSubCmd] = wsBinConst::scAppGetStatus;
+
+		DateTime now = SystemClock.now(eTZ_UTC);
+		uint32_t timestamp = now.toUnixTime();
+		os_memcpy((&buffer[wsBinConst::wsPayLoadStart]), &_counter, sizeof(_counter));
+		os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 4]), &timestamp, sizeof(timestamp));
+		socket.sendBinary(buffer, wsBinConst::wsPayLoadStart + 4 + 4);
+		delete buffer;
+		break;
+	}
+	}
+}
+
+void ApplicationClass::wsAddBinSetter(uint8_t sysId, WebSocketBinaryDelegate wsBinSetterDelegate)
+{
+	_wsBinSetters[sysId] = wsBinSetterDelegate;
+}
+
+void ApplicationClass::wsAddBinGetter(uint8_t sysId, WebSocketBinaryDelegate wsBinGetterDelegate)
+{
+	_wsBinGetters[sysId] = wsBinGetterDelegate;
 }
