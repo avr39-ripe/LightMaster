@@ -305,23 +305,44 @@ void ApplicationClass::_httpOnConfigurationJson(HttpRequest &request, HttpRespon
 
 void ApplicationConfig::load()
 {
-	DynamicJsonBuffer jsonBuffer;
+//	DynamicJsonBuffer jsonBuffer;
+//
+//	if (fileExist(_fileName))
+//	{
+//		int size = fileGetSize(_fileName);
+//		char* jsonString = new char[size + 1];
+//		fileGetContent(_fileName, jsonString, size + 1);
+//
+//		JsonObject& root = jsonBuffer.parseObject(jsonString);
+//
+//		loopInterval = root["loopInterval"];
+//		updateURL = String((const char *)root["updateURL"]);
+//		timeZone = root["timeZone"];
+//
+//		delete[] jsonString;
+//	}
+	uint16_t strSize;
 
-	if (fileExist(_fileName))
-	{
-		int size = fileGetSize(_fileName);
-		char* jsonString = new char[size + 1];
-		fileGetContent(_fileName, jsonString, size + 1);
-
-		JsonObject& root = jsonBuffer.parseObject(jsonString);
-
-		loopInterval = root["loopInterval"];
-		updateURL = String((const char *)root["updateURL"]);
-		timeZone = root["timeZone"];
-
-		delete[] jsonString;
-	}
-	else
+//	Serial.printf("Try to load ApplicationClass bin cfg..\n");
+//	if (fileExist(_fileName))
+//	{
+//	Serial.printf("Will load ApplicationClass bin cfg..\n");
+//	file_t file = fileOpen(_fileName, eFO_ReadOnly);
+//	fileSeek(file, 0, eSO_FileStart);
+//	fileRead(file, &strSize, sizeof(strSize));
+//
+//	uint8_t* updateURLBuffer = new uint8_t(strSize+1);
+//
+//	fileRead(file, updateURLBuffer, strSize);
+//	updateURLBuffer[strSize+1] = '\0';
+//	updateURL = (const char *)updateURLBuffer;
+//	fileRead(file, &loopInterval, sizeof(loopInterval));
+//	fileRead(file, &timeZone, sizeof(timeZone));
+//	fileClose(file);
+//
+//	delete [] updateURLBuffer;
+//	}
+//	else
 	{
 		//Factory defaults if no config file present
 		loopInterval = 1000; // 1 second
@@ -332,16 +353,25 @@ void ApplicationConfig::load()
 
 void ApplicationConfig::save()
 {
-	DynamicJsonBuffer jsonBuffer;
-	JsonObject& root = jsonBuffer.createObject();
+//	DynamicJsonBuffer jsonBuffer;
+//	JsonObject& root = jsonBuffer.createObject();
+//
+//	root["loopInterval"] = loopInterval;
+//	root["updateURL"] = updateURL;
+//	root["timeZone"] = timeZone;
+//
+//	String buf;
+//	root.printTo(buf);
+//	fileSetContent(_fileName, buf);
+	uint16_t strSize = updateURL.length();
 
-	root["loopInterval"] = loopInterval;
-	root["updateURL"] = updateURL;
-	root["timeZone"] = timeZone;
-
-	String buf;
-	root.printTo(buf);
-	fileSetContent(_fileName, buf);
+	Serial.printf("Try to save ApplicationClass bin cfg..\n");
+	file_t file = fileOpen(_fileName, eFO_CreateIfNotExist | eFO_WriteOnly);
+	fileWrite(file, &strSize, sizeof(strSize));
+	fileWrite(file, updateURL.c_str(), strSize);
+	fileWrite(file, &loopInterval, sizeof(loopInterval));
+	fileWrite(file, &timeZone, sizeof(timeZone));
+	fileClose(file);
 }
 
 void ApplicationClass::OtaUpdate_CallBack(bool result) {

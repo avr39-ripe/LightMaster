@@ -18,7 +18,7 @@
 #endif
 //Main application config file name
 #ifndef APP_CONFIG_FILE
-	#define APP_CONFIG_FILE ".app.conf" // leading point for security reasons :)
+	#define APP_CONFIG_FILE "_app.conf" // leading point for security reasons :)
 #endif
 
 class ApplicationConfig
