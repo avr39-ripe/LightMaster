@@ -323,26 +323,24 @@ void ApplicationConfig::load()
 //	}
 	uint16_t strSize;
 
-//	Serial.printf("Try to load ApplicationClass bin cfg..\n");
-//	if (fileExist(_fileName))
-//	{
-//	Serial.printf("Will load ApplicationClass bin cfg..\n");
-//	file_t file = fileOpen(_fileName, eFO_ReadOnly);
-//	fileSeek(file, 0, eSO_FileStart);
-//	fileRead(file, &strSize, sizeof(strSize));
-//
-//	uint8_t* updateURLBuffer = new uint8_t(strSize+1);
-//
-//	fileRead(file, updateURLBuffer, strSize);
-//	updateURLBuffer[strSize+1] = '\0';
-//	updateURL = (const char *)updateURLBuffer;
-//	fileRead(file, &loopInterval, sizeof(loopInterval));
-//	fileRead(file, &timeZone, sizeof(timeZone));
-//	fileClose(file);
-//
-//	delete [] updateURLBuffer;
-//	}
-//	else
+	Serial.printf("Try to load ApplicationClass bin cfg..\n");
+	if (fileExist(_fileName))
+	{
+		Serial.printf("Will load ApplicationClass bin cfg..\n");
+		file_t file = fileOpen(_fileName, eFO_ReadOnly);
+		fileSeek(file, 0, eSO_FileStart);
+		fileRead(file, &strSize, sizeof(strSize));
+		uint8_t* updateURLBuffer = new uint8_t[strSize+1];
+		fileRead(file, updateURLBuffer, strSize);
+		updateURLBuffer[strSize] = 0;
+		updateURL = (const char *)updateURLBuffer;
+		fileRead(file, &loopInterval, sizeof(loopInterval));
+		fileRead(file, &timeZone, sizeof(timeZone));
+		fileClose(file);
+
+		delete [] updateURLBuffer;
+	}
+	else
 	{
 		//Factory defaults if no config file present
 		loopInterval = 1000; // 1 second
@@ -366,7 +364,7 @@ void ApplicationConfig::save()
 	uint16_t strSize = updateURL.length();
 
 	Serial.printf("Try to save ApplicationClass bin cfg..\n");
-	file_t file = fileOpen(_fileName, eFO_CreateIfNotExist | eFO_WriteOnly);
+	file_t file = fileOpen(_fileName, eFO_CreateNewAlways | eFO_WriteOnly);
 	fileWrite(file, &strSize, sizeof(strSize));
 	fileWrite(file, updateURL.c_str(), strSize);
 	fileWrite(file, &loopInterval, sizeof(loopInterval));
