@@ -12,23 +12,23 @@ void ApplicationClass::init()
 #ifndef DISABLE_SPIFFS
 	if (slot == 0) {
 #ifdef RBOOT_SPIFFS_0
-		debugf("trying to mount spiffs at %x, length %d", RBOOT_SPIFFS_0 + 0x40200000, SPIFF_SIZE);
+//		debugf("trying to mount spiffs at %x, length %d", RBOOT_SPIFFS_0 + 0x40200000, SPIFF_SIZE);
 		spiffs_mount_manual(RBOOT_SPIFFS_0 + 0x40200000, SPIFF_SIZE);
 #else
-		debugf("trying to mount spiffs at %x, length %d", 0x40300000, SPIFF_SIZE);
+//		debugf("trying to mount spiffs at %x, length %d", 0x40300000, SPIFF_SIZE);
 		spiffs_mount_manual(0x40300000, SPIFF_SIZE);
 #endif
 	} else {
 #ifdef RBOOT_SPIFFS_1
-		debugf("trying to mount spiffs at %x, length %d", RBOOT_SPIFFS_1 + 0x40200000, SPIFF_SIZE);
+//		debugf("trying to mount spiffs at %x, length %d", RBOOT_SPIFFS_1 + 0x40200000, SPIFF_SIZE);
 		spiffs_mount_manual(RBOOT_SPIFFS_1 + 0x40200000, SPIFF_SIZE);
 #else
-		debugf("trying to mount spiffs at %x, length %d", 0x40500000, SPIFF_SIZE);
+//		debugf("trying to mount spiffs at %x, length %d", 0x40500000, SPIFF_SIZE);
 		spiffs_mount_manual(0x40500000, SPIFF_SIZE);
 #endif
 	}
 #else
-	debugf("spiffs disabled");
+//	debugf("spiffs disabled");
 #endif
 //	spiffs_mount(); // Mount file system, in order to work with files
 
@@ -324,16 +324,12 @@ void ApplicationClass::loadConfig()
 		updateURL = (const char *)updateURLBuffer;
 		fileRead(file, &loopInterval, sizeof(loopInterval));
 		fileRead(file, &timeZone, sizeof(timeZone));
+
+		_loadAppConfig(file); //load additional, child class config here
+
 		fileClose(file);
 
 		delete [] updateURLBuffer;
-	}
-	else
-	{
-		//Factory defaults if no config file present
-		loopInterval = 1000; // 1 second
-		updateURL = "http://192.168.31.181/";
-		timeZone = 2;
 	}
 }
 
@@ -347,6 +343,9 @@ void ApplicationClass::saveConfig()
 	fileWrite(file, updateURL.c_str(), strSize);
 	fileWrite(file, &loopInterval, sizeof(loopInterval));
 	fileWrite(file, &timeZone, sizeof(timeZone));
+
+	_saveAppConfig(file); //save additional, child class config here
+
 	fileClose(file);
 }
 

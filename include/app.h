@@ -18,10 +18,9 @@ protected:
 	virtual void _loop(); // Application main loop function goes here
 	virtual void wsBinSetter(WebSocket& socket, uint8_t* data, size_t size);
 	virtual void wsBinGetter(WebSocket& socket, uint8_t* data, size_t size);
+	virtual void _loadAppConfig(file_t file);
+	virtual void _saveAppConfig(file_t file);
 private:
-	void _loadConfig();
-	void _saveConfig();
-//	char confFileName[9] = "app.conf";
 //Application specific global configuration variables
 	uint16_t	ventCycleDuration = 1;
 	uint16_t	ventCycleInterval = 1;

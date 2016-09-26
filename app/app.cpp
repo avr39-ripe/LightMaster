@@ -13,9 +13,7 @@ char zoneNames[][20] = {{"Прихожая"},{"Холл"},{"Столовая"},{
 void AppClass::init()
 {
 	system_update_cpu_freq(SYS_CPU_160MHZ);
-
 	ApplicationClass::init();
-	_loadConfig();
 
 	BinStatesHttpClass* binStatesHttp = new BinStatesHttpClass();
 	wsAddBinGetter(binStatesHttp->sysId, WebSocketBinaryDelegate(&BinStatesHttpClass::wsBinGetter,binStatesHttp));
@@ -141,7 +139,7 @@ void AppClass::wsBinSetter(WebSocket& socket, uint8_t* data, size_t size)
 		binCycler->setDuration(ventCycleDuration);
 		binCycler->setInterval(ventCycleInterval);
 		caldron->setTrueDelay(caldronOnDelay);
-		_saveConfig();
+		saveConfig();
 		break;
 	}
 	}
@@ -172,29 +170,18 @@ void AppClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
 	}
 }
 
-void AppClass::_loadConfig()
+void AppClass::_loadAppConfig(file_t file)
 {
-		Serial.printf("Try to load App bin cfg..\n");
-	if (fileExist("app.conf"))
-	{
-		Serial.printf("Will load App bin cfg..\n");
-		file_t file = fileOpen("app.conf", eFO_ReadOnly);
-		fileSeek(file, 0, eSO_FileStart);
 		fileRead(file, &ventCycleDuration, sizeof(ventCycleDuration));
 		fileRead(file, &ventCycleInterval, sizeof(ventCycleInterval));
 		fileRead(file, &caldronOnDelay, sizeof(caldronOnDelay));
-		fileClose(file);
-	}
 }
 
-void AppClass::_saveConfig()
+void AppClass::_saveAppConfig(file_t file)
 {
-	Serial.printf("Try to save App bin cfg..\n");
-	file_t file = fileOpen("app.conf", eFO_CreateIfNotExist | eFO_WriteOnly);
 	fileWrite(file, &ventCycleDuration, sizeof(ventCycleDuration));
 	fileWrite(file, &ventCycleInterval, sizeof(ventCycleInterval));
 	fileWrite(file, &caldronOnDelay, sizeof(caldronOnDelay));
-	fileClose(file);
 }
 
 void AppClass::start()

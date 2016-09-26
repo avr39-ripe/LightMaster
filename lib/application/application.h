@@ -74,7 +74,6 @@ protected:
 	virtual void wsBinSetter(WebSocket& socket, uint8_t* data, size_t size);
 	virtual void wsBinGetter(WebSocket& socket, uint8_t* data, size_t size);
 	uint32_t _counter = 0; // Kind of heartbeat counter
-//	uint16_t _loopInterval;
 	Timer _loopTimer; // Timer for serving loop
 	Timer _reconnectTimer; // Timer for STA reconnect routine
 	uint8_t _webServerStarted = false;
@@ -82,12 +81,14 @@ protected:
 	HashMap<uint8_t,WebSocketBinaryDelegate> _wsBinSetters;
 	HashMap<uint8_t,WebSocketBinaryDelegate> _wsBinGetters;
 	// Configuration parameters goes next
-	uint32_t loopInterval = 0; // loop interval in ms
-	String updateURL; // Firmware update URL
+	uint32_t loopInterval = 1000; // loop interval in ms
+	String updateURL = "http://192.168.31.181/"; // Firmware update URL
 	uint8_t timeZone = 2;
 	//Binary configuration file name
 	String _fileName = APP_CONFIG_FILE;
 	void loadConfig();
 	void saveConfig();
+	virtual void _loadAppConfig(file_t file) {}; //override this in child class to load additional config values
+	virtual void _saveAppConfig(file_t file) {}; //override this in child class to save additional config values
 };
 #endif /* INCLUDE_HEATCONTROL_H_ */
