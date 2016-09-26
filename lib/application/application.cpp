@@ -34,7 +34,11 @@ void ApplicationClass::init()
 
 	_initialWifiConfig();
 
-	Config.load();
+	loadConfig();
+
+//	ntpClient = new NtpClient("pool.ntp.org", 300); //uncomment to enablentp update of system time
+	SystemClock.setTimeZone(timeZone); //set time zone from config
+	Serial.printf("Time zone: %d\n", timeZone);
 
 	// Attach Wifi events handlers
 	WifiEvents.onStationDisconnect(onStationDisconnectDelegate(&ApplicationClass::_STADisconnect, this));
@@ -57,7 +61,7 @@ void ApplicationClass::init()
 
 void ApplicationClass::start()
 {
-	_loopTimer.initializeMs(Config.loopInterval, TimerDelegate(&ApplicationClass::_loop, this)).start(true);
+	_loopTimer.initializeMs(loopInterval, TimerDelegate(&ApplicationClass::_loop, this)).start(true);
 	_loop();
 }
 
@@ -228,7 +232,7 @@ void ApplicationClass::_httpOnConfiguration(HttpRequest &request, HttpResponse &
 
 			if (root["loopInterval"].success()) // There is loopInterval parameter in json
 			{
-				Config.loopInterval = root["loopInterval"];
+				loopInterval = root["loopInterval"];
 				start(); // restart main application loop with new loopInterval setting
 				needSave = true;
 			}
@@ -236,13 +240,13 @@ void ApplicationClass::_httpOnConfiguration(HttpRequest &request, HttpResponse &
 
 			if (root["updateURL"].success()) // There is loopInterval parameter in json
 			{
-				Config.updateURL = String((const char *)root["updateURL"]);
+				updateURL = String((const char *)root["updateURL"]);
 				needSave = true;
 			}
 
 			if (needSave)
 			{
-				Config.save();
+				saveConfig();
 			}
 		} // Request Body Not Empty
 	} // Request method is POST
@@ -297,30 +301,14 @@ void ApplicationClass::_httpOnConfigurationJson(HttpRequest &request, HttpRespon
 	json["StaEnable"] = WifiStation.isEnabled() ? 1 : 0;
 
 	//Application configuration parameters
-	json["loopInterval"] = Config.loopInterval;
-	json["updateURL"] = Config.updateURL;
+	json["loopInterval"] = loopInterval;
+	json["updateURL"] = updateURL;
 
 	response.sendJsonObject(stream);
 }
 
-void ApplicationConfig::load()
+void ApplicationClass::loadConfig()
 {
-//	DynamicJsonBuffer jsonBuffer;
-//
-//	if (fileExist(_fileName))
-//	{
-//		int size = fileGetSize(_fileName);
-//		char* jsonString = new char[size + 1];
-//		fileGetContent(_fileName, jsonString, size + 1);
-//
-//		JsonObject& root = jsonBuffer.parseObject(jsonString);
-//
-//		loopInterval = root["loopInterval"];
-//		updateURL = String((const char *)root["updateURL"]);
-//		timeZone = root["timeZone"];
-//
-//		delete[] jsonString;
-//	}
 	uint16_t strSize;
 
 	Serial.printf("Try to load ApplicationClass bin cfg..\n");
@@ -349,18 +337,8 @@ void ApplicationConfig::load()
 	}
 }
 
-void ApplicationConfig::save()
+void ApplicationClass::saveConfig()
 {
-//	DynamicJsonBuffer jsonBuffer;
-//	JsonObject& root = jsonBuffer.createObject();
-//
-//	root["loopInterval"] = loopInterval;
-//	root["updateURL"] = updateURL;
-//	root["timeZone"] = timeZone;
-//
-//	String buf;
-//	root.printTo(buf);
-//	fileSetContent(_fileName, buf);
 	uint16_t strSize = updateURL.length();
 
 	Serial.printf("Try to save ApplicationClass bin cfg..\n");
@@ -408,7 +386,7 @@ void ApplicationClass::OtaUpdate() {
 
 #ifndef RBOOT_TWO_ROMS
 	// flash rom to position indicated in the rBoot config rom table
-	otaUpdater->addItem(bootconf.roms[slot], Config.updateURL + "rom0.bin");
+	otaUpdater->addItem(bootconf.roms[slot], updateURL + "rom0.bin");
 #else
 	// flash appropriate rom
 	if (slot == 0) {
@@ -421,9 +399,9 @@ void ApplicationClass::OtaUpdate() {
 #ifndef DISABLE_SPIFFS
 	// use user supplied values (defaults for 4mb flash in makefile)
 	if (slot == 0) {
-		otaUpdater->addItem(RBOOT_SPIFFS_0, Config.updateURL + "spiff_rom.bin");
+		otaUpdater->addItem(RBOOT_SPIFFS_0, updateURL + "spiff_rom.bin");
 	} else {
-		otaUpdater->addItem(RBOOT_SPIFFS_1, Config.updateURL + "spiff_rom.bin");
+		otaUpdater->addItem(RBOOT_SPIFFS_1, updateURL + "spiff_rom.bin");
 	}
 #endif
 
@@ -530,11 +508,11 @@ void ApplicationClass::wsBinSetter(WebSocket& socket, uint8_t* data, size_t size
 	{
 		uint32_t timestamp = 0;
 		os_memcpy(&timestamp, (&data[wsBinConst::wsPayLoadStart]), 4);
-		if (Config.timeZone != data[wsBinConst::wsPayLoadStart + 4])
+		if (timeZone != data[wsBinConst::wsPayLoadStart + 4])
 		{
-			Config.timeZone = data[wsBinConst::wsPayLoadStart + 4];
-			Config.save();
-			SystemClock.setTimeZone(Config.timeZone);
+			timeZone = data[wsBinConst::wsPayLoadStart + 4];
+			saveConfig();
+			SystemClock.setTimeZone(timeZone);
 		}
 		SystemClock.setTime(timestamp, eTZ_UTC);
 		break;

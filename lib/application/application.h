@@ -21,18 +21,18 @@
 	#define APP_CONFIG_FILE "_app.conf" // leading point for security reasons :)
 #endif
 
-class ApplicationConfig
-{
-public:
-	void load();
-	void save();
-	// Configuration parameters goes next
-	uint32_t loopInterval = 0; // loop interval in ms
-	String updateURL; // Firmware update URL
-	uint8_t timeZone = 2;
-private:
-	String _fileName = APP_CONFIG_FILE;
-};
+//class ApplicationConfig
+//{
+//public:
+//	void load();
+//	void save();
+//	// Configuration parameters goes next
+//	uint32_t loopInterval = 0; // loop interval in ms
+//	String updateURL; // Firmware update URL
+//	uint8_t timeZone = 2;
+//private:
+//	String _fileName = APP_CONFIG_FILE;
+//};
 
 class ApplicationClass
 {
@@ -42,7 +42,7 @@ public:
 	virtual void init(); // Application initialization
 	virtual void start(); // Application main-loop start/restart
 	virtual void stop(); // Application main-loop stop
-	ApplicationConfig Config; // Instance of Configuration for application
+//	ApplicationConfig Config; // Instance of Configuration for application
 	HttpServer webServer; // instance of web server for application
 	void startWebServer(); // Start Application WebServer
 	rBootHttpUpdate* otaUpdater = 0;
@@ -81,6 +81,13 @@ protected:
 
 	HashMap<uint8_t,WebSocketBinaryDelegate> _wsBinSetters;
 	HashMap<uint8_t,WebSocketBinaryDelegate> _wsBinGetters;
-
+	// Configuration parameters goes next
+	uint32_t loopInterval = 0; // loop interval in ms
+	String updateURL; // Firmware update URL
+	uint8_t timeZone = 2;
+	//Binary configuration file name
+	String _fileName = APP_CONFIG_FILE;
+	void loadConfig();
+	void saveConfig();
 };
 #endif /* INCLUDE_HEATCONTROL_H_ */
