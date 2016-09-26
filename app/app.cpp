@@ -17,10 +17,6 @@ void AppClass::init()
 	ApplicationClass::init();
 	_loadConfig();
 
-//	ntpClient = new NtpClient("pool.ntp.org", 300);
-	SystemClock.setTimeZone(Config.timeZone);
-	Serial.printf("Time zone: %d\n", Config.timeZone);
-
 	BinStatesHttpClass* binStatesHttp = new BinStatesHttpClass();
 	wsAddBinGetter(binStatesHttp->sysId, WebSocketBinaryDelegate(&BinStatesHttpClass::wsBinGetter,binStatesHttp));
 	wsAddBinSetter(binStatesHttp->sysId, WebSocketBinaryDelegate(&BinStatesHttpClass::wsBinSetter,binStatesHttp));
