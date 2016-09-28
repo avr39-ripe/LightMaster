@@ -23,6 +23,11 @@ void TempSensors::stop()
 	_refreshTimer.stop();
 }
 
+float TempSensors::getTemp(uint8_t sensorId)
+{
+	return (_data[sensorId]->_temperature * (float)(_data[sensorId]->_calMult / 100.0)) + (float)(_data[sensorId]->_calAdd / 100.0);
+};
+
 void TempSensors::addSensor()
 {
 	auto newSensorData = new sensorData;
@@ -64,6 +69,103 @@ void TempSensors::onHttpGet(HttpRequest &request, HttpResponse &response)
 	}
 }
 
+void TempSensors::onHttpConfig(HttpRequest &request, HttpResponse &response)
+{
+	if (request.getRequestMethod() == RequestMethod::POST)
+		{
+			if (request.getBody() == NULL)
+			{
+				debugf("NULL bodyBuf");
+				return;
+			}
+			else
+			{
+				uint8_t needSave = false;
+				DynamicJsonBuffer jsonBuffer;
+				JsonObject& root = jsonBuffer.parseObject(request.getBody());
+				root.prettyPrintTo(Serial); //Uncomment it for debuging
+				String queryParam = request.getQueryParameter("sensor", "-1");
+				if (queryParam != "-1")
+				{
+					uint8_t id = request.getQueryParameter("sensor").toInt();
+					if (root["calAdd"].success()) // Settings
+					{
+						_data[id]->_calAdd = root["calAdd"];
+						needSave = true;
+					}
+					if (root["calMult"].success()) // Settings
+					{
+						_data[id]->_calMult = root["calMult"];
+						needSave = true;
+					}
+					if (needSave)
+					{
+						_saveBinConfig();
+					}
+				}
+			}
+		}
+		else
+		{
+			DynamicJsonBuffer jsonBuffer;
+			String buf;
+			JsonObject& root = jsonBuffer.createObject();
+			String queryParam = request.getQueryParameter("sensor", "-1");
+			if (queryParam == "-1")
+			{
+				for (uint8_t id=0; id < _data.count(); id++)
+				{
+					JsonObject& data = root.createNestedObject((String)id);
+					data["calAdd"] = _data[id]->_calAdd;
+					data["calMult"] = _data[id]->_calMult;
+				}
+			}
+			else
+			{
+				uint8_t id = request.getQueryParameter("sensor").toInt();
+				if (id >= 0 && id < _data.count())
+				{
+					root["calAdd"] = _data[id]->_calAdd;
+					root["calMult"] = _data[id]->_calMult;
+				}
+			}
+
+			root.printTo(buf);
+
+			response.setHeader("Access-Control-Allow-Origin", "*");
+			response.setContentType(ContentType::JSON);
+			response.sendString(buf);
+		}
+}
+
+void TempSensors::_saveBinConfig()
+{
+	Serial.printf("Try to save bin cfg..\n");
+	file_t file = fileOpen("tmpsensors", eFO_CreateIfNotExist | eFO_WriteOnly);
+	for (uint8_t id=0; id < _data.count(); id++)
+	{
+		fileWrite(file, &_data[id]->_calAdd, sizeof(_data[id]->_calAdd));
+		fileWrite(file, &_data[id]->_calMult, sizeof(_data[id]->_calMult));
+	}
+	fileClose(file);
+}
+
+void TempSensors::_loadBinConfig()
+{
+	Serial.printf("Try to load bin cfg..\n");
+	if (fileExist("tmpsensors"))
+	{
+		Serial.printf("Will load bin cfg..\n");
+		file_t file = fileOpen("tmpsensors", eFO_ReadOnly);
+		fileSeek(file, 0, eSO_FileStart);
+		for (uint8_t id=0; id < _data.count(); id++)
+		{
+			fileRead(file, &_data[id]->_calAdd, sizeof(_data[id]->_calAdd));
+			fileRead(file, &_data[id]->_calMult, sizeof(_data[id]->_calMult));
+		}
+		fileClose(file);
+	}
+}
 //TempSensorsOW
 TempSensorsOW::TempSensorsOW(OneWire &ds, uint16_t refresh)
 :TempSensors(refresh)
@@ -186,33 +288,29 @@ void TempSensorsOW::_temp_read()
 		for (uint8_t i = 0; i < 9; i++)
 		{
 			_temp_data[i] = _ds->read();
-	//		Serial.printf("SP[%d]: %d", i, _temp_data[i]);
+//			Serial.printf("SP[%d]: %d", i, _temp_data[i]);
 		}
 
 		// Here we filter error, when NO DS18B20 actually connected
-		// According to DS18B20 datasheet scratchpad[5] == 0xFF and scratchpad[7] == 0x10 (some FAKE ds18b20 have 0x10 or even 0xFF in scratchpad[7])
+		// According to DS18B20 datasheet scratchpad[5] == 0xFF and scratchpad[7] == 0x10
 		// At startup or when no GND connected scratchpad[0] == 0x50 and scratchpad[1] == 0x05
 		// It is not often temperature is 85.000 degree so we FILTER OUT precise 85.000 readings
-		if (_temp_data[5] != 0xFF || _temp_data[7] != 0x10 || _temp_data[7] != 0xFF)
+		if (_temp_data[5] == 0xFF && (_temp_data[7] == 0x10 || _temp_data[7] == 0x80 || _temp_data[7] == 0xFF))
 		{
-			Serial.printf("no DS18B20 device present at id: %d!\n", id);
-			_data[id]->_statusFlag = (TempSensorStatus::DISCONNECTED | TempSensorStatus::INVALID);
-			continue;
-		}
-		if (_temp_data[0] == 0x50 && _temp_data[1] == 0x05)
-		{
-			Serial.printf("DS18B20 id: %d invalid temperature\n", id);
-			_data[id]->_statusFlag = TempSensorStatus::INVALID;
-			continue;
-		}
-		if (OneWire::crc8(_temp_data, 8) != _temp_data[8])
-		{
-			Serial.printf("DS18B20 id: %d invalid crc!\n", id);
-			_data[id]->_statusFlag = TempSensorStatus::INVALID;
-			continue;
-		}
+			if (_temp_data[0] == 0x50 && _temp_data[1] == 0x05)
+			{
+				Serial.printf("DS18B20 id: %d invalid temperature\n", id);
+				_data[id]->_statusFlag = TempSensorStatus::INVALID;
+				continue;
+			}
+			if (OneWire::crc8(_temp_data, 8) != _temp_data[8])
+			{
+				Serial.printf("DS18B20 id: %d invalid crc!\n", id);
+				_data[id]->_statusFlag = TempSensorStatus::INVALID;
+				continue;
+			}
 
-		uint16_t tempRead = ((_temp_data[1] << 8) | _temp_data[0]); //using two's compliment
+			uint16_t tempRead = ((_temp_data[1] << 8) | _temp_data[0]); //using two's compliment
 
 			if (tempRead & 0x8000)
 				_data[id]->_temperature = 0 - ((float) ((tempRead ^ 0xffff) + 1) / 16.0);
@@ -222,7 +320,14 @@ void TempSensorsOW::_temp_read()
 			_data[id]->_statusFlag = 0; // current value of _temperature is GOOD, healthy
 			Serial.printf("ID: %d - ", id); Serial.println(_data[id]->_temperature);
 		}
+		else
+		{
+			Serial.printf("no DS18B20 device present at id: %d!\n", id);
+			_data[id]->_statusFlag = (TempSensorStatus::DISCONNECTED | TempSensorStatus::INVALID);
+			continue;
+		}
 	_temp_readTimer.stop();
+	}
 }
 
 //TempSensorsHttp

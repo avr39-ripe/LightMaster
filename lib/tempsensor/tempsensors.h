@@ -19,6 +19,8 @@ namespace TempSensorStatus
 struct sensorData
 {
 	float _temperature = 0;
+	int16_t _calAdd = 0; //Additive calibration coefficient * 100
+	int16_t _calMult = 0; //Multiplicative calibration coefficient * 100
 	uint8_t _statusFlag = 0;
 };
 
@@ -30,13 +32,16 @@ public:
 	void start();
 	void stop();
 	void addSensor();
-	float getTemp(uint8_t sensorId) { return _data[sensorId]->_temperature; };
+	float getTemp(uint8_t sensorId);
 	float getTemp() { return getTemp(0);}
 	uint8_t isValid(uint8_t sensorId) { return (_data[sensorId]->_statusFlag & TempSensorStatus::INVALID) ? 0 : 1; };
 	uint8_t isValid() { return isValid(0); }
 	uint8_t isConnected(uint8_t sensorId) { return (_data[sensorId]->_statusFlag & TempSensorStatus::DISCONNECTED) ? 0 : 1;};
 	uint8_t isConnected() { return isConnected(0); };
 	void onHttpGet(HttpRequest &request, HttpResponse &response);
+	void onHttpConfig(HttpRequest &request, HttpResponse &response);
+	void _saveBinConfig();
+	void _loadBinConfig();
 protected:
 	Vector<sensorData*> _data;
 	uint16_t _refresh;
