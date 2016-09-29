@@ -354,22 +354,26 @@ AppStatusClass.prototype.enable = function( enable ) {
 
 //AppConfigClass
 function AppConfigClass() {
-	this._ventCycleDuration = 0;
-	this._ventCycleInterval = 0;
-	this._caldronOnDelay = 0;
+	this._targetTemp = 0;
+	this._targetTempDelta = 0;
+	this._valveStepTime = 0;
+	this._valveEdgeTime = 0;
+	this._termostatUpdateTime = 0;
 	this._enable = false;
 }
 
 AppConfigClass.prototype.wsSetAppConfig = function () {
-		var ab = new ArrayBuffer(wsBinConst.wsPayLoadStart + 2 + 2 + 2);
+		var ab = new ArrayBuffer(wsBinConst.wsPayLoadStart + 2 + 2 + 2 + 2 + 2);
 		var bin = new DataView(ab);
 		
 		bin.setUint8(wsBinConst.wsCmd, wsBinConst.setCmd);
 		bin.setUint8(wsBinConst.wsSysId, 1); //App sysid
 		bin.setUint8(wsBinConst.wsSubCmd, wsBinConst.scAppConfigSet);
-		bin.setUint16(wsBinConst.wsPayLoadStart, this._ventCycleDuration, true);
-		bin.setUint16(wsBinConst.wsPayLoadStart + 2, this._ventCycleInterval, true);
-		bin.setUint16(wsBinConst.wsPayLoadStart + 4, this._caldronOnDelay, true);
+		bin.setUint16(wsBinConst.wsPayLoadStart, this._targetTemp * 100, true);
+		bin.setUint16(wsBinConst.wsPayLoadStart + 2, this._targetTempDelta * 100, true);
+		bin.setUint16(wsBinConst.wsPayLoadStart + 4, this._valveStepTime, true);
+		bin.setUint16(wsBinConst.wsPayLoadStart + 6, this._valveEdgeTime, true);
+		bin.setUint16(wsBinConst.wsPayLoadStart + 8, this._termostatUpdateTime, true);
 	
 		websocket.send(bin.buffer);
 //		console.log.bind(console)(`wsSetAppConfig`);
@@ -382,9 +386,11 @@ AppConfigClass.prototype.wsGetAppConfig = function() {
 AppConfigClass.prototype.wsBinProcess = function (bin) {
 	var subCmd = bin.getUint8(wsBinConst.wsSubCmd);
 	if (subCmd == wsBinConst.scAppConfigGet) {
-		this._ventCycleDuration = bin.getUint16(wsBinConst.wsPayLoadStart, true);
-    	this._ventCycleInterval = bin.getUint16(wsBinConst.wsPayLoadStart + 2, true);
-    	this._caldronOnDelay = bin.getUint16(wsBinConst.wsPayLoadStart + 4, true);
+		this._targetTemp = bin.getUint16(wsBinConst.wsPayLoadStart, true) / 100.0;
+    	this._targetTempDelta = bin.getUint16(wsBinConst.wsPayLoadStart + 2, true) / 100.0;
+    	this._valveStepTime = bin.getUint16(wsBinConst.wsPayLoadStart + 4, true);
+    	this._valveEdgeTime = bin.getUint16(wsBinConst.wsPayLoadStart + 6, true);
+    	this._termostatUpdateTime = bin.getUint16(wsBinConst.wsPayLoadStart + 8, true);
 		this.renderConfig();
 	}
 }
@@ -399,9 +405,11 @@ AppConfigClass.prototype.render = function () {
 }
 
 AppConfigClass.prototype.renderConfig = function () {
-	document.querySelector('#AppConfigClass-ventCycleDuration').value = this._ventCycleDuration;
-	document.querySelector('#AppConfigClass-ventCycleInterval').value = this._ventCycleInterval;
-	document.querySelector('#AppConfigClass-caldronOnDelay').value = this._caldronOnDelay;
+	document.querySelector('#AppConfigClass-_targetTemp').value = this._targetTemp;
+	document.querySelector('#AppConfigClass-_targetTempDelta').value = this._targetTempDelta;
+	document.querySelector('#AppConfigClass-_valveStepTime').value = this._valveStepTime;
+	document.querySelector('#AppConfigClass-_valveEdgeTime').value = this._valveEdgeTime;
+	document.querySelector('#AppConfigClass-_termostatUpdateTime').value = this._termostatUpdateTime;
 }
 
 AppConfigClass.prototype.remove = function () {
@@ -428,9 +436,11 @@ AppConfigClass.prototype.enable = function( enable ) {
 }
 
 AppConfigClass.prototype.getFormValues = function () {
-	this._ventCycleDuration = document.querySelector('#AppConfigClass-ventCycleDuration').value;
-	this._ventCycleInterval = document.querySelector('#AppConfigClass-ventCycleInterval').value;
-	this._caldronOnDelay = document.querySelector('#AppConfigClass-caldronOnDelay').value;
+	this._targetTemp = document.querySelector('#AppConfigClass-_targetTemp').value;
+	this._targetTempDelta = document.querySelector('#AppConfigClass-_targetTempDelta').value;
+	this._valveStepTime = document.querySelector('#AppConfigClass-_valveStepTime').value;
+	this._valveEdgeTime = document.querySelector('#AppConfigClass-_valveEdgeTime').value;
+	this._termostatUpdateTime = document.querySelector('#AppConfigClass-_termostatUpdateTime').value;
 }
 
 AppConfigClass.prototype.handleEvent = function(event) {

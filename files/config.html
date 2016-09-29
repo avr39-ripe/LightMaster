@@ -101,12 +101,17 @@
 		<div class="panel-body">
 			<form id="AppConfigClassForm" action="#" method="post">
 				<div class="form-group">
-					<label for="ventCycleDuration">Вентиляция - длительность цикла, минуты</label>
-					<input type="number" required class="form-control" min="1" max="1439" step="1" id="AppConfigClass-ventCycleDuration" class="form-control" value="">
-					<label for="ventCycleInterval">Вентиляция - длительность паузы, минуты</label>
-					<input type="number" required class="form-control" min="1" max="1439" step="1" id="AppConfigClass-ventCycleInterval" class="form-control" value="">
-					<label for="caldronOnDelay">Отопление - задержка включения котла, минуты</label>
-					<input type="number" required class="form-control" min="1" max="60" step="1" id="AppConfigClass-caldronOnDelay" class="form-control" value="">
+					<label for="AppConfigClass-_targetTemp">Трехходовой кран - целевая температура, градусы</label>
+					<input type="number" required class="form-control" min="0" max="100" step="0.5" id="AppConfigClass-_targetTemp" class="form-control" value="">
+					<label for="AppConfigClass-_targetTempDelta">Трехходовой кран - дельта целевой температуры, градусы</label>
+					<input type="number" required class="form-control" min="0" max="100" step="0.5" id="AppConfigClass-_targetTempDelta" class="form-control" value="">
+					<label for="AppConfigClass-_valveStepTime">Трехходовой кран - время отработки шага, секунды</label>
+					<input type="number" required class="form-control" min="1" max="3600" step="1" id="AppConfigClass-_valveStepTime" class="form-control" value="">
+					<label for="AppConfigClass-_valveEdgeTime">Трехходовой кран - время ухода в крайнее положение, секунды</label>
+					<input type="number" required class="form-control" min="1" max="3600" step="1" id="AppConfigClass-_valveEdgeTime" class="form-control" value="">
+					<label for="AppConfigClass-_termostatUpdateTime">Трехходовой кран - время обновления термостата, секунды</label>
+					<input type="number" required class="form-control" min="1" max="3600" step="1" id="AppConfigClass-_termostatUpdateTime" class="form-control" value="">
+					
 				</div>
 				<button type="submit" class="btn btn-success">Save settings</button>
 		  		<button type="button" id="AppConfigCancel" class="btn btn-link">Cancel</button>

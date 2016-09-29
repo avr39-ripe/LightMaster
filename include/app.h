@@ -22,9 +22,11 @@ protected:
 	virtual void _saveAppConfig(file_t file);
 private:
 //Application specific global configuration variables
-	uint16_t	ventCycleDuration = 1;
-	uint16_t	ventCycleInterval = 1;
-	uint16_t	caldronOnDelay = 1;
+	uint16_t	_targetTemp = 3000; //MULTIPLE VALUE BY 100
+	uint16_t	_targetTempDelta = 50; //MULTIPLE VALUE BY 100
+	uint16_t	_valveStepTime = 10; //seconds
+	uint16_t	_valveEdgeTime = 130; //seconds
+	uint16_t	_termostatUpdateTime = 30; //seconds
 };
 
 
