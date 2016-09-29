@@ -7,6 +7,10 @@ NtpClient* ntpClient;
 MCP* mcp000;
 #endif
 BinInPollerClass binInPoller(100);
+TWValveClass* TWValve;
+OneWire ds(onewire_pin);
+TempSensors* tempSensor;
+
 BinStateSharedDeferredClass* caldron;
 BinCyclerClass* binCycler;
 
