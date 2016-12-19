@@ -7,8 +7,17 @@
 
 #ifndef INCLUDE_LIGHTMASTER_H_
 #define INCLUDE_LIGHTMASTER_H_
+//output mode selector: GPIO or MCP23S17
+//#define MCP23S17
+#define GPIO_MCP23017
+
 #include <SmingCore/SmingCore.h>
+#ifdef MCP23S17 //use MCP23S17
 #include <Libraries/MCP23S17/MCP23S17.h>
+#endif
+#ifdef GPIO_MCP23017 //use MCP23017
+#include <Libraries/MCP23017/MCP23017.h>
+#endif
 #include <wsbinconst.h>
 #include <binin.h>
 #include <binout.h>
@@ -17,9 +26,6 @@
 #include <lightsystem.h>
 #include <bincycler.h>
 
-//output mode selector: GPIO or MCP23S17
-#define MCP23S17
-
 extern NtpClient* ntpClient;
 
 #ifdef MCP23S17 //use MCP23S17
@@ -27,7 +33,12 @@ const uint8_t mcp23s17_cs = 15;
 extern MCP* mcp000;
 extern MCP* mcp001;
 extern MCP* mcp002;
+#endif
 
+#ifdef GPIO_MCP23017 //use MCP23017
+extern MCP23017* mcp000;
+extern MCP23017* mcp001;
+extern MCP23017* mcp002;
 #endif
 
 extern BinInPollerClass binInPoller;

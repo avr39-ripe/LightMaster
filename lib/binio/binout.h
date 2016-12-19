@@ -10,6 +10,7 @@
 #include <SmingCore/SmingCore.h>
 #include <binstate.h>
 #include <Libraries/MCP23S17/MCP23S17.h>
+#include <Libraries/MCP23017/MCP23017.h>
 
 class BinOutClass
 {
@@ -44,4 +45,14 @@ protected:
 	MCP *_mcp;
 };
 
+class BinOutMCP23017Class : public BinOutClass
+{
+public:
+	BinOutMCP23017Class(MCP23017 &mcp, uint8_t unitNumber, uint8_t polarity);
+	virtual ~BinOutMCP23017Class() {};
+	void setUnitNumber(uint8_t unitNumber);
+protected:
+	virtual void _setUnitState(uint8_t state);
+	MCP23017 *_mcp;
+};
 #endif /* LIB_BINIO_BINOUT_H_ */

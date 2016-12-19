@@ -36,26 +36,53 @@ void AppClass::init()
 
 #ifdef MCP23S17 //use MCP23S17
 	mcp000 = new MCP(0x000, mcp23s17_cs);
-
+	mcp001 = new MCP(0x001, mcp23s17_cs);
+	mcp002 = new MCP(0x002, mcp23s17_cs);
 	mcp000->begin();
+	mcp001->begin();
+	mcp002->begin();
+#endif
+
+#ifdef GPIO_MCP23017
+	Wire.pins(14,13);
+	mcp000 = new MCP23017;
+	mcp001 = new MCP23017;
+	mcp002 = new MCP23017;
+	mcp000->begin(0x000);
+	mcp001->begin(0x001);
+	mcp002->begin(0x002);
+
+	mcp000->pinMode(0x0000); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
+//	mcp000->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
+	mcp000->digitalWrite(0x0000); //Set all PORTA to 0xFF for simple relay which is active LOW
+
+	mcp001->pinMode(0x0000); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
+//	mcp000->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
+	mcp001->digitalWrite(0x0000); //Set all PORTA to 0xFF for simple relay which is active LOW
+
+	Serial.printf("DONE!\n");
+	return
+#endif
+
+#if defined(MCP23S17) || defined(GPIO_MCP23017)
+//	mcp000->begin();
 	mcp000->pinMode(0xFF00); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
 	mcp000->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
 	mcp000->digitalWrite(0x00FF); //Set all PORTA to 0xFF for simple relay which is active LOW
 
-	mcp001 = new MCP(0x001, mcp23s17_cs);
 
-	mcp001->begin();
+
+//	mcp001->begin();
 	mcp001->pinMode(0xFF00); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
 	mcp001->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
 	mcp001->digitalWrite(0x00FF); //Set all PORTA to 0xFF for simple relay which is active LOW
 
-	mcp002 = new MCP(0x002, mcp23s17_cs);
 
-	mcp002->begin();
+
+//	mcp002->begin();
 	mcp002->pinMode(0xFF00); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
 	mcp002->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
 	mcp002->digitalWrite(0x00FF); //Set all PORTA to 0xFF for simple relay which is active LOW
-
 #endif
 
 #ifndef MCP23S17 //use GPIO
@@ -66,7 +93,9 @@ void AppClass::init()
 	binInPoller.add(thStatWarmFloor);
 	binInPoller.add(thStatBedroom);
 	binInPoller.add(thStatHall);
-#else
+#endif
+
+#if defined(MCP23S17) || defined(GPIO_MCP23017)
 //	Serial.printf("PRE Free Heap: %d\n", system_get_free_heap_size());
 //	for (uint8_t i = 0; i < 7; i++)
 //	{
@@ -95,9 +124,15 @@ void AppClass::init()
 
 	for (uint8_t i = 0; i < 8; i++)
 	{
+#ifdef MCP23S17
 		BinOutClass* output = new BinOutMCP23S17Class(*mcp000,i,0);
-		outputs[i] = output;
 		BinInClass* input = new BinInMCP23S17Class(*mcp000,i,0);
+#endif
+#ifdef GPIO_MCP23017
+		BinOutClass* output = new BinOutMCP23017Class(*mcp000,i,0);
+		BinInClass* input = new BinInMCP23017Class(*mcp000,i,0);
+#endif
+		outputs[i] = output;
 		inputs[i] = input;
 		binInPoller.add(input);
 		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, i, zoneNames[i], &output->state);
@@ -112,9 +147,15 @@ void AppClass::init()
 
 	for (uint8_t i = 0; i < 8; i++)
 	{
+#ifdef MCP23S17
 		BinOutClass* output = new BinOutMCP23S17Class(*mcp001,i,0);
-		outputs[8 + i] = output;
 		BinInClass* input = new BinInMCP23S17Class(*mcp001,i,0);
+#endif
+#ifdef GPIO_MCP23017
+		BinOutClass* output = new BinOutMCP23017Class(*mcp001,i,0);
+		BinInClass* input = new BinInMCP23017Class(*mcp001,i,0);
+#endif
+		outputs[8 + i] = output;
 		binInPoller.add(input);
 		inputs[8 + i] = input;
 		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 8 + i, zoneNames[8 + i], &output->state);
@@ -129,9 +170,15 @@ void AppClass::init()
 
 	for (uint8_t i = 0; i < 2; i++)
 	{
+#ifdef MCP23S17
 		BinOutClass* output = new BinOutMCP23S17Class(*mcp002,i,0);
-		outputs[16 + i] = output;
 		BinInClass* input = new BinInMCP23S17Class(*mcp002,i,0);
+#endif
+#ifdef GPIO_MCP23017
+		BinOutClass* output = new BinOutMCP23017Class(*mcp002,i,0);
+		BinInClass* input = new BinInMCP23017Class(*mcp002,i,0);
+#endif
+		outputs[16 + i] = output;
 		binInPoller.add(input);
 		inputs[16 + i] = input;
 		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 16 + i, zoneNames[16 + i], &output->state);
@@ -146,10 +193,15 @@ void AppClass::init()
 //	BinOutGPIOClass* ventOut = new BinOutGPIOClass(16,0);
 //	BinStateClass* vent = &ventOut->state;
 
-	BinOutClass* output = new BinOutMCP23S17Class(*mcp002,2,0);
+#ifdef MCP23S17
+		BinOutClass* output = new BinOutMCP23S17Class(*mcp002,2,0);
+		BinInClass* input = new BinInMCP23S17Class(*mcp002,2,0);
+#endif
+#ifdef GPIO_MCP23017
+		BinOutClass* output = new BinOutMCP23017Class(*mcp002,2,0);
+		BinInClass* input = new BinInMCP23017Class(*mcp002,2,0);
+#endif
 	allOff->onChange(onStateChangeDelegate(&BinStateClass::set, &output->state));
-
-	BinInClass* input = new BinInMCP23S17Class(*mcp002,2,0);
 	binInPoller.add(input);
 	input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, allOff));
 
