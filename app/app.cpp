@@ -18,6 +18,10 @@ AppClass::AppClass()
 }
 void AppClass::init()
 {
+	uint8_t* testPointer = nullptr;
+	Serial.printf("Sizeof pointer: %d\n", sizeof(testPointer));
+	Serial.printf("Sizeof uint8_t: %d\n", sizeof(uint8_t));
+
 	char zoneNames[][27] = {{"Кухня вход"},{"Кухня стол"},{"Кухня"},{"Коридор"},{"Улица"},{"Холл 1 лево"},{"Холл 1 право"}, {"Холл 1 низ"}, \
 							{"Холл 2 лево"},{"Холл 2 право"},{"Холл 2 низ"},{"Спальня"},{"Спальня лево"},{"Спальня право"},{"Санузел"},\
 							{"С/у зеркало"},{"С/у вентилятор"}, {"Котельная"}};
@@ -96,9 +100,11 @@ void AppClass::init()
 //	BinOutClass** outputs = new BinOutClass*[16];
 //	BinInClass** inputs = new BinInClass*[16];
 //	BinHttpButtonClass** httpButtons = new BinHttpButtonClass*[16];
-	BinOutClass* outputs[16];
-	BinInClass* inputs[16];
-	BinHttpButtonClass* httpButtons[16];
+	BinOutClass* outputs[18];
+	BinInClass* inputs[18];
+	BinHttpButtonClass* httpButtons[18];
+
+	antiTheft = new AntiTheftClass(outputs, 99);
 
 	Serial.printf("Post ARRAY Free Heap: %d\n", system_get_free_heap_size());
 
@@ -119,6 +125,8 @@ void AppClass::init()
 		outputs[i] = output;
 		inputs[i] = input;
 		binInPoller.add(input);
+		antiTheft->addOutputId(i);
+
 		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, i, zoneNames[i], &output->state);
 		httpButtons[i] = httpButton;
 		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
@@ -140,8 +148,10 @@ void AppClass::init()
 		BinInClass* input = new BinInMCP23017Class(*mcp001,i,0);
 #endif
 		outputs[8 + i] = output;
-		binInPoller.add(input);
 		inputs[8 + i] = input;
+		binInPoller.add(input);
+		antiTheft->addOutputId(8 + i);
+
 		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 8 + i, zoneNames[8 + i], &output->state);
 		httpButtons[8 + i] = httpButton;
 		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
@@ -163,8 +173,10 @@ void AppClass::init()
 		BinInClass* input = new BinInMCP23017Class(*mcp002,i,0);
 #endif
 		outputs[16 + i] = output;
-		binInPoller.add(input);
 		inputs[16 + i] = input;
+		binInPoller.add(input);
+		antiTheft->addOutputId(16 + i);
+
 		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 16 + i, zoneNames[16 + i], &output->state);
 		httpButtons[16 + i] = httpButton;
 		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
@@ -203,6 +215,9 @@ void AppClass::init()
 	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[0]->state));
 	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[3]->state));
 	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[4]->state));
+
+	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 27, "Антивор!", &antiTheft->state);
+	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::set, &antiTheft->state));
 
 //	Serial.printf("Pre DEALLOCATE ARRAY Free Heap: %d\n", system_get_free_heap_size());
 

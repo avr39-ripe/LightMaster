@@ -15,6 +15,7 @@ MCP23017* mcp001;
 MCP23017* mcp002;
 #endif
 BinInPollerClass binInPoller(100);
+AntiTheftClass* antiTheft;
 
 AppClass App;
 

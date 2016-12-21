@@ -25,6 +25,7 @@
 #include <binhttpbutton.h>
 #include <lightsystem.h>
 #include <bincycler.h>
+#include <antitheft.h>
 
 extern NtpClient* ntpClient;
 
@@ -42,5 +43,5 @@ extern MCP23017* mcp002;
 #endif
 
 extern BinInPollerClass binInPoller;
-
+extern AntiTheftClass* antiTheft;
 #endif /* INCLUDE_LIGHTMASTER_H_ */
