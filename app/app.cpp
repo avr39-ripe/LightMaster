@@ -52,50 +52,34 @@ void AppClass::init()
 	mcp001->begin(0x001);
 	mcp002->begin(0x002);
 
-	mcp000->pinMode(0x0000); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
-//	mcp000->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
-	mcp000->digitalWrite(0x0000); //Set all PORTA to 0xFF for simple relay which is active LOW
-
-	mcp001->pinMode(0x0000); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
-//	mcp000->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
-	mcp001->digitalWrite(0x0000); //Set all PORTA to 0xFF for simple relay which is active LOW
-
-	Serial.printf("DONE!\n");
-	return
+//	mcp000->pinMode(0x0000); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
+////	mcp000->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
+//	mcp000->digitalWrite(0x0000); //Set all PORTA to 0xFF for simple relay which is active LOW
+//
+//	mcp001->pinMode(0x0000); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
+////	mcp000->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
+//	mcp001->digitalWrite(0x0000); //Set all PORTA to 0xFF for simple relay which is active LOW
+//
+//	Serial.printf("DONE!\n");
+//	return
 #endif
 
 #if defined(MCP23S17) || defined(GPIO_MCP23017)
 //	mcp000->begin();
 	mcp000->pinMode(0xFF00); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
 	mcp000->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
-	mcp000->digitalWrite(0x00FF); //Set all PORTA to 0xFF for simple relay which is active LOW
-
-
+	mcp000->digitalWrite(0x0000); //Set all PORTA to 0xFF for simple relay which is active LOW
 
 //	mcp001->begin();
 	mcp001->pinMode(0xFF00); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
 	mcp001->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
-	mcp001->digitalWrite(0x00FF); //Set all PORTA to 0xFF for simple relay which is active LOW
-
-
+	mcp001->digitalWrite(0x0000); //Set all PORTA to 0xFF for simple relay which is active LOW
 
 //	mcp002->begin();
 	mcp002->pinMode(0xFF00); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
 	mcp002->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
-	mcp002->digitalWrite(0x00FF); //Set all PORTA to 0xFF for simple relay which is active LOW
-#endif
+	mcp002->digitalWrite(0x0000); //Set all PORTA to 0xFF for simple relay which is active LOW
 
-#ifndef MCP23S17 //use GPIO
-//Nothing here
-	BinInGPIOClass* thStatWarmFloor = new BinInGPIOClass(12,0);
-	BinInGPIOClass* thStatBedroom = new BinInGPIOClass(13,0);
-	BinInGPIOClass* thStatHall = new BinInGPIOClass(14,0);
-	binInPoller.add(thStatWarmFloor);
-	binInPoller.add(thStatBedroom);
-	binInPoller.add(thStatHall);
-#endif
-
-#if defined(MCP23S17) || defined(GPIO_MCP23017)
 //	Serial.printf("PRE Free Heap: %d\n", system_get_free_heap_size());
 //	for (uint8_t i = 0; i < 7; i++)
 //	{
@@ -228,74 +212,6 @@ void AppClass::init()
 
 //	Serial.printf("Post DEALLOCATE ARRAY Free Heap: %d\n", system_get_free_heap_size());
 #endif
-
-//	BinOutGPIOClass* caldronOut = new BinOutGPIOClass(15,0);
-//	caldron = new BinStateSharedDeferredClass();
-//	caldron->setTrueDelay(caldronOnDelay);
-//	caldron->setFalseDelay(0);
-//	caldron->onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)&caldronOut->state));
-//
-//	BinOutGPIOClass* warmFloorPumpOut = new BinOutGPIOClass(4,0);
-//	BinStateClass* warmFloorPump = &warmFloorPumpOut->state;
-//
-//	BinOutGPIOClass* bedroomHeadOut = new BinOutGPIOClass(5,0);
-//	BinStateClass* bedroomHead = &bedroomHeadOut->state;
-//
-//	BinOutGPIOClass* hallHeadOut = new BinOutGPIOClass(2,0);
-//	BinStateClass* hallHead = &hallHeadOut->state;
-//
-//	BinStateHttpClass* caldronState = new BinStateHttpClass(webServer, caldron, "Котел", 0);
-//	binStatesHttp->add(caldronState);
-//
-//	BinStateHttpClass* warmFloorPumpState = new BinStateHttpClass(webServer, warmFloorPump, "Насос т. пола", 1);
-//	binStatesHttp->add(warmFloorPumpState);
-//
-//	BinStateHttpClass* bedroomHeadState = new BinStateHttpClass(webServer, bedroomHead, "Спальня", 2);
-//	binStatesHttp->add(bedroomHeadState);
-//
-//	BinStateHttpClass* hallHeadState = new BinStateHttpClass(webServer, hallHead, "Холл", 4);
-//	binStatesHttp->add(hallHeadState);
-//
-//
-//	thStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)warmFloorPump));
-//	thStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::setNow, (BinStateSharedDeferredClass*)caldron));
-//
-//	thStatBedroom->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)bedroomHead));
-//	thStatBedroom->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
-//
-//	thStatHall->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)hallHead));
-//	thStatHall->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
-//	//WEB THERMOSTAT MOCKUP
-//	BinHttpButtonClass* webThStatWarmFloor = new BinHttpButtonClass(webServer, *binStatesHttp, 2, "Тстат т. пол", warmFloorPump);
-//	BinHttpButtonClass* webThStatBedroom = new BinHttpButtonClass(webServer, *binStatesHttp, 3, "Тстат спальня", bedroomHead);
-//	BinHttpButtonClass* webThStatHall = new BinHttpButtonClass(webServer, *binStatesHttp, 4, "Тстат холл", hallHead);
-//
-//	webThStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)warmFloorPump));
-//	webThStatWarmFloor->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::setNow, (BinStateSharedDeferredClass*)caldron));
-//
-//	webThStatBedroom->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)bedroomHead));
-//	webThStatBedroom->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
-//
-//	webThStatHall->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)hallHead));
-//	webThStatHall->state.onChange(onStateChangeDelegate(&BinStateSharedDeferredClass::set, (BinStateSharedDeferredClass*)caldron));
-//	//WEB THERMOSTAT MOCKUP
-//	BinOutGPIOClass* ventOut = new BinOutGPIOClass(16,0);
-//	BinStateClass* vent = &ventOut->state;
-//	BinStateHttpClass* ventState = new BinStateHttpClass(webServer, vent, "Вентиляция", 3);
-//	binStatesHttp->add(ventState);
-//
-//	BinStateClass* ventMan = new BinStateClass;
-//	ventMan->onChange(onStateChangeDelegate(&BinStateClass::set , vent));
-//
-//	binCycler = new BinCyclerClass(*vent, ventCycleDuration, ventCycleInterval);
-//
-//	BinHttpButtonClass* ventAutoButton = new BinHttpButtonClass(webServer, *binStatesHttp, 0, "Вент. автомат", &binCycler->state);
-//	BinHttpButtonClass* ventManButton = new BinHttpButtonClass(webServer, *binStatesHttp, 1, "Вент. ручной", ventMan);
-//
-//	ventAutoButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse , ventMan)); // Order *IS METTER! firstly turn of mutual state!*
-//	ventAutoButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle , &binCycler->state));
-//	ventManButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse , &binCycler->state)); // Order *IS METTER! firstly turn of mutual state!*
-//	ventManButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle , ventMan));
 
 	// Web Sockets configuration
 	webServer.enableWebSockets(true);
