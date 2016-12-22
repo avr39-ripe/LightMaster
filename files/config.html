@@ -34,7 +34,7 @@
 	  <div class="row">
 		<h2>&nbsp;</h2>
 		<div class="col-xs-offset-2 col-xs-8">
-		<div id="Container-AppConfigClass"><br/></div>
+		<div id="Container-AntiTheftClass"><br/></div>
 			<!-- Network config -->
 			<div>
 			  <div class="panel panel-default">
@@ -92,24 +92,30 @@
 
 	</div> <!-- /container -->
   </body>
- <template id="AppConfigClass">
-	<div id="AppConfigClassDiv">
+<template id="AntiTheftClass">
+	<div id="AntiTheftClassDiv">
 	<div class="panel panel-default">
 		<div class="panel-heading">
-			<h3 class="panel-title">Global settings</h3>
+			<h3 class="panel-title">Антивор Настройки</h3>
 		</div>
 		<div class="panel-body">
-			<form id="AppConfigClassForm" action="#" method="post">
+			<form id="AntiTheftClassForm" action="#" method="post">
 				<div class="form-group">
-					<label for="ventCycleDuration">Вентиляция - длительность цикла, минуты</label>
-					<input type="number" required class="form-control" min="1" max="1439" step="1" id="AppConfigClass-ventCycleDuration" class="form-control" value="">
-					<label for="ventCycleInterval">Вентиляция - длительность паузы, минуты</label>
-					<input type="number" required class="form-control" min="1" max="1439" step="1" id="AppConfigClass-ventCycleInterval" class="form-control" value="">
-					<label for="caldronOnDelay">Отопление - задержка включения котла, минуты</label>
-					<input type="number" required class="form-control" min="1" max="60" step="1" id="AppConfigClass-caldronOnDelay" class="form-control" value="">
+					<label for="AntiTheftClass-_enableStartTime">Начало работы, минуты от 0:00</label>
+					<input type="number" required class="form-control" min="0" max="1439" step="1" id="AntiTheftClass-_enableStartTime" class="form-control" value="">
+					<label for="AntiTheftClass-_enableStopTime">Окончание работы, минуты от 0:00</label>
+					<input type="number" required class="form-control" min="0" max="1439" step="1" id="AntiTheftClass-_enableStopTime" class="form-control" value="">
+					<label for="AntiTheftClass-_minOn">Минимальное время включения, минуты</label>
+					<input type="number" required class="form-control" min="1" max="360" step="1" id="AntiTheftClass-_minOn" class="form-control" value="">
+					<label for="AntiTheftClass-_maxOn">Максимальное время включения, минуты</label>
+					<input type="number" required class="form-control" min="1" max="360" step="1" id="AntiTheftClass-_maxOn" class="form-control" value="">
+					<label for="AntiTheftClass-_minOff">Минимальное время паузы, минуты</label>
+					<input type="number" required class="form-control" min="1" max="360" step="1" id="AntiTheftClass-_minOff" class="form-control" value="">
+					<label for="AntiTheftClass-_maxOff">Максимальное время паузы, минуты</label>
+					<input type="number" required class="form-control" min="1" max="360" step="1" id="AntiTheftClass-_maxOff" class="form-control" value="">
 				</div>
 				<button type="submit" class="btn btn-success">Save settings</button>
-		  		<button type="button" id="AppConfigCancel" class="btn btn-link">Cancel</button>
+		  		<button type="button" id="AntiTheftCancel" class="btn btn-link">Cancel</button>
 			</form>
 		</div>
 	</div>

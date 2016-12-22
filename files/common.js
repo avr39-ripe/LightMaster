@@ -445,3 +445,115 @@ AppConfigClass.prototype.handleEvent = function(event) {
             break;
 	}
 }
+
+//AntiTheftClass
+function AntiTheftClass() {
+	this._enableStartTime = 0;
+	this._enableStopTime = 0;
+	this._minOn = 0;
+	this._maxOn = 0;
+	this._minOff = 0;
+	this._maxOff = 0;
+	this._enable = false;
+}
+
+AntiTheftClass.sysId = 5;
+AntiTheftClass.scATGetConfig = 1;
+AntiTheftClass.scATSetConfig = 2;
+
+AntiTheftClass.prototype.wsSetConfig = function () {
+		var ab = new ArrayBuffer(wsBinConst.wsPayLoadStart + 2 + 2 + 2 + 2 + 2 + 2);
+		var bin = new DataView(ab);
+		
+		bin.setUint8(wsBinConst.wsCmd, wsBinConst.setCmd);
+		bin.setUint8(wsBinConst.wsSysId, 5); //AntiTheft sysid
+		bin.setUint8(wsBinConst.wsSubCmd, AntiTheftClass.scATSetConfig);
+		bin.setUint16(wsBinConst.wsPayLoadStart, this._enableStartTime, true);
+		bin.setUint16(wsBinConst.wsPayLoadStart + 2, this._enableStopTime, true);
+		bin.setUint16(wsBinConst.wsPayLoadStart + 4, this._minOn, true);
+		bin.setUint16(wsBinConst.wsPayLoadStart + 6, this._maxOn, true);
+		bin.setUint16(wsBinConst.wsPayLoadStart + 8, this._minOff, true);
+		bin.setUint16(wsBinConst.wsPayLoadStart + 10, this._maxOff, true);
+	
+		websocket.send(bin.buffer);
+//		console.log.bind(console)(`wsSetAppConfig`);
+	}
+
+AntiTheftClass.prototype.wsGetConfig = function() {
+	wsBinCmd.Get(websocket, AntiTheftClass.sysId, AntiTheftClass.scATGetConfig);
+}
+
+AntiTheftClass.prototype.wsBinProcess = function (bin) {
+	var subCmd = bin.getUint8(wsBinConst.wsSubCmd);
+	if (subCmd == AntiTheftClass.scATGetConfig) {
+		this._enableStartTime = bin.getUint16(wsBinConst.wsPayLoadStart, true);
+    	this._enableStopTime = bin.getUint16(wsBinConst.wsPayLoadStart + 2, true);
+    	this._minOn = bin.getUint16(wsBinConst.wsPayLoadStart + 4, true);
+    	this._maxOn = bin.getUint16(wsBinConst.wsPayLoadStart + 6, true);
+    	this._minOff = bin.getUint16(wsBinConst.wsPayLoadStart + 8, true);
+    	this._maxOff = bin.getUint16(wsBinConst.wsPayLoadStart + 10, true);
+		this.renderConfig();
+	}
+}
+
+AntiTheftClass.prototype.render = function () {
+	var t = document.querySelector('#AntiTheftClass');
+	var clone = document.importNode(t.content, true);
+	clone.querySelector('#AntiTheftClassForm').addEventListener('submit', this);
+	clone.querySelector('#AntiTheftCancel').addEventListener('click', this);
+	var container = document.getElementById("Container-AntiTheftClass");
+	container.appendChild(clone);
+}
+
+AntiTheftClass.prototype.renderConfig = function () {
+	document.querySelector('#AntiTheftClass-_enableStartTime').value = this._enableStartTime;
+	document.querySelector('#AntiTheftClass-_enableStopTime').value = this._enableStopTime;
+	document.querySelector('#AntiTheftClass-_minOn').value = this._minOn;
+	document.querySelector('#AntiTheftClass-_maxOn').value = this._maxOn;
+	document.querySelector('#AntiTheftClass-_minOff').value = this._minOff;
+	document.querySelector('#AntiTheftClass-_maxOff').value = this._maxOff;
+}
+
+AntiTheftClass.prototype.remove = function () {
+		var removeElement = document.querySelector('#Container-AntiTheftClass');
+		this.removeChilds(removeElement);
+}
+
+AntiTheftClass.prototype.removeChilds = function (node) {
+    var last;
+    while (last = node.lastChild) node.removeChild(last);
+}
+
+AntiTheftClass.prototype.enable = function( enable ) {
+	if ( enable != this._enable ) {
+		this._enable = enable;
+		if (! this._enable) {
+			this.remove();
+		} else {
+			this.render();
+			this.wsGetConfig()
+		}	
+	}
+}
+
+AntiTheftClass.prototype.getFormValues = function () {
+	this._enableStartTime = document.querySelector('#AntiTheftClass-_enableStartTime').value;
+	this._enableStopTime = document.querySelector('#AntiTheftClass-_enableStopTime').value;
+	this._minOn = document.querySelector('#AntiTheftClass-_minOn').value;
+	this._maxOn = document.querySelector('#AntiTheftClass-_maxOn').value;
+	this._minOff = document.querySelector('#AntiTheftClass-_minOff').value;
+	this._maxOff = document.querySelector('#AntiTheftClass-_maxOff').value;
+}
+
+AntiTheftClass.prototype.handleEvent = function(event) {
+	switch(event.type) {
+		case 'submit':
+			event.preventDefault();
+			this.getFormValues();
+	        this.wsSetConfig();
+	        break;
+        case 'click':
+            this.wsGetConfig();
+            break;
+	}
+}

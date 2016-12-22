@@ -26,7 +26,7 @@ void AppClass::init()
 	ApplicationClass::init();
 	_loadConfig();
 
-//	ntpClient = new NtpClient("pool.ntp.org", 300);
+	ntpClient = new NtpClient("pool.ntp.org", 300);
 	SystemClock.setTimeZone(Config.timeZone);
 	Serial.printf("Time zone: %d\n", Config.timeZone);
 
@@ -102,6 +102,9 @@ void AppClass::init()
 	BinHttpButtonClass* httpButtons[18];
 
 	antiTheft = new AntiTheftClass(outputs, 99);
+	_wsBinGetters[antiTheft->sysId] = WebSocketBinaryDelegate(&AntiTheftClass::wsBinGetter,antiTheft);
+	_wsBinSetters[antiTheft->sysId] = WebSocketBinaryDelegate(&AntiTheftClass::wsBinSetter,antiTheft);
+
 
 	Serial.printf("Post ARRAY Free Heap: %d\n", system_get_free_heap_size());
 

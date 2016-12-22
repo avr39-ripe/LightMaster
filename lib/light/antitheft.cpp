@@ -119,3 +119,54 @@ void AntiTheftClass::_enablerCheck()
 		}
 	}
 }
+
+void AntiTheftClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
+{
+	uint8_t* buffer = new uint8_t[wsBinConst::wsPayLoadStart + 2 + 2 + 2 + 2 + 2 + 2];
+	switch (data[wsBinConst::wsSubCmd])
+	{
+	case AntiTheftClass::scATGetConfig:
+	{
+		buffer[wsBinConst::wsCmd] = wsBinConst::getResponse;
+		buffer[wsBinConst::wsSysId] = sysId;
+		buffer[wsBinConst::wsSubCmd] = AntiTheftClass::scATGetConfig;
+
+		os_memcpy(&buffer[wsBinConst::wsPayLoadStart], &_enableStartTime, sizeof(_enableStartTime));
+		os_memcpy(&buffer[wsBinConst::wsPayLoadStart + 2], &_enableStopTime, sizeof(_enableStopTime));
+		os_memcpy(&buffer[wsBinConst::wsPayLoadStart + 2 + 2], &_minOn, sizeof(_minOn));
+		os_memcpy(&buffer[wsBinConst::wsPayLoadStart + 2 + 2 + 2], &_maxOn, sizeof(_maxOn));
+		os_memcpy(&buffer[wsBinConst::wsPayLoadStart + 2 + 2 + 2 + 2], &_minOff, sizeof(_minOff));
+		os_memcpy(&buffer[wsBinConst::wsPayLoadStart + 2 + 2 + 2 + 2 + 2 ], &_maxOff, sizeof(_maxOff));
+
+		Serial.printf("BUFFER IS: ");
+		for (uint8_t id = 0; id < (wsBinConst::wsPayLoadStart + 2 + 2 + 2 + 2 + 2 + 2); id++)
+		{
+			Serial.printf("0x%02X ", buffer[id]);
+		}
+		Serial.printf("\n");
+
+		socket.sendBinary(buffer, wsBinConst::wsPayLoadStart + 2 + 2 + 2 + 2 + 2 + 2);
+		break;
+	}
+	}
+	delete buffer;
+}
+
+void AntiTheftClass::wsBinSetter(WebSocket& socket, uint8_t* data, size_t size)
+{
+	switch (data[wsBinConst::wsSubCmd])
+	{
+	case AntiTheftClass::scATSetConfig:
+	{
+		os_memcpy(&_enableStartTime, &data[wsBinConst::wsPayLoadStart], sizeof(_enableStartTime));
+		os_memcpy(&_enableStopTime, &data[wsBinConst::wsPayLoadStart + 2], sizeof(_enableStopTime));
+		os_memcpy(&_minOn, &data[wsBinConst::wsPayLoadStart + 2 + 2], sizeof(_minOn));
+		os_memcpy(&_maxOn, &data[wsBinConst::wsPayLoadStart + 2 + 2 + 2], sizeof(_maxOn));
+		os_memcpy(&_minOff, &data[wsBinConst::wsPayLoadStart + 2 + 2 + 2 + 2], sizeof(_minOff));
+		os_memcpy(&_maxOff, &data[wsBinConst::wsPayLoadStart + 2 + 2 + 2 + 2 + 2 ], sizeof(_maxOff));
+
+		_saveBinConfig();
+		break;
+	}
+	}
+}

@@ -1,6 +1,7 @@
 'use strict';
 
 var appConfig;
+var antiTheft;
 
 function get_config() {
     fetch('/config.json')
@@ -68,6 +69,8 @@ function post_fw(action) {
 var websocket;
 function onOpen(evt) {
 	console.log.bind(console)("CONNECTED");
+	antiTheft = new AntiTheftClass();
+	antiTheft.enable(true);
 //	appConfig = new AppConfigClass();
 //	appConfig.enable(true);
 //	websocket.send("Sming love WebSockets");
@@ -87,8 +90,8 @@ function onMessage(evt) {
 		var subCmd = bin.getUint8(wsBinConst.wsSubCmd);
 		console.log.bind(console)(`cmd = ${cmd}, sysId = ${sysId}, subCmd = ${subCmd}`);
 		
-		if ( cmd == wsBinConst.getResponse && sysId == 1 ) {
-			appConfig.wsBinProcess(bin);
+		if ( cmd == wsBinConst.getResponse && sysId == 5 ) {
+			antiTheft.wsBinProcess(bin);
 		}	
 	}
 	// var json = JSON.parse(evt.data);

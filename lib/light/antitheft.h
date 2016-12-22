@@ -18,6 +18,11 @@ public:
 	void addOutputId(uint8_t outputId) { _outputsIds.add(outputId); };
 	void start() { state.persistent(_persistentId); };
 	BinStateClass state;
+	static const uint8_t sysId = 5;
+	static const uint8_t scATGetConfig = 1;
+	static const uint8_t scATSetConfig = 2;
+	void wsBinSetter(WebSocket& socket, uint8_t* data, size_t size);
+	void wsBinGetter(WebSocket& socket, uint8_t* data, size_t size);
 private:
 	void _turnOn();
 	void _turnOff();
