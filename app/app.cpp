@@ -18,10 +18,6 @@ AppClass::AppClass()
 }
 void AppClass::init()
 {
-	uint8_t* testPointer = nullptr;
-	Serial.printf("Sizeof pointer: %d\n", sizeof(testPointer));
-	Serial.printf("Sizeof uint8_t: %d\n", sizeof(uint8_t));
-
 	char zoneNames[][27] = {{"Кухня вход"},{"Кухня стол"},{"Кухня"},{"Коридор"},{"Улица"},{"Холл 1 лево"},{"Холл 1 право"}, {"Холл 1 низ"}, \
 							{"Холл 2 лево"},{"Холл 2 право"},{"Холл 2 низ"},{"Спальня"},{"Спальня лево"},{"Спальня право"},{"Санузел"},\
 							{"С/у зеркало"},{"С/у вентилятор"}, {"Котельная"}};
@@ -100,7 +96,8 @@ void AppClass::init()
 //	BinOutClass** outputs = new BinOutClass*[16];
 //	BinInClass** inputs = new BinInClass*[16];
 //	BinHttpButtonClass** httpButtons = new BinHttpButtonClass*[16];
-	BinOutClass* outputs[18];
+
+//	BinOutClass* outputs[18];
 	BinInClass* inputs[18];
 	BinHttpButtonClass* httpButtons[18];
 
@@ -217,7 +214,7 @@ void AppClass::init()
 	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[4]->state));
 
 	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 27, "Антивор!", &antiTheft->state);
-	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::set, &antiTheft->state));
+	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &antiTheft->state));
 
 //	Serial.printf("Pre DEALLOCATE ARRAY Free Heap: %d\n", system_get_free_heap_size());
 
@@ -406,6 +403,7 @@ void AppClass::start()
 {
 	ApplicationClass::start();
 	binInPoller.start();
+	antiTheft->start();
 
 //	Serial.printf("AppClass start done!\n");
 }

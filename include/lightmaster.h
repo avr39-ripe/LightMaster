@@ -42,6 +42,8 @@ extern MCP23017* mcp001;
 extern MCP23017* mcp002;
 #endif
 
+extern BinOutClass* outputs[18];
+
 extern BinInPollerClass binInPoller;
 extern AntiTheftClass* antiTheft;
 #endif /* INCLUDE_LIGHTMASTER_H_ */
