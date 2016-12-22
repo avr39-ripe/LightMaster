@@ -8,11 +8,11 @@
 #include <antitheft.h>
 
 AntiTheftClass::AntiTheftClass(BinOutClass** outputs, uint8_t persistentId)
-: _outputs(outputs)
+: _outputs(outputs), _persistentId(persistentId)
 {
+	randomSeed(os_random());
 	_loadBinConfig();
 	state.onChange(onStateChangeDelegate(&AntiTheftClass::_enable, this));
-	state.persistent(persistentId);
 }
 
 void AntiTheftClass::_turnOn()

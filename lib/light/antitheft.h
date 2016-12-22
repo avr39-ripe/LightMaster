@@ -16,6 +16,7 @@ class AntiTheftClass
 public:
 	AntiTheftClass(BinOutClass** outputs, uint8_t persistentId = 99); //provide persistent id unic by whole app
 	void addOutputId(uint8_t outputId) { _outputsIds.add(outputId); };
+	void start() { state.persistent(_persistentId); };
 	BinStateClass state;
 private:
 	void _turnOn();
@@ -33,6 +34,7 @@ private:
 	uint16_t _maxOn = 45;
 	uint16_t _minOff = 20;
 	uint16_t _maxOff = 60;
+	uint8_t _persistentId;
 	BinOutClass** _outputs;
 	Vector<uint8_t> _outputsIds = Vector<uint8_t>(0,1);
 	uint8_t	_currentId = 0; //Id of currently selected output
