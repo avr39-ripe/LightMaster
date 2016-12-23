@@ -21,7 +21,7 @@ void AntiTheftClass::_turnOn()
 	_outputs[_outputsIds[_currentId]]->state.set(true);
 	uint8_t onTime = random(_minOn, _maxOn);
 	Serial.printf("AntiTheft ON, %d: for %d seconds\n", _currentId, onTime);
-	_timer.initializeMs(onTime * 1000, TimerDelegate(&AntiTheftClass::_turnOff, this)).start(true); //TODO: change multiplier to 60000
+	_timer.initializeMs(onTime * 60000, TimerDelegate(&AntiTheftClass::_turnOff, this)).start(true);
 }
 
 void AntiTheftClass::_turnOff()
@@ -29,7 +29,7 @@ void AntiTheftClass::_turnOff()
 	_outputs[_outputsIds[_currentId]]->state.set(false);
 	uint8_t offTime = random(_minOff, _maxOff);
 	Serial.printf("AntiTheft OFF, %d: wait for %d seconds\n", _currentId, offTime);
-	_timer.initializeMs(offTime * 1000, TimerDelegate(&AntiTheftClass::_turnOn, this)).start(true); //TODO: change multiplier to 60000
+	_timer.initializeMs(offTime * 60000, TimerDelegate(&AntiTheftClass::_turnOn, this)).start(true);
 }
 
 void AntiTheftClass::_enableAntiTheft(uint8_t enableState)
