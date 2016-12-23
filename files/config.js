@@ -121,35 +121,6 @@ function closeWS() {
 	websocket.close();
 }
 
-function wsGetRandom() {
-	var json = {};
-	json["command"] = "getRandom";
-	websocket.send(JSON.stringify(json));
-}
-
-function onGetRandom(json) {
-	Object.keys(json).forEach(function(key) {
-		if(key != "response") {
-				document.getElementById(key).value = json[key];
-		}
-	});
-}
-
-function sendRandom(event) {
-	event.preventDefault();
-	var json = {};
-	json["command"] = "setRandom";
-	
-	json["startTime"] = document.getElementById('startTime').value;
-	json["stopTime"] = document.getElementById('stopTime').value;
-	json["minOn"] = document.getElementById('minOn').value;
-	json["maxOn"] = document.getElementById('maxOn').value;
-	json["minOff"] = document.getElementById('minOff').value;
-	json["maxOff"] = document.getElementById('maxOff').value;
-	
-	websocket.send(JSON.stringify(json));
-}
-
 function sendTime(event) {
 	event.preventDefault();
 	var ab = new ArrayBuffer(8);
@@ -162,7 +133,7 @@ function sendTime(event) {
 	
 	bin.setUint32(wsBinConst.wsPayLoadStart,Math.round(d.getTime() / 1000),true);
 	bin.setUint8(wsBinConst.wsPayLoadStart + 4, Math.abs(d.getTimezoneOffset()/60));	
-	console.log.bind(console)(bin.getUint8(1),bin.getUint8(2),bin.getUint8(3),bin.getUint8(4));
+//	console.log.bind(console)(bin.getUint8(1),bin.getUint8(2),bin.getUint8(3),bin.getUint8(4));
 	websocket.send(bin.buffer);
 }
 
@@ -178,8 +149,6 @@ function onDocumentRedy() {
 	document.getElementById('settings_cancel').addEventListener('click', get_config);
 	document.getElementById('settings_update_fw').addEventListener('click', function() { post_fw("update"); });
 	document.getElementById('settings_switch_fw').addEventListener('click', function() { post_fw("switch"); });
-//	document.getElementById('form_random').addEventListener('submit', sendRandom);
-//	document.getElementById('random_cancel').addEventListener('click', wsGetRandom);
 	document.getElementById('sync_datetime').addEventListener('click', sendTime);
 
 }
