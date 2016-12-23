@@ -138,13 +138,6 @@ void AntiTheftClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
 		os_memcpy(&buffer[wsBinConst::wsPayLoadStart + 2 + 2 + 2 + 2], &_minOff, sizeof(_minOff));
 		os_memcpy(&buffer[wsBinConst::wsPayLoadStart + 2 + 2 + 2 + 2 + 2 ], &_maxOff, sizeof(_maxOff));
 
-		Serial.printf("BUFFER IS: ");
-		for (uint8_t id = 0; id < (wsBinConst::wsPayLoadStart + 2 + 2 + 2 + 2 + 2 + 2); id++)
-		{
-			Serial.printf("0x%02X ", buffer[id]);
-		}
-		Serial.printf("\n");
-
 		socket.sendBinary(buffer, wsBinConst::wsPayLoadStart + 2 + 2 + 2 + 2 + 2 + 2);
 		break;
 	}
