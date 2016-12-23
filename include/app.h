@@ -29,13 +29,13 @@ public:
 protected:
 	virtual void _loop(); // Application main loop function goes here
 private:
-	void _loadConfig();
-	void _saveConfig();
+//	void _loadConfig();
+//	void _saveConfig();
 //	char confFileName[9] = "app.conf";
 //Application specific global configuration variables
-	uint16_t	ventCycleDuration = 1;
-	uint16_t	ventCycleInterval = 1;
-	uint16_t	caldronOnDelay = 1;
+//	uint16_t	ventCycleDuration = 1;
+//	uint16_t	ventCycleInterval = 1;
+//	uint16_t	caldronOnDelay = 1;
 };
 
 

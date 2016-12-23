@@ -5,17 +5,13 @@
 NtpClient* ntpClient;
 #ifdef MCP23S17 //use MCP23S17
 MCP* mcp000;
-MCP* mcp001;
-MCP* mcp002;
 #endif
 
 #ifdef GPIO_MCP23017 //use MCP23S17
 MCP23017* mcp000;
-MCP23017* mcp001;
-MCP23017* mcp002;
 #endif
 
-BinOutClass* outputs[18];
+BinOutClass* outputs[7];
 
 BinInPollerClass binInPoller(100);
 AntiTheftClass* antiTheft;
