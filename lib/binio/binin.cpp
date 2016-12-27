@@ -60,7 +60,7 @@ void BinInMCP23S17Class::setUnitNumber(uint8_t unitNumber)
 
 uint8_t BinInMCP23S17Class::_readUnit()
 {
-	return _mcp->digitalRead(8 + _unitNumber);
+	return _mcp->digitalRead(9 + _unitNumber);
 }
 
 //BinInMCP23017Class
