@@ -1,7 +1,7 @@
 'use strict';
 
 //wsBinProtocol constants
-const wsBinConst = {
+var wsBinConst = {
 //Frame header offsets
 	wsCmd			: 0, //Command type
 	wsSysId			: 1, //target sysId
@@ -37,7 +37,7 @@ const wsBinConst = {
 };
 
 
-const wsBinCmd = {
+var wsBinCmd = {
 	Get	: function (socket, sysId, subCmd) {
 		var ab = new ArrayBuffer(3);
 		var bin = new DataView(ab);
