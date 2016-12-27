@@ -8,8 +8,8 @@
 #ifndef INCLUDE_LIGHTMASTER_H_
 #define INCLUDE_LIGHTMASTER_H_
 //output mode selector: GPIO or MCP23S17
-//#define MCP23S17
-#define GPIO_MCP23017
+#define MCP23S17
+//#define GPIO_MCP23017
 
 #include <SmingCore/SmingCore.h>
 #ifdef MCP23S17 //use MCP23S17

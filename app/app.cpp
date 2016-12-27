@@ -45,7 +45,7 @@ void AppClass::init()
 #if defined(MCP23S17) || defined(GPIO_MCP23017)
 	mcp000->pinMode(0xFF00); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
 	mcp000->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
-	mcp000->digitalWrite(0x0000); //Set all PORTA to 0xFF for simple relay which is active LOW
+	mcp000->digitalWrite(0x00FF); //Set all PORTA to 0xFF for simple relay which is active LOW
 
 //	BinOutClass* outputs[18];
 	BinInClass* inputs[7];
