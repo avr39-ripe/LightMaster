@@ -104,22 +104,8 @@ void BinStateClass::persistent(uint8_t uid)
 BinStateHttpClass::BinStateHttpClass(HttpServer& webServer, BinStateClass* outState, String name, uint8_t uid, BinStateClass* inState)
 : _webServer(webServer), _outState(outState), _name(name), _uid(uid), _inState(inState)
 {
-	_updateLength();
 	_outState->onChange(onStateChangeDelegate(&BinStateHttpClass::wsSendStateAll, this));
 };
-
-void BinStateHttpClass::_updateLength()
-{
-	_nameLength = 0;
-	char* strPtr = (char*)_name.c_str();
-
-	while ( strPtr[_nameLength] )
-	{
-//		Serial.printf("strPtr[%u] = %u\n", _nameLength, strPtr[_nameLength]);
-		_nameLength++;
-	}
-//	Serial.printf("strLen = %u\n",_nameLength);
-}
 
 void BinStateHttpClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
 {
@@ -141,7 +127,7 @@ void BinStateHttpClass::_fillNameBuffer(uint8_t* buffer)
 	buffer[wsBinConst::wsSubCmd] = wsBinConst::scBinStateGetName;
 
 	os_memcpy((&buffer[wsBinConst::wsPayLoadStart]), &_uid, sizeof(_uid));
-	os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 1]), _name.c_str(), _nameLength);
+	os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 1]), _name.c_str(), _name.length());
 
 }
 
@@ -158,10 +144,11 @@ void BinStateHttpClass::_fillStateBuffer(uint8_t* buffer)
 }
 void BinStateHttpClass::wsSendName(WebSocket& socket)
 {
-	uint8_t* buffer = new uint8_t[wsBinConst::wsPayLoadStart + 1 + _nameLength];
+	uint16_t bufferLength = wsBinConst::wsPayLoadStart + 1 + _name.length();
+	uint8_t* buffer = new uint8_t[bufferLength];
 	_fillNameBuffer(buffer);
 
-	socket.sendBinary(buffer, wsBinConst::wsPayLoadStart + 1 + _nameLength);
+	socket.sendBinary(buffer, bufferLength);
 	delete buffer;
 }
 

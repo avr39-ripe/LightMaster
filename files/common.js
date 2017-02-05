@@ -98,11 +98,14 @@ BinStateClass.prototype.wsSetState = function (state) {
 }
 
 BinStateClass.prototype.wsGotName = function (bin) {
-	var strBuffer = new Uint8Array(bin.byteLength);
-    for (var i = 0; i < strBuffer.length - (wsBinConst.wsPayLoadStart + 1); i++) {
+	var strBuffer = new Uint8Array(bin.byteLength -(wsBinConst.wsPayLoadStart + 1));
+	console.log.bind(console)(`uid = ${this.uid}, bin.byteLength = ${bin.byteLength}`);
+
+    for (var i = 0; i < strBuffer.length; i++) {
         strBuffer[i] = bin.getUint8(wsBinConst.wsPayLoadStart + 1 + i);
-//        console.log.bind(console)(`uid = ${uid}, strBuffer[${i}] = ${bin.getUint8(wsBinConst.wsPayLoadStart + 1 + i)}`);
+//        console.log.bind(console)(`uid = ${this.uid}, strBuffer[${i}] = ${bin.getUint8(wsBinConst.wsPayLoadStart + 1 + i)}`);
     }
+
     this._name = new TextDecoder().decode(strBuffer)
     this.renderName();
 }

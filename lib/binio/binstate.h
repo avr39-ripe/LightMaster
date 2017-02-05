@@ -88,7 +88,6 @@ private:
 	BinStateClass* _outState;
 	BinStateClass* _inState = nullptr;
 	String _name;
-	uint16_t _nameLength = 0;
 	uint8_t _uid = 0;
 	HttpServer& _webServer;
 };
