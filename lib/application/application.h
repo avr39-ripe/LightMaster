@@ -45,7 +45,11 @@ public:
 	HttpServer webServer; // instance of web server for application
 	void startWebServer(); // Start Application WebServer
 	rBootHttpUpdate* otaUpdater = 0;
-	void OtaUpdate_CallBack(bool result);
+//	static const uint8_t sysId = 1;
+//	void wsAddBinSetter(uint8_t sysId, WebSocketBinaryDelegate wsBinSetterDelegate);
+//	void wsAddBinGetter(uint8_t sysId, WebSocketBinaryDelegate wsBinGetterDelegate);
+	virtual void userSTAGotIP(IPAddress ip, IPAddress mask, IPAddress gateway) {}; // Runs when Station got ip from access-point
+	void OtaUpdate_CallBack(rBootHttpUpdate& client, bool result);
 	void OtaUpdate();
 	void Switch();
 protected:
