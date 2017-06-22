@@ -31,7 +31,7 @@ extern MCP* mcp000;
 #endif
 
 extern TWValveClass* TWValve;
-extern BinInPollerClass binInPoller;
+//extern BinInPollerClass binInPoller;
 
 //OneWire stuff
 const uint8_t onewire_pin = 2;

@@ -45,12 +45,13 @@ void AppClass::init()
 	BinStateHttpClass* valveState = new BinStateHttpClass(webServer, &TWValve->state, "Активно", 2);
 	binStatesHttp->add(valveState);
 
-	BinInGPIOClass* valveEnableIn = new BinInGPIOClass(16,0);
-	valveEnableIn->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)&TWValve->state));
-	binInPoller.add(valveEnableIn);
+//	BinInGPIOClass* valveEnableIn = new BinInGPIOClass(16,0);
+//	valveEnableIn->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)&TWValve->state));
+//	binInPoller.add(valveEnableIn);
+	TWValve->state.set(true); //For this project it will be always ON and control by power cycle
 
-	BinHttpButtonClass* webEnableIn = new BinHttpButtonClass(webServer, *binStatesHttp, 0, "Активно", &TWValve->state);
-	webEnableIn->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)&TWValve->state));
+//	BinHttpButtonClass* webEnableIn = new BinHttpButtonClass(webServer, *binStatesHttp, 0, "Активно", &TWValve->state);
+//	webEnableIn->state.onChange(onStateChangeDelegate(&BinStateClass::set, (BinStateClass*)&TWValve->state));
 
 //
 ////	BinInPollerClass* binInPoller = new BinInPollerClass(100);
@@ -224,7 +225,7 @@ void AppClass::_saveAppConfig(file_t file)
 void AppClass::start()
 {
 	ApplicationClass::start();
-	binInPoller.start();
+//	binInPoller.start();
 	tempSensor->start();
 
 //	Serial.printf("AppClass start done!\n");
