@@ -24,8 +24,8 @@ void AppClass::init()
 //	_loadConfig();
 
 	ntpClient = new NtpClient("pool.ntp.org", 300);
-	SystemClock.setTimeZone(Config.timeZone);
-	Serial.printf("Time zone: %d\n", Config.timeZone);
+//	SystemClock.setTimeZone(Config.timeZone);
+//	Serial.printf("Time zone: %d\n", Config.timeZone);
 
 	BinStatesHttpClass* binStatesHttp = new BinStatesHttpClass();
 	_wsBinGetters[binStatesHttp->sysId] = WebSocketBinaryDelegate(&BinStatesHttpClass::wsBinGetter,binStatesHttp);
@@ -185,21 +185,23 @@ void AppClass::wsBinaryReceived(WebSocket& socket, uint8_t* data, size_t size)
 
 void AppClass::wsBinSetter(WebSocket& socket, uint8_t* data, size_t size)
 {
-	switch (data[wsBinConst::wsSubCmd])
-	{
-	case wsBinConst::scAppSetTime:
-	{
-		uint32_t timestamp = 0;
-		os_memcpy(&timestamp, (&data[wsBinConst::wsPayLoadStart]), 4);
-		if (Config.timeZone != data[wsBinConst::wsPayLoadStart + 4])
-		{
-			Config.timeZone = data[wsBinConst::wsPayLoadStart + 4];
-			Config.save();
-			SystemClock.setTimeZone(Config.timeZone);
-		}
-		SystemClock.setTime(timestamp, eTZ_UTC);
-		break;
-	}
+	ApplicationClass::wsBinSetter(socket, data, size);
+
+//	switch (data[wsBinConst::wsSubCmd])
+//	{
+//	case wsBinConst::scAppSetTime:
+//	{
+//		uint32_t timestamp = 0;
+//		os_memcpy(&timestamp, (&data[wsBinConst::wsPayLoadStart]), 4);
+//		if (Config.timeZone != data[wsBinConst::wsPayLoadStart + 4])
+//		{
+//			Config.timeZone = data[wsBinConst::wsPayLoadStart + 4];
+//			Config.save();
+//			SystemClock.setTimeZone(Config.timeZone);
+//		}
+//		SystemClock.setTime(timestamp, eTZ_UTC);
+//		break;
+//	}
 //	case wsBinConst::scAppConfigSet:
 //	{
 //		os_memcpy(&ventCycleDuration, (&data[wsBinConst::wsPayLoadStart]), 2);
@@ -212,29 +214,31 @@ void AppClass::wsBinSetter(WebSocket& socket, uint8_t* data, size_t size)
 //		_saveConfig();
 //		break;
 //	}
-	}
+//	}
 }
 
 void AppClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
 {
-	uint8_t* buffer;
-	switch (data[wsBinConst::wsSubCmd])
-	{
-	case wsBinConst::scAppGetStatus:
-	{
-		buffer = new uint8_t[wsBinConst::wsPayLoadStart + 4 + 4];
-		buffer[wsBinConst::wsCmd] = wsBinConst::getResponse;
-		buffer[wsBinConst::wsSysId] = sysId;
-		buffer[wsBinConst::wsSubCmd] = wsBinConst::scAppGetStatus;
+	ApplicationClass::wsBinGetter(socket, data, size);
 
-		DateTime now = SystemClock.now(eTZ_UTC);
-		uint32_t timestamp = now.toUnixTime();
-		os_memcpy((&buffer[wsBinConst::wsPayLoadStart]), &_counter, sizeof(_counter));
-		os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 4]), &timestamp, sizeof(timestamp));
-		socket.sendBinary(buffer, wsBinConst::wsPayLoadStart + 4 + 4);
-		delete buffer;
-		break;
-	}
+//	uint8_t* buffer;
+//	switch (data[wsBinConst::wsSubCmd])
+//	{
+//	case wsBinConst::scAppGetStatus:
+//	{
+//		buffer = new uint8_t[wsBinConst::wsPayLoadStart + 4 + 4];
+//		buffer[wsBinConst::wsCmd] = wsBinConst::getResponse;
+//		buffer[wsBinConst::wsSysId] = sysId;
+//		buffer[wsBinConst::wsSubCmd] = wsBinConst::scAppGetStatus;
+//
+//		DateTime now = SystemClock.now(eTZ_UTC);
+//		uint32_t timestamp = now.toUnixTime();
+//		os_memcpy((&buffer[wsBinConst::wsPayLoadStart]), &_counter, sizeof(_counter));
+//		os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 4]), &timestamp, sizeof(timestamp));
+//		socket.sendBinary(buffer, wsBinConst::wsPayLoadStart + 4 + 4);
+//		delete buffer;
+//		break;
+//	}
 //	case wsBinConst::scAppConfigGet:
 //	{
 //		buffer = new uint8_t[wsBinConst::wsPayLoadStart + 2 + 2 + 2];
@@ -250,7 +254,7 @@ void AppClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
 //		delete buffer;
 //		break;
 //	}
-	}
+//	}
 }
 
 void AppClass::wsDisconnected(WebSocket& socket)
