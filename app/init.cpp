@@ -11,11 +11,9 @@ MCP* mcp002;
 
 #ifdef GPIO_MCP23017 //use MCP23S17
 MCP23017* mcp000;
-MCP23017* mcp001;
-MCP23017* mcp002;
 #endif
 
-BinOutClass* outputs[18];
+BinOutClass* outputs[8];
 
 BinInPollerClass binInPoller(100);
 AntiTheftClass* antiTheft;

@@ -18,9 +18,7 @@ AppClass::AppClass()
 }
 void AppClass::init()
 {
-	char zoneNames[][27] = {{"Кухня вход"},{"Кухня стол"},{"Кухня"},{"Коридор"},{"Улица"},{"Холл 1 лево"},{"Холл 1 право"}, {"Холл 1 низ"}, \
-							{"Холл 2 лево"},{"Холл 2 право"},{"Холл 2 низ"},{"Спальня"},{"Спальня лево"},{"Спальня право"},{"Санузел"},\
-							{"С/у зеркало"},{"С/у вентилятор"}, {"Котельная"}};
+	char zoneNames[][27] = {{"Гараж"},{"Кладовка"},{"Прожектор"},{"Терасса"},{"Терасса LED"},{"Дверь"},{"Резерв 1"}, {"Резерв 2"}};
 	system_update_cpu_freq(SYS_CPU_160MHZ);
 
 	ApplicationClass::init();
@@ -36,32 +34,13 @@ void AppClass::init()
 
 #ifdef MCP23S17 //use MCP23S17
 	mcp000 = new MCP(0x000, mcp23s17_cs);
-	mcp001 = new MCP(0x001, mcp23s17_cs);
-	mcp002 = new MCP(0x002, mcp23s17_cs);
 	mcp000->begin();
-	mcp001->begin();
-	mcp002->begin();
 #endif
 
 #ifdef GPIO_MCP23017
 	Wire.pins(14,13);
 	mcp000 = new MCP23017;
-	mcp001 = new MCP23017;
-	mcp002 = new MCP23017;
 	mcp000->begin(0x000);
-	mcp001->begin(0x001);
-	mcp002->begin(0x002);
-
-//	mcp000->pinMode(0x0000); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
-////	mcp000->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
-//	mcp000->digitalWrite(0x0000); //Set all PORTA to 0xFF for simple relay which is active LOW
-//
-//	mcp001->pinMode(0x0000); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
-////	mcp000->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
-//	mcp001->digitalWrite(0x0000); //Set all PORTA to 0xFF for simple relay which is active LOW
-//
-//	Serial.printf("DONE!\n");
-//	return
 #endif
 
 #if defined(MCP23S17) || defined(GPIO_MCP23017)
@@ -70,47 +49,16 @@ void AppClass::init()
 	mcp000->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
 	mcp000->digitalWrite(0x0000); //Set all PORTA to 0xFF for simple relay which is active LOW
 
-//	mcp001->begin();
-	mcp001->pinMode(0xFF00); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
-	mcp001->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
-	mcp001->digitalWrite(0x0000); //Set all PORTA to 0xFF for simple relay which is active LOW
-
-//	mcp002->begin();
-	mcp002->pinMode(0xFF00); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
-	mcp002->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
-	mcp002->digitalWrite(0x0000); //Set all PORTA to 0xFF for simple relay which is active LOW
-
-//	Serial.printf("PRE Free Heap: %d\n", system_get_free_heap_size());
-//	for (uint8_t i = 0; i < 7; i++)
-//	{
-//		//test binState
-//		binStates[i] = new BinStateClass();
-////		BinStateHttpClass* binStateHttp = new BinStateHttpClass(webServer, *binStates[i], String(zoneNames[i]), i);
-////		binStatesHttp->add(binStateHttp);
-//	}
-//	Serial.printf("POST Free Heap: %d\n", system_get_free_heap_size());
-//	Serial.printf("Size is ,%d\n", sizeof(BinStateClass));
-
-	Serial.printf("Pre ARRAY Free Heap: %d\n", system_get_free_heap_size());
-
-//	BinOutClass** outputs = new BinOutClass*[16];
-//	BinInClass** inputs = new BinInClass*[16];
-//	BinHttpButtonClass** httpButtons = new BinHttpButtonClass*[16];
-
 //	BinOutClass* outputs[18];
-	BinInClass* inputs[18];
-	BinHttpButtonClass* httpButtons[18];
+	BinInClass* inputs[8];
+	BinHttpButtonClass* httpButtons[8];
 
 	antiTheft = new AntiTheftClass(outputs, 99);
 	_wsBinGetters[antiTheft->sysId] = WebSocketBinaryDelegate(&AntiTheftClass::wsBinGetter,antiTheft);
 	_wsBinSetters[antiTheft->sysId] = WebSocketBinaryDelegate(&AntiTheftClass::wsBinSetter,antiTheft);
 
-
-	Serial.printf("Post ARRAY Free Heap: %d\n", system_get_free_heap_size());
-
 	BinStateClass* allOff = new BinStateClass();
 
-//	BinStateClass* imHome = new BinStateClass();
 
 	for (uint8_t i = 0; i < 8; i++)
 	{
@@ -137,69 +85,18 @@ void AppClass::init()
 		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
 	}
 
-	for (uint8_t i = 0; i < 8; i++)
-	{
-#ifdef MCP23S17
-		BinOutClass* output = new BinOutMCP23S17Class(*mcp001,i,0);
-		BinInClass* input = new BinInMCP23S17Class(*mcp001,i,0);
-#endif
-#ifdef GPIO_MCP23017
-		BinOutClass* output = new BinOutMCP23017Class(*mcp001,i,0);
-		BinInClass* input = new BinInMCP23017Class(*mcp001,i,0);
-#endif
-		outputs[8 + i] = output;
-		inputs[8 + i] = input;
-		binInPoller.add(input);
-		antiTheft->addOutputId(8 + i);
 
-		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 8 + i, zoneNames[8 + i], &output->state);
-		httpButtons[8 + i] = httpButton;
-		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
-		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
-
-		allOff->onChange(onStateChangeDelegate(&BinStateClass::setFalse, &output->state));
-		input->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
-		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
-	}
-
-	for (uint8_t i = 0; i < 2; i++)
-	{
-#ifdef MCP23S17
-		BinOutClass* output = new BinOutMCP23S17Class(*mcp002,i,0);
-		BinInClass* input = new BinInMCP23S17Class(*mcp002,i,0);
-#endif
-#ifdef GPIO_MCP23017
-		BinOutClass* output = new BinOutMCP23017Class(*mcp002,i,0);
-		BinInClass* input = new BinInMCP23017Class(*mcp002,i,0);
-#endif
-		outputs[16 + i] = output;
-		inputs[16 + i] = input;
-		binInPoller.add(input);
-		antiTheft->addOutputId(16 + i);
-
-		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 16 + i, zoneNames[16 + i], &output->state);
-		httpButtons[16 + i] = httpButton;
-		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
-		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
-
-		allOff->onChange(onStateChangeDelegate(&BinStateClass::setFalse, &output->state));
-		input->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
-		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
-	}
-//	BinOutGPIOClass* ventOut = new BinOutGPIOClass(16,0);
-//	BinStateClass* vent = &ventOut->state;
-
-#ifdef MCP23S17
-		BinOutClass* output = new BinOutMCP23S17Class(*mcp002,2,0);
-		BinInClass* input = new BinInMCP23S17Class(*mcp002,2,0);
-#endif
-#ifdef GPIO_MCP23017
-		BinOutClass* output = new BinOutMCP23017Class(*mcp002,2,0);
-		BinInClass* input = new BinInMCP23017Class(*mcp002,2,0);
-#endif
-	allOff->onChange(onStateChangeDelegate(&BinStateClass::set, &output->state));
-	binInPoller.add(input);
-	input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, allOff));
+//#ifdef MCP23S17
+//		BinOutClass* output = new BinOutMCP23S17Class(*mcp002,2,0);
+//		BinInClass* input = new BinInMCP23S17Class(*mcp002,2,0);
+//#endif
+//#ifdef GPIO_MCP23017
+//		BinOutClass* output = new BinOutMCP23017Class(*mcp002,2,0);
+//		BinInClass* input = new BinInMCP23017Class(*mcp002,2,0);
+//#endif
+//	allOff->onChange(onStateChangeDelegate(&BinStateClass::set, &output->state));
+//	binInPoller.add(input);
+//	input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, allOff));
 
 	BinStateHttpClass* allOffState = new BinStateHttpClass(webServer, allOff, "Выкл. все", 0);
 	binStatesHttp->add(allOffState);
@@ -210,14 +107,15 @@ void AppClass::init()
 
 //	BinStateHttpClass* imHomeState = new BinStateHttpClass(webServer, imHome, "Я дома!", 2);
 //	binStatesHttp->add(imHomeState);
-	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 26, "Я дома!");
+
+	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 26, "Вся терасса!");
 	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
-	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[0]->state));
 	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[3]->state));
 	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[4]->state));
-
-	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 27, "Антивор!", &antiTheft->state);
-	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &antiTheft->state));
+	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[5]->state));
+//
+//	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 27, "Антивор!", &antiTheft->state);
+//	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &antiTheft->state));
 
 //	Serial.printf("Pre DEALLOCATE ARRAY Free Heap: %d\n", system_get_free_heap_size());
 

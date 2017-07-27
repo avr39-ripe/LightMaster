@@ -32,17 +32,13 @@ extern NtpClient* ntpClient;
 #ifdef MCP23S17 //use MCP23S17
 const uint8_t mcp23s17_cs = 15;
 extern MCP* mcp000;
-extern MCP* mcp001;
-extern MCP* mcp002;
 #endif
 
 #ifdef GPIO_MCP23017 //use MCP23017
 extern MCP23017* mcp000;
-extern MCP23017* mcp001;
-extern MCP23017* mcp002;
 #endif
 
-extern BinOutClass* outputs[18];
+extern BinOutClass* outputs[8];
 
 extern BinInPollerClass binInPoller;
 extern AntiTheftClass* antiTheft;
