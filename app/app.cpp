@@ -77,7 +77,7 @@ void AppClass::init()
 
 		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, i, zoneNames[i], &output->state);
 		httpButtons[i] = httpButton;
-		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
+		input->state.onChange(onStateChangeDelegate(&BinStateClass::invert, &output->state));
 		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 
 		allOff->onChange(onStateChangeDelegate(&BinStateClass::setFalse, &output->state));
