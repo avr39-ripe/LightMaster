@@ -129,7 +129,7 @@ void AppClass::init()
 
 		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, i, zoneNames[i], &output->state);
 		httpButtons[i] = httpButton;
-		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
+//		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 
 		allOff->onChange(onStateChangeDelegate(&BinStateClass::setFalse, &output->state));
@@ -154,7 +154,7 @@ void AppClass::init()
 
 		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 8 + i, zoneNames[8 + i], &output->state);
 		httpButtons[8 + i] = httpButton;
-		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
+//		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 
 		allOff->onChange(onStateChangeDelegate(&BinStateClass::setFalse, &output->state));
@@ -179,7 +179,7 @@ void AppClass::init()
 
 		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 16 + i, zoneNames[16 + i], &output->state);
 		httpButtons[16 + i] = httpButton;
-		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
+//		input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 
 		allOff->onChange(onStateChangeDelegate(&BinStateClass::setFalse, &output->state));
@@ -213,12 +213,23 @@ void AppClass::init()
 	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 26, "Я дома!");
 	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
 	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[0]->state));
-	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[3]->state));
-	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[4]->state));
+	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[2]->state));
+	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[10]->state));
 
 	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 27, "Антивор!", &antiTheft->state);
 	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &antiTheft->state));
 
+
+//	Join Output channels with input channels
+	uint8_t const inputNum = 15; // Number of phisical input channels (Wall switches)
+	// Array in which index number corresponds to input channel
+	// and array[index] value corresponds to output channel associated to this phisical input channel
+	uint8_t InToOut[inputNum] = {0,1,2,7,8,10,11,14,15,17,18,19,20,21,22};
+	for (uint8_t i = 0; i < inputNum; i++)
+	{
+			inputs[i]->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &outputs[InToOut[i]]->state));
+
+	}
 //	Serial.printf("Pre DEALLOCATE ARRAY Free Heap: %d\n", system_get_free_heap_size());
 
 //	delete[] outputs;
