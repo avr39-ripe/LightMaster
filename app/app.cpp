@@ -18,7 +18,7 @@ AppClass::AppClass()
 }
 void AppClass::init()
 {
-	char zoneNames[][27] = {{"Кухня вход"},{"Кухня стол"},{"Кухня"},{"Коридор"},{"Улица"},{"Холл 1 лево"},{"Холл 1 право"}, {"Холл 1 низ"}, \
+	char zoneNames[][27] = {{"Холл споты"},{"Холл перед"},{"Холл середина"},{"Холл лево"},{"Стол"},{"Кухня вход"},{"Кухня стол"},{"Кухня"},{"Коридор"},{"Улица"},{"Холл 1 лево"},{"Холл 1 право"}, {"Холл 1 низ"}, \
 							{"Холл 2 лево"},{"Холл 2 право"},{"Холл 2 низ"},{"Спальня"},{"Спальня лево"},{"Спальня право"},{"Санузел"},\
 							{"С/у зеркало"},{"С/у вентилятор"}, {"Котельная"}};
 	system_update_cpu_freq(SYS_CPU_160MHZ);
@@ -98,8 +98,8 @@ void AppClass::init()
 //	BinHttpButtonClass** httpButtons = new BinHttpButtonClass*[16];
 
 //	BinOutClass* outputs[18];
-	BinInClass* inputs[18];
-	BinHttpButtonClass* httpButtons[18];
+	BinInClass* inputs[24];
+	BinHttpButtonClass* httpButtons[24];
 
 	antiTheft = new AntiTheftClass(outputs, 99);
 	_wsBinGetters[antiTheft->sysId] = WebSocketBinaryDelegate(&AntiTheftClass::wsBinGetter,antiTheft);
@@ -162,7 +162,7 @@ void AppClass::init()
 		httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
 	}
 
-	for (uint8_t i = 0; i < 2; i++)
+	for (uint8_t i = 0; i < 7; i++)
 	{
 #ifdef MCP23S17
 		BinOutClass* output = new BinOutMCP23S17Class(*mcp002,i,0);
@@ -190,12 +190,12 @@ void AppClass::init()
 //	BinStateClass* vent = &ventOut->state;
 
 #ifdef MCP23S17
-		BinOutClass* output = new BinOutMCP23S17Class(*mcp002,2,0);
-		BinInClass* input = new BinInMCP23S17Class(*mcp002,2,0);
+		BinOutClass* output = new BinOutMCP23S17Class(*mcp002,7,0);
+		BinInClass* input = new BinInMCP23S17Class(*mcp002,7,0);
 #endif
 #ifdef GPIO_MCP23017
-		BinOutClass* output = new BinOutMCP23017Class(*mcp002,2,0);
-		BinInClass* input = new BinInMCP23017Class(*mcp002,2,0);
+		BinOutClass* output = new BinOutMCP23017Class(*mcp002,7,0);
+		BinInClass* input = new BinInMCP23017Class(*mcp002,7,0);
 #endif
 	allOff->onChange(onStateChangeDelegate(&BinStateClass::set, &output->state));
 	binInPoller.add(input);
