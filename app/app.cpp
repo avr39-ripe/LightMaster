@@ -62,9 +62,8 @@ void AppClass::init()
 	BinHttpButtonClass* httpButtons[18];
 
 	antiTheft = new AntiTheftClass(outputs, 99);
-	//wsBinGetters[antiTheft->sysId] = WebSocketBinaryDelegate(&AntiTheftClass::wsBinGetter,antiTheft);
+
 	wsAddBinGetter(antiTheft->sysId, WebsocketBinaryDelegate(&AntiTheftClass::wsBinGetter,antiTheft));
-	//wsBinSetters[antiTheft->sysId] = WebSocketBinaryDelegate(&AntiTheftClass::wsBinSetter,antiTheft);
 	wsAddBinSetter(antiTheft->sysId, WebsocketBinaryDelegate(&AntiTheftClass::wsBinSetter,antiTheft));
 
 
@@ -91,16 +90,11 @@ void AppClass::init()
 
 		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, i, zoneNames[i], &output->state);
 		httpButtons[i] = httpButton;
-		//input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
-		input->state.onChange([output](uint8_t state){output->state.toggle (state);});
-		//httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
-		httpButton->state.onChange([output](uint8_t state){output->state.toggle (state);});
 
-		//allOff->onChange(onStateChangeDelegate(&BinStateClass::setFalse, &output->state));
+		input->state.onChange([output](uint8_t state){output->state.toggle (state);});
+		httpButton->state.onChange([output](uint8_t state){output->state.toggle (state);});
 		allOff->onChange([output](uint8_t state){output->state.setFalse(state);});
-		//input->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
 		input->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
-		//httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
 		httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
 	}
 
@@ -121,16 +115,10 @@ void AppClass::init()
 
 		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 8 + i, zoneNames[8 + i], &output->state);
 		httpButtons[8 + i] = httpButton;
-		//input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 		input->state.onChange([output](uint8_t state){output->state.toggle (state);});
-		//httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 		httpButton->state.onChange([output](uint8_t state){output->state.toggle (state);});
-
-		//allOff->onChange(onStateChangeDelegate(&BinStateClass::setFalse, &output->state));
 		allOff->onChange([output](uint8_t state){output->state.setFalse(state);});
-		//input->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
 		input->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
-		//httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
 		httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
 	}
 
@@ -151,16 +139,10 @@ void AppClass::init()
 
 		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 16 + i, zoneNames[16 + i], &output->state);
 		httpButtons[16 + i] = httpButton;
-		//input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 		input->state.onChange([output](uint8_t state){output->state.toggle (state);});
-		//httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &output->state));
 		httpButton->state.onChange([output](uint8_t state){output->state.toggle (state);});
-
-		//allOff->onChange(onStateChangeDelegate(&BinStateClass::setFalse, &output->state));
 		allOff->onChange([output](uint8_t state){output->state.setFalse(state);});
-		//input->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
 		input->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
-		//httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
 		httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
 	}
 
@@ -172,32 +154,23 @@ void AppClass::init()
 		BinOutClass* output = new BinOutMCP23017Class(*mcp002,2,0);
 		BinInClass* input = new BinInMCP23017Class(*mcp002,2,0);
 #endif
-	//allOff->onChange(onStateChangeDelegate(&BinStateClass::set, &output->state));
 	allOff->onChange([output](uint8_t state){output->state.set(state);});
 	binInPoller.add(input);
-	//input->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, allOff));
 	input->state.onChange([allOff](uint8_t state){allOff->toggle(state);});
-
 	BinStateHttpClass* allOffState = new BinStateHttpClass(webServer, allOff, "Выкл. все", 0);
 	binStatesHttp->add(allOffState);
 	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 25, "Выкл. все", allOff);
-	//httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, allOff));
 	httpButton->state.onChange([allOff](uint8_t state){allOff->toggle(state);});
 
 	allOff->persistent(0);
 
 	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 26, "Я дома!");
-	//httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setFalse, allOff));
 	httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
-	//httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[0]->state));
 	httpButton->state.onChange([=](uint8_t state){outputs[0]->state.setTrue(state);});
-	//httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[3]->state));
 	httpButton->state.onChange([=](uint8_t state){outputs[3]->state.setTrue(state);});
-	//httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::setTrue, &outputs[4]->state));
 	httpButton->state.onChange([=](uint8_t state){outputs[4]->state.setTrue(state);});
 
 	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 27, "Антивор!", &antiTheft->state);
-//	httpButton->state.onChange(onStateChangeDelegate(&BinStateClass::toggle, &antiTheft->state));
 	httpButton->state.onChange([=](uint8_t state){antiTheft->state.set(state);});
 
 #endif
