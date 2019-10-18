@@ -5,8 +5,7 @@
  *      Author: shurik
  */
 
-#ifndef LIB_WSBINCONST_WSBINCONST_H_
-#define LIB_WSBINCONST_WSBINCONST_H_
+#pragma once
 
 namespace wsBinConst
 {
@@ -43,7 +42,3 @@ namespace wsBinConst
 	const uint8_t uidHttpState = 0;
 	const uint8_t uidHttpButton = 127;
 };
-
-
-
-#endif /* LIB_WSBINCONST_WSBINCONST_H_ */

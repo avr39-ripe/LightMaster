@@ -1,13 +1,6 @@
 #include <application.h>
-//#include <user_config.h>
 
 //ApplicationClass App;
-
-//void init()
-//{
-//	App.init();
-//	App.start();
-//}
 
 void ApplicationClass::init()
 {
@@ -35,26 +28,47 @@ void ApplicationClass::init()
 #endif
 	}
 #else
-	debugf("spiffs disabled");
+//	debugf("spiffs disabled");
 #endif
 //	spiffs_mount(); // Mount file system, in order to work with files
 
 	_initialWifiConfig();
 
-	Config.load();
+	loadConfig();
+
+//	ntpClient = new NtpClient("pool.ntp.org", 300); //uncomment to enablentp update of system time
+	SystemClock.setTimeZone(timeZone); //set time zone from config
+	Serial.printf(_F("Time zone: %d\n"), timeZone);
 
 	// Attach Wifi events handlers
-	WifiEvents.onStationDisconnect(onStationDisconnectDelegate(&ApplicationClass::_STADisconnect, this));
-	WifiEvents.onStationConnect(onStationConnectDelegate(&ApplicationClass::_STAConnect, this));
-	WifiEvents.onStationAuthModeChange(onStationAuthModeChangeDelegate(&ApplicationClass::_STAAuthModeChange, this));
-	WifiEvents.onStationGotIP(onStationGotIPDelegate(&ApplicationClass::_STAGotIP, this));
+	WifiEvents.onStationDisconnect(StationDisconnectDelegate(&ApplicationClass::_STADisconnect, this));
+	WifiEvents.onStationConnect(StationConnectDelegate(&ApplicationClass::_STAConnect, this));
+	WifiEvents.onStationAuthModeChange(StationAuthModeChangeDelegate(&ApplicationClass::_STAAuthModeChange, this));
+	WifiEvents.onStationGotIP(StationGotIPDelegate(&ApplicationClass::_STAGotIP, this));
+
+	// Web Sockets configuration
+	_wsResource=new WebsocketResource();
+	_wsResource->setConnectionHandler(WebsocketDelegate(&ApplicationClass::wsConnected,this));
+	_wsResource->setMessageHandler(WebsocketMessageDelegate(&ApplicationClass::wsMessageReceived,this));
+	_wsResource->setBinaryHandler(WebsocketBinaryDelegate(&ApplicationClass::wsBinaryReceived,this));
+	_wsResource->setDisconnectionHandler(WebsocketDelegate(&ApplicationClass::wsDisconnected,this));
+
+	webServer.paths.set("/ws", _wsResource);
+//	webServer.setWebSocketConnectionHandler(WebSocketDelegate(&ApplicationClass::wsConnected,this));
+//	webServer.setWebSocketMessageHandler(WebSocketMessageDelegate(&ApplicationClass::wsMessageReceived,this));
+//	webServer.setWebSocketBinaryHandler(WebSocketBinaryDelegate(&ApplicationClass::wsBinaryReceived,this));
+//	webServer.setWebSocketDisconnectionHandler(WebSocketDelegate(&ApplicationClass::wsDisconnected,this));
+
+	wsAddBinSetter(sysId, WebsocketBinaryDelegate(&ApplicationClass::wsBinSetter,this));
+	wsAddBinGetter(sysId, WebsocketBinaryDelegate(&ApplicationClass::wsBinGetter,this));
 
 	startWebServer();
 }
 
 void ApplicationClass::start()
 {
-	_loopTimer.initializeMs(Config.loopInterval, TimerDelegate(&ApplicationClass::_loop, this)).start(true);
+//	_loopTimer.initializeMs(loopInterval, TimerDelegateStdFunction(&ApplicationClass::_loop, this)).start(true);
+	_loopTimer.initializeMs(loopInterval, [=](){ this->_loop();}).start(true);
 	_loop();
 }
 
@@ -83,7 +97,7 @@ void ApplicationClass::_initialWifiConfig()
 		WifiAccessPoint.enable(true, true);
 	}
 	else
-		Serial.printf("AccessPoint already configured.\n");
+		Serial.printf(_F("AccessPoint already configured.\n"));
 
 // One-time set initial SSID and PASSWORD for Station mode and save it into configuration area
 // This part of code will run ONCE after application flash into the ESP if there is no
@@ -97,26 +111,30 @@ void ApplicationClass::_initialWifiConfig()
 		WifiAccessPoint.enable(false, true);
 	}
 	else
-		Serial.printf("Station already configured.\n");
+		Serial.printf(_F("Station already configured.\n"));
 }
 
-void ApplicationClass::_STADisconnect(String ssid, uint8_t ssid_len, uint8_t bssid[6], uint8_t reason)
+void ApplicationClass::_STADisconnect(const String& ssid, MacAddress bssid, WifiDisconnectReason reason)
 {
-	debugf("DISCONNECT - SSID: %s, REASON: %d\n", ssid.c_str(), reason);
-
+	// The different reason codes can be found in user_interface.h. in your SDK.
+	Serial.print(_F("Disconnected from \""));
+	Serial.print(ssid);
+	Serial.print(_F("\", reason: "));
+	Serial.println(WifiEvents.getDisconnectReasonDesc(reason));
+	
 	_reconnectTimer.stop();
 	if (!WifiAccessPoint.isEnabled())
 	{
-		debugf("Starting OWN AP");
+		Serial.println(_F("Starting OWN AP"));
 		WifiStation.disconnect();
 		WifiAccessPoint.enable(true);
 		WifiStation.connect();
 	}
 }
 
-void ApplicationClass::_STAAuthModeChange(uint8_t oldMode, uint8_t newMode)
+void ApplicationClass::_STAAuthModeChange(WifiAuthMode oldMode, WifiAuthMode newMode)
 {
-	debugf("AUTH MODE CHANGE - OLD MODE: %d, NEW MODE: %d\n", oldMode, newMode);
+	//debugf("AUTH MODE CHANGE - OLD MODE: %d, NEW MODE: %d\n", oldMode, newMode);
 
 	if (!WifiAccessPoint.isEnabled())
 	{
@@ -127,7 +145,7 @@ void ApplicationClass::_STAAuthModeChange(uint8_t oldMode, uint8_t newMode)
 	}
 }
 
-void ApplicationClass::_STAGotIP(IPAddress ip, IPAddress mask, IPAddress gateway)
+void ApplicationClass::_STAGotIP(IpAddress ip, IpAddress mask, IpAddress gateway)
 {
 	debugf("GOTIP - IP: %s, MASK: %s, GW: %s\n", ip.toString().c_str(),
 																mask.toString().c_str(),
@@ -139,14 +157,16 @@ void ApplicationClass::_STAGotIP(IPAddress ip, IPAddress mask, IPAddress gateway
 		WifiAccessPoint.enable(false);
 	}
 	// Add commands to be executed after successfully connecting to AP and got IP from it
+	userSTAGotIP(ip, mask, gateway);
 }
 
-void ApplicationClass::_STAConnect(String ssid, uint8_t ssid_len, uint8_t bssid[6], uint8_t channel)
+void ApplicationClass::_STAConnect(const String& ssid, MacAddress bssid, uint8_t channel)
 {
 	debugf("DELEGATE CONNECT - SSID: %s, CHANNEL: %d\n", ssid.c_str(), channel);
 
 	wifi_station_dhcpc_set_maxtry(128);
-	_reconnectTimer.initializeMs(35000, TimerDelegate(&ApplicationClass::_STAReconnect,this)).start();
+//	_reconnectTimer.initializeMs(35000, TimerDelegateStdFunction(&ApplicationClass::_STAReconnect,this)).start();
+	_reconnectTimer.initializeMs(35000, [=](){this->_STAReconnect();}).start();
 	// Add commands to be executed after successfully connecting to AP
 }
 
@@ -161,12 +181,13 @@ void ApplicationClass::startWebServer()
 	if (_webServerStarted) return;
 
 	webServer.listen(80);
-	webServer.addPath("/",HttpPathDelegate(&ApplicationClass::_httpOnIndex,this));
-	webServer.addPath("/config",HttpPathDelegate(&ApplicationClass::_httpOnConfiguration,this));
-	webServer.addPath("/config.json",HttpPathDelegate(&ApplicationClass::_httpOnConfigurationJson,this));
+	webServer.paths.set("/",HttpPathDelegate(&ApplicationClass::_httpOnIndex,this));
+	webServer.paths.set("/config",HttpPathDelegate(&ApplicationClass::_httpOnConfiguration,this));
+	webServer.paths.set("/config.json",HttpPathDelegate(&ApplicationClass::_httpOnConfigurationJson,this));
 //	webServer.addPath("/state.json",HttpPathDelegate(&ApplicationClass::_httpOnStateJson,this));
-	webServer.addPath("/update",HttpPathDelegate(&ApplicationClass::_httpOnUpdate,this));
-	webServer.setDefaultHandler(HttpPathDelegate(&ApplicationClass::_httpOnFile,this));
+	webServer.paths.set("/update",HttpPathDelegate(&ApplicationClass::_httpOnUpdate,this));
+	webServer.paths.setDefault(HttpPathDelegate(&ApplicationClass::_httpOnFile,this));
+	webServer.setBodyParser("application/json", bodyToStringParser);
 	_webServerStarted = true;
 
 	if (WifiStation.isEnabled())
@@ -177,12 +198,12 @@ void ApplicationClass::startWebServer()
 
 void ApplicationClass::_httpOnFile(HttpRequest &request, HttpResponse &response)
 {
-	String file = request.getPath();
+	String file = request.uri.Path;
 	if (file[0] == '/')
 		file = file.substring(1);
 
 	if (file[0] == '.')
-		response.forbidden();
+		response.code = HTTP_STATUS_FORBIDDEN;
 	else
 	{
 		response.setCache(86400, true); // It's important to use cache for better performance.
@@ -193,38 +214,29 @@ void ApplicationClass::_httpOnFile(HttpRequest &request, HttpResponse &response)
 void ApplicationClass::_httpOnIndex(HttpRequest &request, HttpResponse &response)
 {
 	response.setCache(86400, true); // It's important to use cache for better performance.
-	response.sendFile("index.html");
+	response.sendFile("index_new.html");
 }
-
-//void ApplicationClass::_httpOnStateJson(HttpRequest &request, HttpResponse &response)
-//{
-//	JsonObjectStream* stream = new JsonObjectStream();
-//	JsonObject& json = stream->getRoot();
-//
-//	json["counter"] = _counter;
-//
-//	response.sendJsonObject(stream);
-//}
 
 void ApplicationClass::_httpOnConfiguration(HttpRequest &request, HttpResponse &response)
 {
 
-	if (request.getRequestMethod() == RequestMethod::POST)
+	if (request.method == HTTP_POST)
 	{
+		String body = request.getBody();
 		debugf("Update configuration\n");
 
-		if (request.getBody() == NULL)
+		if (body == NULL)
 		{
-			debugf("Empty Request Body!\n");
+			debug_d("Empty Request Body!\n");
 			return;
 		}
 		else // Request Body Not Empty
 		{
 //Uncomment next line for extra debuginfo
-//			Serial.printf(request.getBody());
+//			Serial.printf(body);
 			uint8_t needSave = false;
 			DynamicJsonBuffer jsonBuffer;
-			JsonObject& root = jsonBuffer.parseObject(request.getBody());
+			JsonObject& root = jsonBuffer.parseObject(body);
 //Uncomment next line for extra debuginfo
 //			root.prettyPrintTo(Serial);
 
@@ -235,7 +247,7 @@ void ApplicationClass::_httpOnConfiguration(HttpRequest &request, HttpResponse &
 
 			if (root["loopInterval"].success()) // There is loopInterval parameter in json
 			{
-				Config.loopInterval = root["loopInterval"];
+				loopInterval = root["loopInterval"];
 				start(); // restart main application loop with new loopInterval setting
 				needSave = true;
 			}
@@ -243,13 +255,13 @@ void ApplicationClass::_httpOnConfiguration(HttpRequest &request, HttpResponse &
 
 			if (root["updateURL"].success()) // There is loopInterval parameter in json
 			{
-				Config.updateURL = String((const char *)root["updateURL"]);
+				updateURL = String((const char *)root["updateURL"]);
 				needSave = true;
 			}
 
 			if (needSave)
 			{
-				Config.save();
+				saveConfig();
 			}
 		} // Request Body Not Empty
 	} // Request method is POST
@@ -304,93 +316,103 @@ void ApplicationClass::_httpOnConfigurationJson(HttpRequest &request, HttpRespon
 	json["StaEnable"] = WifiStation.isEnabled() ? 1 : 0;
 
 	//Application configuration parameters
-	json["loopInterval"] = Config.loopInterval;
-	json["updateURL"] = Config.updateURL;
+	json["loopInterval"] = loopInterval;
+	json["updateURL"] = updateURL;
 
-	response.sendJsonObject(stream);
+	//response.sendJsonObject(stream);
+	response.sendDataStream(stream, MIME_JSON);
 }
 
-void ApplicationConfig::load()
+void ApplicationClass::loadConfig()
 {
-	DynamicJsonBuffer jsonBuffer;
+	uint16_t strSize;
 
+	Serial.printf(_F("Try to load ApplicationClass bin cfg..\n"));
 	if (fileExist(_fileName))
 	{
-		int size = fileGetSize(_fileName);
-		char* jsonString = new char[size + 1];
-		fileGetContent(_fileName, jsonString, size + 1);
+		Serial.printf(_F("Will load ApplicationClass bin cfg..\n"));
+		file_t file = fileOpen(_fileName, eFO_ReadOnly);
+		fileSeek(file, 0, eSO_FileStart);
+		fileRead(file, &strSize, sizeof(strSize));
+		uint8_t* updateURLBuffer = new uint8_t[strSize+1];
+		fileRead(file, updateURLBuffer, strSize);
+		updateURLBuffer[strSize] = 0;
+		updateURL = (const char *)updateURLBuffer;
+		fileRead(file, &loopInterval, sizeof(loopInterval));
+		fileRead(file, &timeZone, sizeof(timeZone));
 
-		JsonObject& root = jsonBuffer.parseObject(jsonString);
+		_loadAppConfig(file); //load additional, child class config here
 
-		loopInterval = root["loopInterval"];
-		updateURL = String((const char *)root["updateURL"]);
-		timeZone = root["timeZone"];
+		fileClose(file);
 
-		delete[] jsonString;
-	}
-	else
-	{
-		//Factory defaults if no config file present
-		loopInterval = 1000; // 1 second
-		updateURL = "http://192.168.31.181/";
-		timeZone = 2;
+		delete [] updateURLBuffer;
 	}
 }
 
-void ApplicationConfig::save()
+void ApplicationClass::saveConfig()
 {
-	DynamicJsonBuffer jsonBuffer;
-	JsonObject& root = jsonBuffer.createObject();
+	uint16_t strSize = updateURL.length();
 
-	root["loopInterval"] = loopInterval;
-	root["updateURL"] = updateURL;
-	root["timeZone"] = timeZone;
+	Serial.printf(_F("Try to save ApplicationClass bin cfg..\n"));
+	file_t file = fileOpen(_fileName, eFO_CreateNewAlways | eFO_WriteOnly);
+	fileWrite(file, &strSize, sizeof(strSize));
+	fileWrite(file, updateURL.c_str(), strSize);
+	fileWrite(file, &loopInterval, sizeof(loopInterval));
+	fileWrite(file, &timeZone, sizeof(timeZone));
 
-	String buf;
-	root.printTo(buf);
-	fileSetContent(_fileName, buf);
+	_saveAppConfig(file); //save additional, child class config here
+
+	fileClose(file);
 }
 
-void ApplicationClass::OtaUpdate_CallBack(rBootHttpUpdate& client, bool result) {
-
-	Serial.println("In callback...");
+void ApplicationClass::OtaUpdate_CallBack(RbootHttpUpdater& client, bool result)
+{
+	Serial.println(_F("In callback..."));
 	if(result == true) {
 		// success
 		uint8 slot;
 		slot = rboot_get_current_rom();
-		if (slot == 0) slot = 1; else slot = 0;
+		if(slot == 0)
+			slot = 1;
+		else
+			slot = 0;
 		// set to boot new rom and then reboot
-		Serial.printf("Firmware updated, rebooting to rom %d...\r\n", slot);
+		Serial.printf(_F("Firmware updated, rebooting to rom %d...\r\n"), slot);
 		rboot_set_current_rom(slot);
 		System.restart();
 	} else {
 		// fail
-		Serial.println("Firmware update failed!");
+		Serial.println(_F("Firmware update failed!"));
 	}
 }
 
-void ApplicationClass::OtaUpdate() {
+void ApplicationClass::OtaUpdate()
+{
 
 	uint8 slot;
 	rboot_config bootconf;
 
-	Serial.println("Updating...");
+	Serial.println(_F("Updating..."));
 
 	// need a clean object, otherwise if run before and failed will not run again
-	if (otaUpdater) delete otaUpdater;
-	otaUpdater = new rBootHttpUpdate();
+	if(otaUpdater)
+		delete otaUpdater;
+	otaUpdater = new RbootHttpUpdater();
 
 	// select rom slot to flash
 	bootconf = rboot_get_config();
 	slot = bootconf.current_rom;
-	if (slot == 0) slot = 1; else slot = 0;
+	if(slot == 0)
+		slot = 1;
+	else
+		slot = 0;
 
 #ifndef RBOOT_TWO_ROMS
 	// flash rom to position indicated in the rBoot config rom table
-	otaUpdater->addItem(bootconf.roms[slot], Config.updateURL + "rom0.bin");
+	otaUpdater->addItem(bootconf.roms[slot], updateURL + "rom0.bin");
 #else
 	// flash appropriate rom
-	if (slot == 0) {
+	if(slot == 0) {
 		otaUpdater->addItem(bootconf.roms[slot], ROM_0_URL);
 	} else {
 		otaUpdater->addItem(bootconf.roms[slot], ROM_1_URL);
@@ -399,39 +421,44 @@ void ApplicationClass::OtaUpdate() {
 
 #ifndef DISABLE_SPIFFS
 	// use user supplied values (defaults for 4mb flash in makefile)
-	if (slot == 0) {
-		otaUpdater->addItem(RBOOT_SPIFFS_0, Config.updateURL + "spiff_rom.bin");
+	if(slot == 0) {
+		otaUpdater->addItem(RBOOT_SPIFFS_0, updateURL + "spiff_rom.bin");
 	} else {
-		otaUpdater->addItem(RBOOT_SPIFFS_1, Config.updateURL + "spiff_rom.bin");
+		otaUpdater->addItem(RBOOT_SPIFFS_1, updateURL + "spiff_rom.bin");
 	}
 #endif
 
 	// request switch and reboot on success
 	//otaUpdater->switchToRom(slot);
 	// and/or set a callback (called on failure or success without switching requested)
-	otaUpdater->setCallback(otaUpdateDelegate(&ApplicationClass::OtaUpdate_CallBack,this));
+	otaUpdater->setCallback(OtaUpdateDelegate(&ApplicationClass::OtaUpdate_CallBack,this));
 
 	// start update
 	otaUpdater->start();
 }
 
-void ApplicationClass::Switch() {
+void ApplicationClass::Switch()
+{
 	uint8 before, after;
 	before = rboot_get_current_rom();
-	if (before == 0) after = 1; else after = 0;
-	Serial.printf("Swapping from rom %d to rom %d.\r\n", before, after);
+	if(before == 0)
+		after = 1;
+	else
+		after = 0;
+	Serial.printf(_F("Swapping from rom %d to rom %d.\r\n"), before, after);
 	rboot_set_current_rom(after);
-	Serial.println("Restarting...\r\n");
+	Serial.println(_F("Restarting...\r\n"));
 	System.restart();
 }
 
 void ApplicationClass::_httpOnUpdate(HttpRequest &request, HttpResponse &response)
 {
-	if (request.getRequestMethod() == RequestMethod::POST)
+	if (request.method == HTTP_POST)
 		{
-			debugf("Update POST request\n");
+			String body = request.getBody();
+			debug_d("Update POST request\n");
 
-			if (request.getBody() == NULL)
+			if (body == NULL)
 			{
 				debugf("Empty Request Body!\n");
 				return;
@@ -441,7 +468,7 @@ void ApplicationClass::_httpOnUpdate(HttpRequest &request, HttpResponse &respons
 	//Uncomment next line for extra debuginfo
 	//			Serial.printf(request.getBody());
 				DynamicJsonBuffer jsonBuffer;
-				JsonObject& root = jsonBuffer.parseObject(request.getBody());
+				JsonObject& root = jsonBuffer.parseObject(body);
 	//Uncomment next line for extra debuginfo
 				root.prettyPrintTo(Serial);
 
@@ -458,4 +485,98 @@ void ApplicationClass::_httpOnUpdate(HttpRequest &request, HttpResponse &respons
 				}
 			} // Request Body Not Empty
 		} // Request method is POST
+}
+//WebSocket handling
+void ApplicationClass::wsConnected(WebsocketConnection& socket)
+{
+	Serial.printf(_F("WS CONN!\n"));
+}
+
+void ApplicationClass::wsDisconnected(WebsocketConnection& socket)
+{
+	Serial.printf(_F("WS DISCONN!\n"));
+}
+
+void ApplicationClass::wsMessageReceived(WebsocketConnection& socket, const String& message)
+{
+	Serial.printf(_F("WS msg recv: %s\n"), message.c_str());
+}
+
+void ApplicationClass::wsBinaryReceived(WebsocketConnection& socket, uint8_t* data, size_t size)
+{
+	Serial.printf(_F("WS bin data recv, size: %d\r\n"), size);
+	Serial.printf(_F("Opcode: %d\n"), data[0]);
+
+	if ( data[wsBinConst::wsCmd] == wsBinConst::setCmd)
+	{
+		Serial.printf(_F("wsSetCmd\n"));
+		if (_wsBinSetters.contains(data[wsBinConst::wsSysId]))
+		{
+			Serial.printf(_F("wsSysId = %d setter called!\n"), data[wsBinConst::wsSysId]);
+			_wsBinSetters[data[wsBinConst::wsSysId]](socket, data, size);
+		}
+	}
+
+	if ( data[wsBinConst::wsCmd] == wsBinConst::getCmd)
+	{
+		Serial.printf(_F("wsGetCmd\n"));
+		if (_wsBinGetters.contains(data[wsBinConst::wsSysId]))
+		{
+			Serial.printf(_F("wsSysId = %d getter called!\n"), data[wsBinConst::wsSysId]);
+			_wsBinGetters[data[wsBinConst::wsSysId]](socket, data, size);
+		}
+	}
+}
+
+void ApplicationClass::wsBinSetter(WebsocketConnection& socket, uint8_t* data, size_t size)
+{
+	switch (data[wsBinConst::wsSubCmd])
+	{
+	case wsBinConst::scAppSetTime:
+	{
+		uint32_t timestamp = 0;
+		os_memcpy(&timestamp, (&data[wsBinConst::wsPayLoadStart]), 4);
+		if (timeZone != data[wsBinConst::wsPayLoadStart + 4])
+		{
+			timeZone = data[wsBinConst::wsPayLoadStart + 4];
+			saveConfig();
+			SystemClock.setTimeZone(timeZone);
+		}
+		SystemClock.setTime(timestamp, eTZ_UTC);
+		break;
+	}
+	}
+}
+
+void ApplicationClass::wsBinGetter(WebsocketConnection& socket, uint8_t* data, size_t size)
+{
+	uint8_t* buffer;
+	switch (data[wsBinConst::wsSubCmd])
+	{
+	case wsBinConst::scAppGetStatus:
+	{
+		buffer = new uint8_t[wsBinConst::wsPayLoadStart + 4 + 4];
+		buffer[wsBinConst::wsCmd] = wsBinConst::getResponse;
+		buffer[wsBinConst::wsSysId] = sysId;
+		buffer[wsBinConst::wsSubCmd] = wsBinConst::scAppGetStatus;
+
+		DateTime now = SystemClock.now(eTZ_UTC);
+		uint32_t timestamp = now.toUnixTime();
+		os_memcpy((&buffer[wsBinConst::wsPayLoadStart]), &_counter, sizeof(_counter));
+		os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 4]), &timestamp, sizeof(timestamp));
+		socket.sendBinary(buffer, wsBinConst::wsPayLoadStart + 4 + 4);
+		delete buffer;
+		break;
+	}
+	}
+}
+
+void ApplicationClass::wsAddBinSetter(uint8_t sysId, WebsocketBinaryDelegate wsBinSetterDelegate)
+{
+	_wsBinSetters[sysId] = wsBinSetterDelegate;
+}
+
+void ApplicationClass::wsAddBinGetter(uint8_t sysId, WebsocketBinaryDelegate wsBinGetterDelegate)
+{
+	_wsBinGetters[sysId] = wsBinGetterDelegate;
 }
