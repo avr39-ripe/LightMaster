@@ -30,7 +30,7 @@ void AppClass::init()
 #endif
 
 #ifdef GPIO_MCP23017
-	Wire.pins(14,13);
+	Wire.pins(13,14);
 	mcp000 = new MCP23017;
 	mcp001 = new MCP23017;
 	mcp002 = new MCP23017;
