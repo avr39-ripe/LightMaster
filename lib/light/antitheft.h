@@ -5,9 +5,8 @@
  *      Author: shurik
  */
 
-#ifndef LIB_LIGHT_ANTITHEFT_H_
-#define LIB_LIGHT_ANTITHEFT_H_
-#include <SmingCore/SmingCore.h>
+#pragma once
+#include <SmingCore.h>
 #include <binstate.h>
 #include <binout.h>
 
@@ -21,8 +20,8 @@ public:
 	static const uint8_t sysId = 5;
 	static const uint8_t scATGetConfig = 1;
 	static const uint8_t scATSetConfig = 2;
-	void wsBinSetter(WebSocket& socket, uint8_t* data, size_t size);
-	void wsBinGetter(WebSocket& socket, uint8_t* data, size_t size);
+	void wsBinSetter(WebsocketConnection& socket, uint8_t* data, size_t size);
+	void wsBinGetter(WebsocketConnection& socket, uint8_t* data, size_t size);
 private:
 	void _turnOn();
 	void _turnOff();
@@ -45,4 +44,3 @@ private:
 	uint8_t	_currentId = 0; //Id of currently selected output
 };
 
-#endif /* LIB_LIGHT_ANTITHEFT_H_ */

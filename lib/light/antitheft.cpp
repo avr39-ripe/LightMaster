@@ -12,7 +12,7 @@ AntiTheftClass::AntiTheftClass(BinOutClass** outputs, uint8_t persistentId)
 {
 	randomSeed(os_random());
 	_loadBinConfig();
-	state.onChange(onStateChangeDelegate(&AntiTheftClass::_enable, this));
+	state.onChange([this](uint8_t state){this->_enable(state);});
 }
 
 void AntiTheftClass::_turnOn()
@@ -120,7 +120,7 @@ void AntiTheftClass::_enablerCheck()
 	}
 }
 
-void AntiTheftClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
+void AntiTheftClass::wsBinGetter(WebsocketConnection& socket, uint8_t* data, size_t size)
 {
 	uint8_t* buffer = new uint8_t[wsBinConst::wsPayLoadStart + 2 + 2 + 2 + 2 + 2 + 2];
 	switch (data[wsBinConst::wsSubCmd])
@@ -145,7 +145,7 @@ void AntiTheftClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
 	delete buffer;
 }
 
-void AntiTheftClass::wsBinSetter(WebSocket& socket, uint8_t* data, size_t size)
+void AntiTheftClass::wsBinSetter(WebsocketConnection& socket, uint8_t* data, size_t size)
 {
 	switch (data[wsBinConst::wsSubCmd])
 	{
