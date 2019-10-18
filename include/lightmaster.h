@@ -5,13 +5,12 @@
  *      Author: shurik
  */
 
-#ifndef INCLUDE_LIGHTMASTER_H_
-#define INCLUDE_LIGHTMASTER_H_
+#pragma once
 //output mode selector: GPIO or MCP23S17
 //#define MCP23S17
 #define GPIO_MCP23017
 
-#include <SmingCore/SmingCore.h>
+#include <SmingCore.h>
 #ifdef MCP23S17 //use MCP23S17
 #include <Libraries/MCP23S17/MCP23S17.h>
 #endif
@@ -21,9 +20,7 @@
 #include <wsbinconst.h>
 #include <binin.h>
 #include <binout.h>
-#include <lightgroup.h>
 #include <binhttpbutton.h>
-#include <lightsystem.h>
 #include <bincycler.h>
 #include <antitheft.h>
 
@@ -46,4 +43,4 @@ extern BinOutClass* outputs[18];
 
 extern BinInPollerClass binInPoller;
 extern AntiTheftClass* antiTheft;
-#endif /* INCLUDE_LIGHTMASTER_H_ */
+

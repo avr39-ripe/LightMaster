@@ -1,5 +1,4 @@
 #include <app.h>
-#include <user_config.h>
 #include <lightmaster.h>
 
 NtpClient* ntpClient;
@@ -24,7 +23,7 @@ AppClass App;
 
 void init()
 {
-		Serial.printf("INITIAL Free Heap: %d\n", system_get_free_heap_size());
+		Serial.printf(_F("INITIAL Free Heap: %d\n"), system_get_free_heap_size());
         App.init();
         App.start();
 }
