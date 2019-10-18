@@ -5,9 +5,8 @@
  *      Author: shurik
  */
 
-#ifndef LIB_BINIO_BINARYINPUT_H_
-#define LIB_BINIO_BINARYINPUT_H_
-#include <SmingCore/SmingCore.h>
+#pragma once
+#include <SmingCore.h>
 #include <binstate.h>
 #include <Libraries/MCP23S17/MCP23S17.h>
 #include <Libraries/MCP23017/MCP23017.h>
@@ -74,5 +73,3 @@ private:
 	uint16_t _refresh;
 	Timer _refreshTimer;
 };
-
-#endif /* LIB_BINIO_BINARYINPUT_H_ */

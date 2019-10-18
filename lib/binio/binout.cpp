@@ -13,8 +13,7 @@ BinOutClass::BinOutClass(uint8_t unitNumber, uint8_t polarity)
 {
 	_unitNumber = unitNumber;
 	state.setPolarity(polarity);
-	state.onSet(onStateChangeDelegate(&BinOutClass::_setUnitState, this));
-
+	state.onSet(std::bind(&BinOutClass::_setUnitState, this, std::placeholders::_1));
 }
 
 
@@ -78,3 +77,4 @@ void BinOutMCP23017Class::_setUnitState(uint8_t state)
 //	Serial.printf("SetUnit: %d to %s\n", _unitNumber, this->state.getRawState() ? "true" : "false");
 	_mcp->digitalWrite(_unitNumber, this->state.getRawState());
 }
+

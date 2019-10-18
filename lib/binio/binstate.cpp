@@ -22,8 +22,8 @@ void BinStateClass::set(uint8_t state, uint8_t forceDelegatesCall)
 //	_state = state;
 	state ? _setState(getPolarity()) : _setState(!getPolarity());
 
-	Serial.printf("State set to: %s\n", get() ? "true" : "false");
-	Serial.printf("prevState set to: %s\n", getPrev() ? "true" : "false");
+	Serial.printf(_F("State set to: %s\n"), get() ? _F("true") : _F("false"));
+	Serial.printf(_F("prevState set to: %s\n"), getPrev() ? _F("true") : _F("false"));
 	if (_onSet)
 	{
 		_onSet(get()); //Call some external delegate on setting ANY state
@@ -42,11 +42,11 @@ void BinStateClass::set(uint8_t state, uint8_t forceDelegatesCall)
 
 void BinStateClass::toggle(uint8_t state)
 {
-	Serial.println("Toggle called\n");
+	Serial.println(_F("Toggle called\n"));
 	if (state == getToggleActive())
 	{
 		set(!get());
-		Serial.println("Toggle TOGGLED!\n");
+		Serial.println(_F("Toggle TOGGLED!\n"));
 	}
 }
 
@@ -58,12 +58,12 @@ void BinStateClass::onSet(onStateChangeDelegate delegateFunction)
 void BinStateClass::onChange(onStateChangeDelegate delegateFunction, uint8_t polarity)
 {
 //	OnStateChange onStateChange = {delegateFunction, polarity};
-	_onChange.add({delegateFunction, polarity});
+	_onChange.push_back({delegateFunction, polarity});
 }
 
 void BinStateClass::_callOnChangeDelegates()
 {
-	for (uint8_t i = 0; i < _onChange.count(); i++)
+	for (uint8_t i = 0; i < _onChange.size(); i++)
 	{
 		_onChange[i].delegateFunction(get() ? _onChange[i].polarity : !_onChange[i].polarity);
 	}
@@ -71,7 +71,7 @@ void BinStateClass::_callOnChangeDelegates()
 
 void BinStateClass::_saveBinConfig()
 {
-	Serial.printf("Try to save bin cfg..\n");
+	Serial.printf(_F("Try to save bin cfg..\n"));
 	file_t file = fileOpen(String(".state" + _uid), eFO_CreateIfNotExist | eFO_WriteOnly);
 	fileWrite(file, &_state, sizeof(_state));
 	fileClose(file);
@@ -80,10 +80,10 @@ void BinStateClass::_saveBinConfig()
 void BinStateClass::_loadBinConfig()
 {
 	uint8_t tempState = 0;
-	Serial.printf("Try to load bin cfg..\n");
+	Serial.printf(_F("Try to load bin cfg..\n"));
 	if (fileExist(String(".state" + _uid)))
 	{
-		Serial.printf("Will load bin cfg..\n");
+		Serial.printf(_F("Will load bin cfg..\n"));
 		file_t file = fileOpen(String(".state" + _uid), eFO_ReadOnly);
 		fileSeek(file, 0, eSO_FileStart);
 		fileRead(file, &tempState, sizeof(tempState));
@@ -104,10 +104,10 @@ void BinStateClass::persistent(uint8_t uid)
 BinStateHttpClass::BinStateHttpClass(HttpServer& webServer, BinStateClass* outState, String name, uint8_t uid, BinStateClass* inState)
 : _webServer(webServer), _outState(outState), _name(name), _uid(uid), _inState(inState)
 {
-	_outState->onChange(onStateChangeDelegate(&BinStateHttpClass::wsSendStateAll, this));
+	_outState->onChange(std::bind(&BinStateHttpClass::wsSendStateAll, this, std::placeholders::_1));
 };
 
-void BinStateHttpClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
+void BinStateHttpClass::wsBinGetter(WebsocketConnection& socket, uint8_t* data, size_t size)
 {
 	switch (data[wsBinConst::wsSubCmd])
 	{
@@ -142,7 +142,7 @@ void BinStateHttpClass::_fillStateBuffer(uint8_t* buffer)
 	os_memcpy((&buffer[wsBinConst::wsPayLoadStart]), &_uid, sizeof(_uid));
 	os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 1]), &tmpState, sizeof(tmpState));
 }
-void BinStateHttpClass::wsSendName(WebSocket& socket)
+void BinStateHttpClass::wsSendName(WebsocketConnection& socket)
 {
 	uint16_t bufferLength = wsBinConst::wsPayLoadStart + 1 + _name.length();
 	uint8_t* buffer = new uint8_t[bufferLength];
@@ -152,7 +152,7 @@ void BinStateHttpClass::wsSendName(WebSocket& socket)
 	delete buffer;
 }
 
-void BinStateHttpClass::wsSendState(WebSocket& socket)
+void BinStateHttpClass::wsSendState(WebsocketConnection& socket)
 {
 	uint8_t* buffer = new uint8_t[wsBinConst::wsPayLoadStart + 1 + 1];
 
@@ -169,11 +169,12 @@ void BinStateHttpClass::wsSendStateAll(uint8_t state)
 
 	_fillStateBuffer(buffer);
 
-	WebSocketsList &clients = _webServer.getActiveWebSockets();
-	for (uint8_t i = 0; i < clients.count(); i++)
-	{
-		clients[i].sendBinary(buffer, wsBinConst::wsPayLoadStart + 1 + 1);
-	}
+//	WebSocketsList &clients = _webServer.getActiveWebSockets();
+//	for (uint8_t i = 0; i < clients.count(); i++)
+//	{
+//		clients[i].sendBinary(buffer, wsBinConst::wsPayLoadStart + 1 + 1);
+//	}
+	WebsocketConnection::broadcast((const char*)buffer, wsBinConst::wsPayLoadStart + 1 + 1, WS_FRAME_BINARY);
 
 	delete buffer;
 }
@@ -194,7 +195,7 @@ void BinStateHttpClass::setState(uint8_t state)
 //	}
 };
 
-void BinStatesHttpClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t size)
+void BinStatesHttpClass::wsBinGetter(WebsocketConnection& socket, uint8_t* data, size_t size)
 {
 	uint8_t* buffer = nullptr;
 	switch (data[wsBinConst::wsSubCmd])
@@ -235,7 +236,7 @@ void BinStatesHttpClass::wsBinGetter(WebSocket& socket, uint8_t* data, size_t si
 	}
 }
 
-void BinStatesHttpClass::wsBinSetter(WebSocket& socket, uint8_t* data, size_t size)
+void BinStatesHttpClass::wsBinSetter(WebsocketConnection& socket, uint8_t* data, size_t size)
 {
 	uint8_t* buffer = nullptr;
 //	Serial.printf("BinStatesHttp -> wsBinSetter -> wsGetSetArg = %d\n", data[wsBinConst::wsGetSetArg]);
@@ -257,19 +258,19 @@ void BinStateSharedDeferredClass::set(uint8_t state)
 	if ( !state && _consumers > 0 )
 	{
 		_consumers--;
-		Serial.printf("Decrease consumers = %d\n", _consumers);
+		Serial.printf(_F("Decrease consumers = %d\n"), _consumers);
 	}
 
 	if ( _consumers == 0 && ( ((state && _trueDelay > 0) || (!state && _falseDelay > 0)) && !_nodelay) )
 	{
 		_setDeferredState(state);
-		_delayTimer.initializeMs( (state ? _trueDelay : _falseDelay) * 60000, TimerDelegate(&BinStateSharedDeferredClass::_deferredSet, this)).start(false);
-		Serial.printf("Arm deferred %s\n", state ? "True" : "False");
+		_delayTimer.initializeMs( (state ? _trueDelay : _falseDelay) * 60000, [=](){this->_deferredSet();}).start(false);
+		Serial.printf(_F("Arm deferred %s\n"), state ? _F("True") : _F("False"));
 	}
 
 	if ( (_consumers == 0 && ( (state && _trueDelay == 0) || (!state && _falseDelay == 0) || _nodelay)) || ( state && _consumers > 0 && _nodelay && _delayTimer.isStarted()) )
 	{
-		Serial.printf("Fire nodelay %s\n", state ? "true" : "false");
+		Serial.printf(_F("Fire nodelay %s\n"), state ? _F("true") : _F("false"));
 		_delayTimer.stop();
 		BinStateClass::set(state, false);
 	}
@@ -277,7 +278,7 @@ void BinStateSharedDeferredClass::set(uint8_t state)
 	if ( state )
 	{
 		_consumers++;
-		Serial.printf("Increase consumers = %d\n", _consumers);
+		Serial.printf(_F("Increase consumers = %d\n"), _consumers);
 	}
 }
 
@@ -289,7 +290,25 @@ void BinStateSharedDeferredClass::setNow(uint8_t state)
 }
 void BinStateSharedDeferredClass::_deferredSet()
 {
-	Serial.printf("Fire deferred %s\n", _getDefferedState() ? "true" : "false");
+	Serial.printf(_F("Fire deferred %s\n"), _getDefferedState() ? _F("true") : _F("false"));
 	BinStateClass::set(_getDefferedState(), false);
 	_delayTimer.stop();
+}
+
+//BinStateAndClass
+
+void BinStateAndClass::addState(BinStateClass* binState)
+{
+	_states.push_back(binState);
+	binState->onChange(std::bind(&BinStateAndClass::onChangeProcessor, this, std::placeholders::_1));
+}
+
+void BinStateAndClass::onChangeProcessor(uint8_t state)
+{
+	uint8_t result = true;
+	for (uint8_t i = 0; i < _states.size(); i++)
+	{
+		result &= _states[i]->get();
+	}
+	BinStateClass::set(result, false);
 }

@@ -4,10 +4,8 @@
  *  Created on: 15 июля 2016 г.
  *      Author: shurik
  */
-
-#ifndef LIB_BINIO_BINCYCLER_H_
-#define LIB_BINIO_BINCYCLER_H_
-#include <SmingCore/SmingCore.h>
+#pragma once
+#include <SmingCore.h>
 #include <binstate.h>
 
 class BinCyclerClass {
@@ -27,5 +25,3 @@ private:
 	uint16_t	_interval; // in seconds
 	Timer	_timer;
 };
-
-#endif /* LIB_BINIO_BINCYCLER_H_ */

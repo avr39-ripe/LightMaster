@@ -5,14 +5,14 @@
  *      Author: shurik
  */
 
-#ifndef LIB_BINIO_BINSTATE_H_
-#define LIB_BINIO_BINSTATE_H_
-#include <SmingCore/SmingCore.h>
+#pragma once
+#include <SmingCore.h>
 #include <wsbinconst.h>
+#include <vector>
 
 #ifndef ONSTATECHANGEDELEGATE_TYPE_DEFINED
 #define ONSTATECHANGEDELEGATE
-typedef Delegate<void(uint8_t state)> onStateChangeDelegate;
+typedef std::function<void(uint8_t state)> onStateChangeDelegate;
 #endif
 
 namespace BinState
@@ -63,7 +63,7 @@ protected:
 	uint8_t _uid = 0; // unic id used if persistent enabled as file name uid, must be unic on device
 	void _callOnChangeDelegates();
 	onStateChangeDelegate _onSet = nullptr; // call this with _state as argument
-	Vector<OnStateChange> _onChange = Vector<OnStateChange>(0,1); // call them with _state as argument
+	std::vector<OnStateChange> _onChange;// = Vector<OnStateChange>(1,1); // call them with _state as argument
 };
 
 class BinStateHttpClass
@@ -71,11 +71,11 @@ class BinStateHttpClass
 public:
 	BinStateHttpClass(HttpServer& webServer, BinStateClass* outState, String name, uint8_t uid, BinStateClass* inState = nullptr);
 //	: _webServer(webServer), _state(state), _name(name), _uid(uid) { _updateLength(); };
-	void wsBinGetter(WebSocket& socket, uint8_t* data, size_t size);
-	void wsBinSetter(WebSocket& socket, uint8_t* data, size_t size);
+	void wsBinGetter(WebsocketConnection& socket, uint8_t* data, size_t size);
+	void wsBinSetter(WebsocketConnection& socket, uint8_t* data, size_t size);
 	void wsSendStateAll(uint8_t state);
-	void wsSendState(WebSocket& socket);
-	void wsSendName(WebSocket& socket);
+	void wsSendState(WebsocketConnection& socket);
+	void wsSendName(WebsocketConnection& socket);
 	void addOutState(BinStateClass *outState) { if (outState) { _outState = outState; }; };
 	void setState(uint8_t state);
 	uint8_t getState() { return _outState->get(); };
@@ -85,20 +85,21 @@ private:
 	void _updateLength();
 	void _fillNameBuffer(uint8_t* buffer);
 	void _fillStateBuffer(uint8_t* buffer);
+
+	HttpServer& _webServer;
 	BinStateClass* _outState;
-	BinStateClass* _inState = nullptr;
 	String _name;
 	uint8_t _uid = 0;
-	HttpServer& _webServer;
+	BinStateClass* _inState = nullptr;
 };
 
 class BinStatesHttpClass
 {
 public:
-	void wsBinGetter(WebSocket& socket, uint8_t* data, size_t size);
-	void wsBinSetter(WebSocket& socket, uint8_t* data, size_t size);
+	void wsBinGetter(WebsocketConnection& socket, uint8_t* data, size_t size);
+	void wsBinSetter(WebsocketConnection& socket, uint8_t* data, size_t size);
 	void add(BinStateHttpClass* binStateHttp) { _binStatesHttp[binStateHttp->getUid()] = binStateHttp; };
-	static const uint8_t sysId = 3;
+	static const uint8_t sysId = 2;
 private:
 	HashMap<uint8_t,BinStateHttpClass*> _binStatesHttp;
 };
@@ -120,4 +121,12 @@ private:
 	uint8_t _nodelay = false;
 	Timer _delayTimer;
 };
-#endif /* LIB_BINIO_BINSTATE_H_ */
+
+class BinStateAndClass : public BinStateClass
+{
+public:
+	void addState(BinStateClass* binState);
+	void onChangeProcessor(uint8_t state);
+private:
+	std::vector<BinStateClass*> _states; // = Vector<BinStateClass*>(1,1);
+};
