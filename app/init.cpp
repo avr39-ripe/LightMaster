@@ -12,9 +12,10 @@ MCP* mcp002;
 MCP23017* mcp000;
 MCP23017* mcp001;
 MCP23017* mcp002;
+MCP23017* mcp003;
 #endif
 
-BinOutClass* outputs[18];
+BinOutClass* outputs[28];
 
 BinInPollerClass binInPoller(100);
 AntiTheftClass* antiTheft;

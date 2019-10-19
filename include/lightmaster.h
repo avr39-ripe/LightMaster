@@ -37,9 +37,10 @@ extern MCP* mcp002;
 extern MCP23017* mcp000;
 extern MCP23017* mcp001;
 extern MCP23017* mcp002;
+extern MCP23017* mcp003;
 #endif
 
-extern BinOutClass* outputs[18];
+extern BinOutClass* outputs[28];
 
 extern BinInPollerClass binInPoller;
 extern AntiTheftClass* antiTheft;
