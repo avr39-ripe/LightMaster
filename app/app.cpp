@@ -9,9 +9,9 @@
 
 void AppClass::init()
 {
-	char zoneNames[][27] = {{"Кухня вход"},{"Кухня стол"},{"Кухня"},{"Коридор"},{"Улица"},{"Холл 1 лево"},{"Холл 1 право"}, {"Холл 1 низ"}, \
+//	char zoneNames[28][27] = {{"Кухня вход"},{"Кухня стол"},{"Кухня"},{"Коридор"},{"Улица"},{"Холл 1 лево"},{"Холл 1 право"}, {"Холл 1 низ"}, \
 							{"Холл 2 лево"},{"Холл 2 право"},{"Холл 2 низ"},{"Спальня"},{"Спальня лево"},{"Спальня право"},{"Санузел"},\
-							{"С/у зеркало"},{"С/у вентилятор"}, {"Котельная"}};
+							{"С/у зеркало"},{"С/у вентилятор"}, {"Котельная"}, "1", "2","3","4","5","6","7","8","9","10"};
 
 	ApplicationClass::init();
 
@@ -34,9 +34,11 @@ void AppClass::init()
 	mcp000 = new MCP23017;
 	mcp001 = new MCP23017;
 	mcp002 = new MCP23017;
+	mcp003 = new MCP23017;
 	mcp000->begin(0x000);
 	mcp001->begin(0x001);
 	mcp002->begin(0x002);
+	mcp002->begin(0x003);
 
 #endif
 
@@ -56,10 +58,15 @@ void AppClass::init()
 	mcp002->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
 	mcp002->digitalWrite(0x0000); //Set all PORTA to 0xFF for simple relay which is active LOW
 
+//	mcp002->begin();
+	mcp003->pinMode(0xFF00); // Set PORTA to OUTPUT 0x00, PORTB to INPUT 0xFF
+	mcp003->pullupMode(0xFF00); // turn on internal pull-up for PORTB 0xFF
+	mcp003->digitalWrite(0x0000); //Set all PORTA to 0xFF for simple relay which is active LOW
+
 	Serial.printf(_F("Pre ARRAY Free Heap: %d\n"), system_get_free_heap_size());
 
-	BinInClass* inputs[18];
-	BinHttpButtonClass* httpButtons[18];
+	BinInClass* inputs[28];
+	BinHttpButtonClass* httpButtons[28];
 
 	antiTheft = new AntiTheftClass(outputs, 99);
 
@@ -70,6 +77,7 @@ void AppClass::init()
 	Serial.printf(_F("Post ARRAY Free Heap: %d\n"), system_get_free_heap_size());
 
 	BinStateClass* allOff = new BinStateClass();
+	auto allOffsetFalseFunc = [allOff](uint8_t state){allOff->setFalse(state);};
 
 //	BinStateClass* imHome = new BinStateClass();
 
@@ -88,14 +96,20 @@ void AppClass::init()
 		binInPoller.add(input);
 		antiTheft->addOutputId(i);
 
-		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, i, zoneNames[i], &output->state);
+		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, i, /*zoneNames[i],*/ &output->state);
 		httpButtons[i] = httpButton;
+		auto togglerFunc = [output](uint8_t state){output->state.toggle(state);};
 
-		input->state.onChange([output](uint8_t state){output->state.toggle (state);});
-		httpButton->state.onChange([output](uint8_t state){output->state.toggle (state);});
+		//input->state.onChange([output](uint8_t state){output->state.toggle(state);});
+		//httpButton->state.onChange([output](uint8_t state){output->state.toggle(state);});
+		input->state.onChange(togglerFunc);
+		httpButton->state.onChange(togglerFunc);
+
 		allOff->onChange([output](uint8_t state){output->state.setFalse(state);});
-		input->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
-		httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
+		//input->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
+		//httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
+		input->state.onChange(allOffsetFalseFunc);
+		httpButton->state.onChange(allOffsetFalseFunc);
 	}
 
 	for (uint8_t i = 0; i < 8; i++)
@@ -113,13 +127,20 @@ void AppClass::init()
 		binInPoller.add(input);
 		antiTheft->addOutputId(8 + i);
 
-		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 8 + i, zoneNames[8 + i], &output->state);
+		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 8 + i, /*zoneNames[8 + i],*/ &output->state);
 		httpButtons[8 + i] = httpButton;
-		input->state.onChange([output](uint8_t state){output->state.toggle (state);});
-		httpButton->state.onChange([output](uint8_t state){output->state.toggle (state);});
+		auto togglerFunc = [output](uint8_t state){output->state.toggle(state);};
+
+//		input->state.onChange([output](uint8_t state){output->state.toggle (state);});
+//		httpButton->state.onChange([output](uint8_t state){output->state.toggle (state);});
+		input->state.onChange(togglerFunc);
+		httpButton->state.onChange(togglerFunc);
+
 		allOff->onChange([output](uint8_t state){output->state.setFalse(state);});
-		input->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
-		httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
+//		input->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
+//		httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
+		input->state.onChange(allOffsetFalseFunc);
+		httpButton->state.onChange(allOffsetFalseFunc);
 	}
 
 	for (uint8_t i = 0; i < 2; i++)
@@ -137,13 +158,20 @@ void AppClass::init()
 		binInPoller.add(input);
 		antiTheft->addOutputId(16 + i);
 
-		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 16 + i, zoneNames[16 + i], &output->state);
+		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 16 + i, /*zoneNames[16 + i],*/ &output->state);
 		httpButtons[16 + i] = httpButton;
-		input->state.onChange([output](uint8_t state){output->state.toggle (state);});
-		httpButton->state.onChange([output](uint8_t state){output->state.toggle (state);});
+		auto togglerFunc = [output](uint8_t state){output->state.toggle(state);};
+
+//		input->state.onChange([output](uint8_t state){output->state.toggle (state);});
+//		httpButton->state.onChange([output](uint8_t state){output->state.toggle (state);});
+		input->state.onChange(togglerFunc);
+		httpButton->state.onChange(togglerFunc);
+
 		allOff->onChange([output](uint8_t state){output->state.setFalse(state);});
-		input->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
-		httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
+//		input->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
+//		httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
+		input->state.onChange(allOffsetFalseFunc);
+		httpButton->state.onChange(allOffsetFalseFunc);
 	}
 
 #ifdef MCP23S17
@@ -157,22 +185,56 @@ void AppClass::init()
 	allOff->onChange([output](uint8_t state){output->state.set(state);});
 	binInPoller.add(input);
 	input->state.onChange([allOff](uint8_t state){allOff->toggle(state);});
-	BinStateHttpClass* allOffState = new BinStateHttpClass(webServer, allOff, "Выкл. все", 0);
+	BinStateHttpClass* allOffState = new BinStateHttpClass(webServer, allOff, /*"Выкл. все",*/ 0);
 	binStatesHttp->add(allOffState);
-	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 25, "Выкл. все", allOff);
+	BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 25, /*"Выкл. все",*/ allOff);
 	httpButton->state.onChange([allOff](uint8_t state){allOff->toggle(state);});
 
 	allOff->persistent(0);
 
-	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 26, "Я дома!");
+	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 26/*, "Я дома!"*/);
 	httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
 	httpButton->state.onChange([=](uint8_t state){outputs[0]->state.setTrue(state);});
 	httpButton->state.onChange([=](uint8_t state){outputs[3]->state.setTrue(state);});
 	httpButton->state.onChange([=](uint8_t state){outputs[4]->state.setTrue(state);});
 
-	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 27, "Антивор!", &antiTheft->state);
+	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 27, /*"Антивор!",*/ &antiTheft->state);
 	httpButton->state.onChange([=](uint8_t state){antiTheft->state.set(state);});
 
+	///TEST
+	for (uint8_t i = 0; i < 8; i++)
+	{
+#ifdef MCP23S17
+		BinOutClass* output = new BinOutMCP23S17Class(*mcp000,i,0);
+		BinInClass* input = new BinInMCP23S17Class(*mcp000,i,0);
+#endif
+#ifdef GPIO_MCP23017
+		BinOutClass* output = new BinOutMCP23017Class(*mcp003,i,0);
+		BinInClass* input = new BinInMCP23017Class(*mcp003,i,0);
+#endif
+		outputs[18+i] = output;
+		inputs[18+i] = input;
+		binInPoller.add(input);
+		antiTheft->addOutputId(18+i);
+
+		BinHttpButtonClass* httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 28+i, /*zoneNames[18+i],*/ &output->state);
+		httpButtons[28+i] = httpButton;
+		auto togglerFunc = [output](uint8_t state){output->state.toggle(state);};
+
+		//input->state.onChange([output](uint8_t state){output->state.toggle(state);});
+		//httpButton->state.onChange([output](uint8_t state){output->state.toggle(state);});
+		input->state.onChange(togglerFunc);
+		httpButton->state.onChange(togglerFunc);
+
+		auto setFalseFunc = [allOff](uint8_t state){allOff->setFalse(state);};
+
+		allOff->onChange([output](uint8_t state){output->state.setFalse(state);});
+		//input->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
+		//httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
+		input->state.onChange(setFalseFunc);
+		httpButton->state.onChange(setFalseFunc);
+	}
+	///TEST
 #endif
 
 //	Serial.printf("AppClass init done!\n");
