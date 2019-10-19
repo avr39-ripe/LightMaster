@@ -13,7 +13,7 @@
 class BinHttpButtonClass : public BinInClass
 {
 public:
-	BinHttpButtonClass(HttpServer& webServer, BinStatesHttpClass& binStatesHttp, uint8_t unitNumber, String name = "Button", BinStateClass *outputState = nullptr);
+	BinHttpButtonClass(HttpServer& webServer, BinStatesHttpClass& binStatesHttp, uint8_t unitNumber, /*String name = "Button",*/ BinStateClass *outputState = nullptr);
 	virtual ~BinHttpButtonClass() {};
 	void addOutState(BinStateClass *outState) { _binStateHttp->addOutState(outState); };
 	uint8_t _readUnit() {return 0;}; //Do not used here
