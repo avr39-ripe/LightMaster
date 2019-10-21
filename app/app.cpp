@@ -38,7 +38,7 @@ void AppClass::init()
 	mcp000->begin(0x000);
 	mcp001->begin(0x001);
 	mcp002->begin(0x002);
-	mcp002->begin(0x003);
+	mcp003->begin(0x003);
 
 #endif
 
