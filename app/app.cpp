@@ -199,7 +199,7 @@ void AppClass::init()
 	httpButton->state.onChange([=](uint8_t state){outputs[4]->state.setTrue(state);});
 
 	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 27, /*"Антивор!",*/ &antiTheft->state);
-	httpButton->state.onChange([=](uint8_t state){antiTheft->state.set(state);});
+	httpButton->state.onChange([=](uint8_t state){antiTheft->state.toggle(state);});
 
 	///TEST
 	for (uint8_t i = 0; i < 8; i++)
