@@ -234,6 +234,23 @@ void AppClass::init()
 		input->state.onChange(setFalseFunc);
 		httpButton->state.onChange(setFalseFunc);
 	}
+
+	//Night magic group
+	auto cmnNightGrp = new BinStateSharedDeferredClass(); // Add Shared state to turn on/off shared zones
+	// Shared zones will follow cmnNightGrp state.
+	// First time it turns on they will turn on, last time it turns off they will turn off.
+	cmnNightGrp->onChange([=](uint8_t state){outputs[0]->state.set(state);});
+	cmnNightGrp->onChange([=](uint8_t state){outputs[1]->state.set(state);});
+
+	for (uint8_t i = 24; i < 26; i++)
+	{
+		// As soon as individual zone from "Night magic group" turns on/off, turn on/off,
+		// add/remove consumer in fact, cmnNightGrp state.
+		outputs[i]->state.onChange([cmnNightGrp](uint8_t state){cmnNightGrp->set(state);});
+		// If some zone from shared "Night magic group" isn't on, turn it on.
+		outputs[i]->state.onChange([=](uint8_t state){outputs[0]->state.setTrue(state);});
+		outputs[i]->state.onChange([=](uint8_t state){outputs[1]->state.setTrue(state);});
+	}
 	///TEST
 #endif
 
