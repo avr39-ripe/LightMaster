@@ -24,6 +24,7 @@ function onDocumentRedy() {
 	var appStatus = new AppStatusClass();
 	var binStates = new BinStatesClass();
 	
+	
 	wsEnablers.push(appStatus.enable.bind(appStatus));
 	wsEnablers.push(binStates.enableStates.bind(binStates));
 	wsEnablers.push(binStates.enableButtons.bind(binStates));
@@ -32,6 +33,10 @@ function onDocumentRedy() {
 	wsBinProcessors[BinStatesClass.sysId] = binStates.wsBinProcess.bind(binStates);
 	
 	initWS();
+	
+	// Handle different menu items
+	document.getElementById('menuShutters').addEventListener('click', () => { binStates.showOnlyUids([0, 152, 155,156,157,158,159,160]);});
+	document.getElementById('menuLight').addEventListener('click', () => { binStates.showOnlyUids([0, 127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,152,153,154,161,162]);});
 }
 
 document.addEventListener('DOMContentLoaded', onDocumentRedy);
