@@ -7,6 +7,8 @@
 #include <app.h>
 #include <lightmaster.h>
 
+void shuttersClose(uint8_t state);
+
 void AppClass::init()
 {
 //	char zoneNames[28][27] = {{"Кухня вход"},{"Кухня стол"},{"Кухня"},{"Коридор"},{"Улица"},{"Холл 1 лево"},{"Холл 1 право"}, {"Холл 1 низ"}, \
@@ -251,6 +253,18 @@ void AppClass::init()
 		outputs[i]->state.onChange([=](uint8_t state){outputs[0]->state.setTrue(state);});
 		outputs[i]->state.onChange([=](uint8_t state){outputs[1]->state.setTrue(state);});
 	}
+
+	//shuttersControl
+	allOff->onChange(shuttersClose); // Close all shutters on True and open on False
+	// Make shutters closers/openers mutual exclusive
+	outputs[18]->state.onChange([=](uint8_t state){outputs[21]->state.setFalse(state);});
+	outputs[19]->state.onChange([=](uint8_t state){outputs[22]->state.setFalse(state);});
+	outputs[20]->state.onChange([=](uint8_t state){outputs[23]->state.setFalse(state);});
+
+	outputs[21]->state.onChange([=](uint8_t state){outputs[18]->state.setFalse(state);});
+	outputs[22]->state.onChange([=](uint8_t state){outputs[19]->state.setFalse(state);});
+	outputs[23]->state.onChange([=](uint8_t state){outputs[20]->state.setFalse(state);});
+
 	///TEST
 #endif
 
@@ -271,6 +285,32 @@ void AppClass::_loop()
 {
 	ApplicationClass::_loop();
 //	Serial.printf("AppClass loop\n");
-	Serial.printf("Free Heap: %d WS count: %d\n", system_get_free_heap_size(), WebsocketConnection::getActiveWebsockets().count());
+	Serial.printf("Free Heap: %d WS count: %d Counter: %d\n", system_get_free_heap_size(), WebsocketConnection::getActiveWebsockets().count(), _counter);
 }
 
+// Shutters callbacks and other stuff
+Timer shuttersTimer;
+const uint8_t shuttersDuration = 5; //Shutters motor duration to edge position
+
+void shuttersCtrl(uint8_t close, uint8_t state)
+{
+	if (close)
+	{
+		outputs[18]->state.set(state);
+		outputs[19]->state.set(state);
+		outputs[20]->state.set(state);
+	}
+	else
+	{
+		outputs[21]->state.set(state);
+		outputs[22]->state.set(state);
+		outputs[23]->state.set(state);
+	}
+}
+
+void shuttersClose(uint8_t state)
+{
+	if (shuttersTimer.isStarted()) { shuttersTimer.stop(); } //stop defered timer
+	shuttersCtrl(state, true); // Based on state turn on all shutters closers(T) or openers(F)
+	shuttersTimer.initializeMs(shuttersDuration*1000, [state](){shuttersCtrl(state,false);}).start(false);
+}
