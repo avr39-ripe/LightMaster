@@ -9,27 +9,52 @@
 
     <!-- Bootstrap core -->
     <link href="bootstrap.min.css" rel="stylesheet">
-<!-- <script src="encoding.js"></script> -->
-	<style>
+	<style type="text/css">
 		.main { font-size: 63px; }
+		
+		.navbar-fixed-top {
+		  margin-bottom: 19px;
+		}
+		/* bs3: mobile navbar without js custom
+		 * ------------------------------------
+		 * show the collapse when navbar toggle is checked */
+		#navbar-toggle-cbox:checked ~ .collapse {
+			display: block;
+		}
+		/* the checkbox used only internally; don't display it */
+		#navbar-toggle-cbox {
+		  display:none
+		}
+		
+		body {
+			padding-bottom: 70px;
+		}
 	</style>
-
   </head>
   <body>
-
-    <div class="container">
-      <div class="header">
-      <h4 class="text-muted">LightMaster</h4>
-        <nav>
-          <ul class="nav nav-pills pull-right">
-            <li id="menuDefault"role="presentation" class="active"><a href="/">Состояние</a></li>
-            <li id="menuLight" role="presentation"><a href="#">Свет</a></li>
-            <li id="menuShutters" role="presentation"><a href="#">Жалюзи</a></li>
-            <li role="presentation"><a href="/config">Настройки</a></li>
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <input type="checkbox" id="navbar-toggle-cbox">
+        <div class="navbar-header">
+         <label for="navbar-toggle-cbox" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </label>
+          <a class="navbar-brand" href="#">LightMaster</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li id="menuDefault" class="active"><a href="/">Все</a></li>
+            <li id="menuLight"><a href="#">Свет</a></li>
+            <li id="menuShutters"><a href="#">Жалюзи</a></li>
           </ul>
-        </nav>
+        </div>
       </div>
-
+    </nav>
+    
+    <div class="container">
 		<div class="row">
 			<br>
 			<div id="panel-container" class="col-xs-offset-2">
