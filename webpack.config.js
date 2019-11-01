@@ -15,7 +15,7 @@ module.exports = {
 		]
 	},
 	entry : {
-		index : './files/index_new.js'
+		index : './files/index.js'
 	},
 	output : {
 		path : path.join(__dirname, 'files'),
@@ -71,8 +71,9 @@ module.exports = {
 	plugins : [
 	new BabiliPlugin(),
 	new HtmlWebpackPlugin({
-		template : path.resolve('./', './files/index-template.html'),
-		filename : path.resolve('./', './files/index_new.html'),
+//template : path.resolve('./', './files/index-template.html'),
+		template : './files/index-template.html',
+//		filename : path.resolve('./', './files/index_new.html'),
 		inject : 'head'
 	}),
 	new CompressionPlugin({
