@@ -91,9 +91,9 @@ void ApplicationClass::_initialWifiConfig()
 
 // One-time set own soft Access Point SSID and PASSWORD and save it into configuration area
 // This part of code will run ONCE after application flash into the ESP
-	if(WifiAccessPoint.getSSID() != WIFIAP_SSID)
+	if(WifiAccessPoint.getSSID() != WIFIAP_SSID + macDigits)
 	{
-		WifiAccessPoint.config(WIFIAP_SSID, WIFIAP_PWD, AUTH_WPA2_PSK);
+		WifiAccessPoint.config(WIFIAP_SSID + macDigits, WIFIAP_PWD, AUTH_WPA2_PSK);
 		WifiAccessPoint.enable(true, true);
 	}
 	else
@@ -153,8 +153,9 @@ void ApplicationClass::_STAGotIP(IpAddress ip, IpAddress mask, IpAddress gateway
 	_reconnectTimer.stop();
 	if (WifiAccessPoint.isEnabled())
 	{
-		debugf("Shutdown OWN AP");
-		WifiAccessPoint.enable(false);
+		_reconnectTimer.initializeMs(60000, [this](){Serial.printf(_F("Shutdown OWN AP\n")); WifiAccessPoint.enable(false);}).startOnce();
+//		debugf("Shutdown OWN AP");
+//		WifiAccessPoint.enable(false);
 	}
 	// Add commands to be executed after successfully connecting to AP and got IP from it
 	userSTAGotIP(ip, mask, gateway);
@@ -182,6 +183,7 @@ void ApplicationClass::startWebServer()
 
 	webServer.listen(80);
 	webServer.paths.set("/",HttpPathDelegate(&ApplicationClass::_httpOnIndex,this));
+	webServer.paths.set("/ip",HttpPathDelegate(&ApplicationClass::_httpOnIp,this));
 	webServer.paths.set("/config",HttpPathDelegate(&ApplicationClass::_httpOnConfiguration,this));
 	webServer.paths.set("/config.json",HttpPathDelegate(&ApplicationClass::_httpOnConfigurationJson,this));
 //	webServer.addPath("/state.json",HttpPathDelegate(&ApplicationClass::_httpOnStateJson,this));
@@ -215,6 +217,11 @@ void ApplicationClass::_httpOnIndex(HttpRequest &request, HttpResponse &response
 {
 	response.setCache(86400, true); // It's important to use cache for better performance.
 	response.sendFile("index.html");
+}
+
+void ApplicationClass::_httpOnIp(HttpRequest &request, HttpResponse &response)
+{
+	response.sendString(WifiStation.getIP().toString());
 }
 
 void ApplicationClass::_httpOnConfiguration(HttpRequest &request, HttpResponse &response)
