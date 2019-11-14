@@ -10,6 +10,7 @@
 import BinStatesClass from 'binStates';
 import { initWS, websocket, wsEnablers, wsBinProcessors } from 'websocket';
 //import TempsensorsClass from 'tempsensors';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 //Here we put some initial code which starts after DOM loaded
 function onDocumentRedy() {
