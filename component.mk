@@ -65,10 +65,13 @@ COMPONENT_INCDIRS = include lib/application lib/binio lib/light lib/wsbinconst
 
 ENABLE_CMD_EXECUTOR = 0
 
-WEBPACK_OUT = files/index.*.js*
+WEBPACK_OUT = web/build
+SPIFF_OUT = files
+INDEX = index.html.gz
 
 .PHONY: webpacker
 webpacker: 
-	$(vecho) "Bundling js with Webpack"
-	$(Q) rm -rf $(WEBPACK_OUT)
+	$(vecho) "Bundling html+css+js with Webpack"
+	$(Q) rm -rf $(WEBPACK_OUT)/*
 	$(Q) webpack
+	$(Q) mv $(WEBPACK_OUT)/$(INDEX) $(SPIFF_OUT)/$(INDEX)

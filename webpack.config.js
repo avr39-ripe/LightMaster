@@ -2,6 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 const BabiliPlugin = require("babili-webpack-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
 
 module.exports = {
@@ -11,15 +12,17 @@ module.exports = {
 				path.resolve(__dirname, "lib/application"),
 				path.resolve(__dirname, "lib/binio"),
 				path.resolve(__dirname, "lib/tempsensor"),
-				path.resolve(__dirname, "files"), "node_modules"
+				path.resolve(__dirname, "files"),
+				path.resolve(__dirname, "web"), "node_modules"
 		]
 	},
 	entry : {
-		index : './files/index.js'
+		index : 'index.js'
 	},
 	output : {
-		path : path.join(__dirname, 'files'),
-		filename : '[name].[hash:10].js'
+		path : path.join(__dirname, 'web/build'),
+//		filename : '[name].[hash:10].js'
+//		filename : '[name].[hash:10].js'
 	},
 	module : {
 		rules : [ {
@@ -63,20 +66,32 @@ module.exports = {
 					]
 				}
 			} ]
-		}
-
+		},
+	    {
+		      test: /\.css$/,
+		      use: ['style-loader', 'css-loader']
+		},
+		{
+	        test: /\.(png|jpe?g|gif|svg|eot|ttf|woff|woff2)$/i,
+	        loader: 'url-loader',
+	        options: {
+	          limit: 8192,
+	        },
+	    }
 		]
 	},
 	devtool : 'source-map',
 	plugins : [
 	new BabiliPlugin(),
 	new HtmlWebpackPlugin({
-//template : path.resolve('./', './files/index-template.html'),
-		template : './files/index-template.html',
-//		filename : path.resolve('./', './files/index_new.html'),
-		inject : 'head'
+		template : './web/index-template.html',
+		inject : 'head',
+		//inlineSource: '.(js|css)$' // embed all javascript and css inline
+		inlineSource: '.(js|css|png|jpe?g|gif|svg|eot|ttf|woff|woff2)$'
 	}),
+	new HtmlWebpackInlineSourcePlugin(),
 	new CompressionPlugin({
+		test: /\.html|map(\?.*)?$/i,
 		deleteOriginalAssets : true
 	})
 	]
