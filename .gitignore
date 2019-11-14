@@ -4,3 +4,4 @@ out/
 .project
 files/index.*.js*
 files/index.html*
+web/build/
