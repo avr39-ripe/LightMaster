@@ -80,8 +80,9 @@ void AppClass::init()
 
 		httpButtons[i] = new BinHttpButtonClass(webServer, *binStatesHttp, i, &outputs[i]->state);
 		auto togglerFunc = [i](uint8_t state){outputs[i]->state.toggle(state);};
+		auto inverterFunc = [i](uint8_t state){outputs[i]->state.invert(state);};
 
-		inputs[i]->state.onChange(togglerFunc);
+		inputs[i]->state.onChange(inverterFunc);
 		httpButtons[i]->state.onChange(togglerFunc);
 
 		allOff->onChange([i](uint8_t state){outputs[i]->state.setFalse(state);});
@@ -106,58 +107,23 @@ void AppClass::init()
 	input->state.onChange([allOff](uint8_t state){allOff->toggle(state);});
 	auto allOffState = new BinStateHttpClass(webServer, allOff, 0);//"Выкл. все"
 	binStatesHttp->add(allOffState);
-	auto httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 27, allOff); //"Выкл. все"
+	auto httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, allOffId, allOff); //"Выкл. все"
 	httpButton->state.onChange([allOff](uint8_t state){allOff->toggle(state);});
 	allOff->persistent(0);
 
-	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 28); //"Я дома!"
+	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 8); //"Вся терасса!"
 	httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
 	httpButton->state.onChange([](uint8_t state)
 			{
-				for(uint8_t zoneId: {0,1,9,10})
+				for(uint8_t zoneId: {3,4,5})
 				{
 					outputs[zoneId]->state.setTrue(state);
 				};
 			});
 
-	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 29, &antiTheft->state);//"Антивор!"
+	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 9, &antiTheft->state);//"Антивор!"
 	httpButton->state.onChange([](uint8_t state){antiTheft->state.toggle(state);});
 
-//Night magic group
-	auto cmnNightGrp = new BinStateSharedDeferredClass(); // Add Shared state to turn on/off shared zones
-	// Shared zones will follow cmnNightGrp state.
-	// First time it turns on they will turn on, last time it turns off they will turn off.
-	uint8_t magicNightOutputs[]{ 1, 9, 13, 14}; // Output id that will form Magic night group
-	uint8_t magicNightActivators[]{ 2, 4, 7, 8}; // Outputs id that will trigger Magic Night Group
-
-	for (const auto& activatorId : magicNightActivators)
-	{
-		outputs[activatorId]->state.onChange([cmnNightGrp](uint8_t state){cmnNightGrp->set(state);});
-		outputs[activatorId]->state.onChange([magicNightOutputs](uint8_t state)
-				{
-					for (const auto& mnOutputId : magicNightOutputs)
-					{
-						outputs[mnOutputId]->state.setTrue(state);
-					};
-				});
-	}
-
-	cmnNightGrp->onChange([magicNightOutputs](uint8_t state)
-				{
-					for (const auto& mnOutputId : magicNightOutputs)
-					{
-						outputs[mnOutputId]->state.set(state);
-					}
-				});
-
-//shuttersControl
-	allOff->onChange(shuttersClose); // Close all shutters on True and open on False
-// Make shutters closers/openers mutual exclusive
-	for (const auto& shuttersOutput : shuttersOutputs)
-	{
-		outputs[shuttersOutput[(int)shutters::open]]->state.onChange([shuttersOutput](uint8_t state){outputs[shuttersOutput[(int)shutters::close]]->state.setFalse(state);});
-		outputs[shuttersOutput[(int)shutters::close]]->state.onChange([shuttersOutput](uint8_t state){outputs[shuttersOutput[(int)shutters::open]]->state.setFalse(state);});
-	}
 #endif
 }
 
@@ -185,29 +151,4 @@ void AppClass::_httpOnIndex(HttpRequest &request, HttpResponse &response)
     response.headers[HTTP_HEADER_CONTENT_ENCODING] = _F("gzip");
     auto stream = new FlashMemoryStream(flash_indexhtmlgz);
     response.sendDataStream(stream, MimeType::MIME_HTML);
-}
-
-//// Shutters callbacks and other stuff
-Timer shuttersTimer;
-
-void shuttersCtrl(uint8_t close, uint8_t state)
-{
-	for (const auto& shuttersOutput : shuttersOutputs)
-	{
-		if (close)
-		{
-			outputs[shuttersOutput[(int)shutters::close]]->state.set(state);
-		}
-		else
-		{
-			outputs[shuttersOutput[(int)shutters::open]]->state.set(state);
-		}
-	}
-}
-
-void shuttersClose(uint8_t state)
-{
-	if (shuttersTimer.isStarted()) { shuttersTimer.stop(); } //stop defered timer
-	shuttersCtrl(state, true); // Based on state turn on all shutters closers(T) or openers(F)
-	shuttersTimer.initializeMs(shuttersDuration*1000, [state](){shuttersCtrl(state,false);}).start(false);
 }

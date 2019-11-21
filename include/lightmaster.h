@@ -11,7 +11,7 @@
 #define GPIO_MCP23017
 
 #if defined(MCP23S17) || defined(GPIO_MCP23017)
-const uint8_t mcpCount = 4; //Number of MCP23*17 ICs
+const uint8_t mcpCount = 1; //Number of MCP23*17 ICs
 
 #endif
 #include <SmingCore.h>
@@ -30,14 +30,10 @@ const uint8_t mcpCount = 4; //Number of MCP23*17 ICs
 
 extern NtpClient* ntpClient;
 
-const uint8_t ioCount = 27;
+const uint8_t ioCount = 8;
 const uint8_t outputsCount = ioCount;
 const uint8_t inputsCount = ioCount;
-const uint8_t allOffId = 27;
-
-const uint8_t shuttersDuration = 5; //Shutters motor duration to edge position in seconds
-enum class shutters : int {open,close}; // Constants for access array
-const uint8_t shuttersOutputs[][2]{ {15,16}, {17,18}, {19,20}, {21,22}, {23,24}, {25,26}}; // Outputs id of shutters
+const uint8_t allOffId = 7;
 
 extern BinOutClass* outputs[outputsCount];
 
