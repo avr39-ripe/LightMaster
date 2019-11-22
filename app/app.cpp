@@ -91,20 +91,20 @@ void AppClass::init()
 		httpButtons[i]->state.onChange(allOffsetFalseFunc);
 	}
 //Additional buttons/settings
-	uint8_t mcpId = allOffId >> 3; //mcp IC number from linear io number, math eq i / 8
-	uint8_t pinId = allOffId ^ mcpId << 3; //mcp IC pin number from linear io number, math eq i ^ (mcpId*8)
-
-#ifdef MCP23S17
-		auto output = new BinOutMCP23S17Class(*mcp[mcpId],pinId,0);
-		auto input = new BinInMCP23S17Class(*mcp[mcpId],pinId,0);
-#endif
-#ifdef GPIO_MCP23017
-		auto output = new BinOutMCP23017Class(*mcp[mcpId],pinId,0);
-		auto input = new BinInMCP23017Class(*mcp[mcpId],pinId,0);
-#endif
-	allOff->onChange([output](uint8_t state){output->state.set(state);});
-	binInPoller.add(input);
-	input->state.onChange([allOff](uint8_t state){allOff->toggle(state);});
+//	uint8_t mcpId = allOffId >> 3; //mcp IC number from linear io number, math eq i / 8
+//	uint8_t pinId = allOffId ^ mcpId << 3; //mcp IC pin number from linear io number, math eq i ^ (mcpId*8)
+//
+//#ifdef MCP23S17
+//		auto output = new BinOutMCP23S17Class(*mcp[mcpId],pinId,0);
+//		auto input = new BinInMCP23S17Class(*mcp[mcpId],pinId,0);
+//#endif
+//#ifdef GPIO_MCP23017
+//		auto output = new BinOutMCP23017Class(*mcp[mcpId],pinId,0);
+//		auto input = new BinInMCP23017Class(*mcp[mcpId],pinId,0);
+//#endif
+//	allOff->onChange([output](uint8_t state){output->state.set(state);});
+//	binInPoller.add(input);
+//	input->state.onChange([allOff](uint8_t state){allOff->toggle(state);});
 	auto allOffState = new BinStateHttpClass(webServer, allOff, 0);//"Выкл. все"
 	binStatesHttp->add(allOffState);
 	auto httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, allOffId, allOff); //"Выкл. все"
@@ -121,7 +121,17 @@ void AppClass::init()
 				};
 			});
 
-	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 9, &antiTheft->state);//"Антивор!"
+	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 9); //"Весь гараж!"
+	httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
+	httpButton->state.onChange([](uint8_t state)
+			{
+				for(uint8_t zoneId: {0,1,2})
+				{
+					outputs[zoneId]->state.toggle(state);
+				};
+			});
+
+	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 10, &antiTheft->state);//"Антивор!"
 	httpButton->state.onChange([](uint8_t state){antiTheft->state.toggle(state);});
 
 #endif
