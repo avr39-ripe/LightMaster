@@ -120,8 +120,8 @@ void AppClass::init()
 				};
 			});
 
-	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 29, &antiTheft->state);//"Антивор!"
-	httpButton->state.onChange([](uint8_t state){antiTheft->state.toggle(state);});
+//	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 29, &antiTheft->state);//"Антивор!"
+//	httpButton->state.onChange([](uint8_t state){antiTheft->state.toggle(state);});
 
 //Night magic group
 	auto cmnNightGrp = new BinStateSharedDeferredClass(); // Add Shared state to turn on/off shared zones
