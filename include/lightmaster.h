@@ -35,7 +35,7 @@ const uint8_t outputsCount = ioCount;
 const uint8_t inputsCount = ioCount;
 const uint8_t allOffId = 27;
 
-const uint8_t shuttersDuration = 5; //Shutters motor duration to edge position in seconds
+const uint16_t shuttersDuration = 300; //Shutters motor duration to edge position in seconds
 enum class shutters : int {open,close}; // Constants for access array
 const uint8_t shuttersOutputs[][2]{ {15,16}, {17,18}, {19,20}, {21,22}, {23,24}, {25,26}}; // Outputs id of shutters
 
