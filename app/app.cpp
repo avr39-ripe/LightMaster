@@ -81,7 +81,16 @@ void AppClass::init()
 		httpButtons[i] = new BinHttpButtonClass(webServer, *binStatesHttp, i, &outputs[i]->state);
 		auto togglerFunc = [i](uint8_t state){outputs[i]->state.toggle(state);};
 
-		inputs[i]->state.onChange(togglerFunc);
+		if (i > 14) //shutters inputs need special care!
+		{
+			auto setterFunc = [i](uint8_t state){outputs[i]->state.set(state);}; //Follow shutters 3-position switch state, no toggle!
+			inputs[i]->state.onChange(setterFunc);
+		}
+		else
+		{
+			inputs[i]->state.onChange(togglerFunc);
+		}
+
 		httpButtons[i]->state.onChange(togglerFunc);
 
 		allOff->onChange([i](uint8_t state){outputs[i]->state.setFalse(state);});
