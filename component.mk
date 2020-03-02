@@ -58,7 +58,7 @@ RBOOT_SPIFFS_0  ?= 0x100000
 RBOOT_SPIFFS_1  ?= 0x300000
 
 RBOOT_RTC_ENABLED = 1
-SPIFF_SIZE      ?= 262144
+SPIFF_SIZE      ?= 524288
 
 COMPONENT_SRCDIRS = app lib/application lib/binio lib/light lib/wsbinconst
 COMPONENT_INCDIRS = include lib/application lib/binio lib/light lib/wsbinconst
