@@ -136,8 +136,8 @@ void AppClass::init()
 	auto cmnNightGrp = new BinStateSharedDeferredClass(); // Add Shared state to turn on/off shared zones
 	// Shared zones will follow cmnNightGrp state.
 	// First time it turns on they will turn on, last time it turns off they will turn off.
-	uint8_t magicNightOutputs[]{ 1, 9, 13, 14}; // Output id that will form Magic night group
-	uint8_t magicNightActivators[]{ 2, 4, 7, 8}; // Outputs id that will trigger Magic Night Group
+	uint8_t magicNightOutputs[]{ 1, 13}; // Output id that will form Magic night group
+	uint8_t magicNightActivators[]{ 7, 8}; // Outputs id that will trigger Magic Night Group
 
 	for (const auto& activatorId : magicNightActivators)
 	{
