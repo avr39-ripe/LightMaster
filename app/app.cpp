@@ -123,7 +123,7 @@ void AppClass::init()
 	httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
 	httpButton->state.onChange([](uint8_t state)
 			{
-				for(uint8_t zoneId: {0,1,9,10})
+				for(uint8_t zoneId: {0,2,6,10})
 				{
 					outputs[zoneId]->state.setTrue(state);
 				};
@@ -136,8 +136,8 @@ void AppClass::init()
 	auto cmnNightGrp = new BinStateSharedDeferredClass(); // Add Shared state to turn on/off shared zones
 	// Shared zones will follow cmnNightGrp state.
 	// First time it turns on they will turn on, last time it turns off they will turn off.
-	uint8_t magicNightOutputs[]{ 1, 13}; // Output id that will form Magic night group
-	uint8_t magicNightActivators[]{ 7, 8}; // Outputs id that will trigger Magic Night Group
+	uint8_t magicNightOutputs[]{ 1 }; // Output id that will form Magic night group
+	uint8_t magicNightActivators[]{ 3, 7, 8}; // Outputs id that will trigger Magic Night Group
 
 	for (const auto& activatorId : magicNightActivators)
 	{
