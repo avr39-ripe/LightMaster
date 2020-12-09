@@ -7,6 +7,14 @@
 #include <app.h>
 #include <lightmaster.h>
 
+namespace std
+{
+	void __throw_length_error(char const*)
+	{
+		while (true) {}
+	}
+}
+
 // Shutters callback
 void shuttersClose(uint8_t state);
 
@@ -193,7 +201,7 @@ void AppClass::_httpOnIndex(HttpRequest &request, HttpResponse &response)
 //	response.sendFile("index.html");
     response.headers[HTTP_HEADER_CONTENT_ENCODING] = _F("gzip");
     auto stream = new FlashMemoryStream(flash_indexhtmlgz);
-    response.sendDataStream(stream, MimeType::MIME_HTML);
+    response.sendDataStream(stream, MIME_HTML);
 }
 
 //// Shutters callbacks and other stuff
