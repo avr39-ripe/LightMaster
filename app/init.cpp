@@ -6,7 +6,6 @@ NtpClient* ntpClient;
 BinOutClass* outputs[outputsCount];
 
 BinInPollerClass binInPoller(100);
-AntiTheftClass* antiTheft;
 
 AppClass App;
 
