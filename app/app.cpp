@@ -18,6 +18,8 @@ namespace std
 void groupSet(const uint8_t* group, uint8_t state);
 
 Timer imHomeTimer;
+Timer nightChildrenTimer;
+Timer nightBedroomTimer;
 
 void AppClass::init()
 {
@@ -199,7 +201,64 @@ void AppClass::init()
 	httpButton->state.onChange(imHomeFunc);
 
 
+// night group magic stuff
+	BinStateClass* nightManual{new BinStateClass()};
+	auto nightChildrenFunc{
+		[nightManual](uint8_t state)
+		{
+			if (state and !nightManual->get())
+			{
+				groupSet(nightChildrenGroup, true);
+				nightChildrenTimer.initializeMs(nightDuration*1000, [=](){groupSet(nightChildrenGroup, false);}).start(false);
+			}
+		}
+	};
 
+	auto nightBedroomFunc{
+		[nightManual](uint8_t state)
+		{
+			if (state and !nightManual->get())
+			{
+				groupSet(nightChildrenGroup, true);
+				nightChildrenTimer.initializeMs(nightDuration*1000, [=](){groupSet(nightChildrenGroup, false);}).start(false);
+
+				groupSet(nightBedroomGroup, true);
+				nightBedroomTimer.initializeMs(nightDuration*1000, [=](){groupSet(nightBedroomGroup, false);}).start(false);
+			}
+		}
+	};
+
+	auto nightManualFunc{
+		[](uint8_t state)
+		{
+			if (state)
+			{
+				groupSet(nightChildrenGroup, true);
+				nightChildrenTimer.stop();
+
+				groupSet(nightBedroomGroup, true);
+				nightBedroomTimer.stop();
+			}
+			else
+			{
+				groupSet(nightChildrenGroup, false);
+				groupSet(nightBedroomGroup, false);
+			}
+		}
+	};
+
+	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, nightChildrenId); //"Ночь дети"
+	httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
+	httpButton->state.onChange(nightChildrenFunc);
+
+	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, nightBedroomId); //"Ночь спальня"
+	httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
+	httpButton->state.onChange(nightBedroomFunc);
+
+	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, nightManualId, nightManual); //"Ночная подсветка"
+	httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
+	httpButton->state.onChange([nightManual](uint8_t state){nightManual->toggle(state);});
+	nightManual->onChange(nightManualFunc);
 
 //	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 29, &antiTheft->state);//"Антивор!"
 //	httpButton->state.onChange([](uint8_t state){antiTheft->state.toggle(state);});
