@@ -247,19 +247,37 @@ void AppClass::init()
 		}
 	};
 
+	for (uint8_t nightIn: {nightChildrenInputId, nightBedroomInputId})
+	{
+		uint8_t mcpId{(uint8_t)(nightIn >> 3)}; //mcp IC number from linear io number, math eq i / 8
+		uint8_t pinId{(uint8_t)(nightIn ^ mcpId << 3)}; //mcp IC pin number from linear io number, math eq i ^ (mcpId*8)
+
+#ifdef MCP23S17
+		inputs[nightIn] = new BinInMCP23S17Class(*mcp[mcpId],pinId,0);
+#endif
+#ifdef GPIO_MCP23017
+		inputs[nightIn] = new BinInMCP23017Class(*mcp[mcpId],pinId,0);
+#endif
+		inputs[nightIn]->state.onChange(allOffsetFalseFunc);
+		binInPoller.add(inputs[nightIn]);
+	}
+	inputs[nightChildrenInputId]->state.onChange(nightChildrenFunc);
+	inputs[nightBedroomInputId]->state.onChange(nightBedroomFunc);
+
 	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, nightChildrenId); //"Ночь дети"
-	httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
+	httpButton->state.onChange(allOffsetFalseFunc);
 	httpButton->state.onChange(nightChildrenFunc);
 
 	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, nightBedroomId); //"Ночь спальня"
-	httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
+	httpButton->state.onChange(allOffsetFalseFunc);
 	httpButton->state.onChange(nightBedroomFunc);
 
 	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, nightManualId, nightManual); //"Ночная подсветка"
-	httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
+	httpButton->state.onChange(allOffsetFalseFunc);
 	httpButton->state.onChange([nightManual](uint8_t state){nightManual->toggle(state);});
 	nightManual->onChange(nightManualFunc);
 
+	allOff->onChange([nightManual](uint8_t state){nightManual->setFalse(state);});
 //	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 29, &antiTheft->state);//"Антивор!"
 //	httpButton->state.onChange([](uint8_t state){antiTheft->state.toggle(state);});
 
