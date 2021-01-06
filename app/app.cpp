@@ -15,6 +15,10 @@ namespace std
 	}
 }
 
+void groupSet(const uint8_t* group, uint8_t state);
+
+Timer imHomeTimer;
+
 void AppClass::init()
 {
 	ApplicationClass::init();
@@ -178,10 +182,12 @@ void AppClass::init()
 	auto imHomeFunc{
 		[](uint8_t state)
 		{
-			for(uint8_t zoneId: {3,10,14})
+			if (state)
 			{
-				outputs[zoneId]->state.setTrue(state);
-			};
+				groupSet(imHomeGroup, true);
+				imHomeTimer.initializeMs(imHomeDuration*1000, [=](){groupSet(imHomeGroup, false);}).start(false);
+			}
+
 		}
 	};
 
@@ -251,4 +257,15 @@ void AppClass::_httpOnIndex(HttpRequest &request, HttpResponse &response)
     response.headers[HTTP_HEADER_CONTENT_ENCODING] = _F("gzip");
     auto stream = new FlashMemoryStream(flash_indexhtmlgz);
     response.sendDataStream(stream, MIME_HTML);
+}
+
+
+// groupSet stuff
+
+void groupSet(const uint8_t* group, uint8_t state)
+{
+	while (*group != groupEnd)
+	{
+		outputs[*group++]->state.set(state);
+	}
 }
