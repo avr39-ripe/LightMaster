@@ -11,7 +11,7 @@
 #define GPIO_MCP23017
 
 #if defined(MCP23S17) || defined(GPIO_MCP23017)
-const uint8_t mcpCount = 4; //Number of MCP23*17 ICs
+const uint8_t mcpCount = 2; //Number of MCP23*17 ICs
 
 #endif
 #include <SmingCore.h>
@@ -26,21 +26,22 @@ const uint8_t mcpCount = 4; //Number of MCP23*17 ICs
 #include <binout.h>
 #include <binhttpbutton.h>
 #include <bincycler.h>
-#include <antitheft.h>
 
 extern NtpClient* ntpClient;
 
-const uint8_t ioCount = 27;
+const uint8_t ioCount = 15;
 const uint8_t outputsCount = ioCount;
 const uint8_t inputsCount = ioCount;
-const uint8_t allOffId = 27;
-
+const uint8_t allOffId = 15;
+const uint8_t maxShuttersId{11};
 const uint16_t shuttersDuration = 300; //Shutters motor duration to edge position in seconds
 enum class shutters : int {open,close}; // Constants for access array
-const uint8_t shuttersOutputs[][2]{ {15,16}, {17,18}, {19,20}, {21,22}, {23,24}, {25,26}}; // Outputs id of shutters
+const uint8_t shuttersOutputs[][2]{ {0,1}, {2,3}, {4,5}, {6,7}, {8,9}, {10,11}}; // Outputs id of shutters
+
+const uint16_t ventDuration{10}; // Ventilation turn on duration in seconds.
 
 extern BinOutClass* outputs[outputsCount];
 
 extern BinInPollerClass binInPoller;
-extern AntiTheftClass* antiTheft;
+
 
