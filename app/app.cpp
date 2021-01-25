@@ -7,6 +7,9 @@
 #include <app.h>
 #include <lightmaster.h>
 
+uint16_t AppClass::shuttersDuration{300}; //Shutters motor duration to edge position in seconds
+uint16_t AppClass::ventDuration{200}; // Ventilation turn on duration in seconds.
+
 namespace std
 {
 	void __throw_length_error(char const*)
@@ -193,5 +196,43 @@ void shuttersClose(uint8_t state)
 {
 	if (shuttersTimer.isStarted()) { shuttersTimer.stop(); } //stop defered timer
 	shuttersCtrl(state, true); // Based on state turn on all shutters closers(T) or openers(F)
-	shuttersTimer.initializeMs(shuttersDuration*1000, [state](){shuttersCtrl(state,false);}).start(false);
+	shuttersTimer.initializeMs(AppClass::getShuttersDuration()*1000u, [state](){shuttersCtrl(state,false);}).start(false);
+}
+
+void AppClass::_loadAppConfig(file_t& file)
+{
+	fileRead(file, &shuttersDuration, sizeof(shuttersDuration));
+	fileRead(file, &ventDuration, sizeof(ventDuration));
+}
+
+void AppClass::_saveAppConfig(file_t& file)
+{
+	fileWrite(file, &shuttersDuration, sizeof(shuttersDuration));
+	fileWrite(file, &ventDuration, sizeof(ventDuration));
+}
+
+bool AppClass::_extraConfigReadJson(JsonObject& json)
+{
+	bool needSave{false};
+	json.prettyPrintTo(Serial); Serial.println();
+	if (json["shuttersDuration"].success())
+	{
+		shuttersDuration = static_cast<uint16_t>(json["shuttersDuration"]);
+		needSave = true;
+	}
+
+	if (json["ventDuration"].success())
+	{
+		ventDuration = static_cast<uint16_t>(json["ventDuration"]);
+		needSave = true;
+	}
+
+	return needSave;
+}
+
+void AppClass::_extraConfigWriteJson(JsonObject& json)
+{
+	json["shuttersDuration"] = shuttersDuration;
+	json["ventDuration"] = ventDuration;
+
 }

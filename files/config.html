@@ -71,6 +71,14 @@
 					<div class="panel-body">
 						<form id="form_settings" method="POST">
 							<div class="form-group">
+							
+								<label for="shuttersDuration">Время отработки жалюзи, сек</label>
+								<input type="number" required class="form-control" min="1" max="32767" step="1" id="shuttersDuration" name="ventDuration" class="form-control">
+								
+								<label for="ventDuration">Время работы вентиляторов, сек</label>
+								<input type="number" required class="form-control" min="1" max="32767" step="1" id="ventDuration" name="shuttersDuration" class="form-control">
+								
+								
 								<label for="loopInterval">Main loop interval, ms</label>
 								<input type="number" required class="form-control" min="100" max="60000" step="1" id="loopInterval" name="loopInterval" class="form-control" value="{loopInterval}">
 								<label for="updateURL">Firmware update URL</label>

@@ -45,7 +45,9 @@ function post_config(event) {
 	event.preventDefault();
 	var formData = {
 			'loopInterval'			:	document.getElementById('loopInterval').value,
-			'updateURL'				:	document.getElementById('updateURL').value
+			'updateURL'				:	document.getElementById('updateURL').value,
+			'shuttersDuration'		:	document.getElementById('shuttersDuration').value,
+			'ventDuration'			:	document.getElementById('ventDuration').value,
 			};
 	post_cfg(formData);
 }

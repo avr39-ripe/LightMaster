@@ -34,11 +34,9 @@ const uint8_t outputsCount = ioCount;
 const uint8_t inputsCount = ioCount;
 const uint8_t allOffId = 15;
 const uint8_t maxShuttersId{11};
-const uint16_t shuttersDuration = 300; //Shutters motor duration to edge position in seconds
+
 enum class shutters : int {open,close}; // Constants for access array
 const uint8_t shuttersOutputs[][2]{ {0,1}, {2,3}, {4,5}, {6,7}, {8,9}, {10,11}}; // Outputs id of shutters
-
-const uint16_t ventDuration{10}; // Ventilation turn on duration in seconds.
 
 extern BinOutClass* outputs[outputsCount];
 
