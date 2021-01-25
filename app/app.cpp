@@ -17,6 +17,7 @@ namespace std
 
 // Ventilation timers array
 Timer ventTimers[3];
+Timer pollTimer;
 // Shutters callback
 void shuttersClose(uint8_t state);
 
@@ -125,7 +126,8 @@ void AppClass::init()
 		auto input = new BinInMCP23017Class(*mcp[mcpId],pinId,0);
 #endif
 	allOff->onChange([output](uint8_t state){output->state.set(state);});
-	binInPoller.add(input);
+	pollTimer.initializeMs(3*1000, [input](){binInPoller.add(input);}).start(false);
+	//binInPoller.add(input);
 	input->state.onChange([allOff](uint8_t state){allOff->set(state);});
 	auto allOffState = new BinStateHttpClass(webServer, allOff, 0);//"Выкл. все"
 	binStatesHttp->add(allOffState);
