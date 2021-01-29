@@ -25,8 +25,6 @@ const uint8_t mcpCount = 3; //Number of MCP23*17 ICs
 #include <binin.h>
 #include <binout.h>
 #include <binhttpbutton.h>
-#include <bincycler.h>
-#include <antitheft.h>
 
 extern NtpClient* ntpClient;
 

@@ -69,11 +69,11 @@ function post_fw(action) {
 var websocket;
 function onOpen(evt) {
 	console.log.bind(console)("CONNECTED");
-	antiTheft = new AntiTheftClass();
-	antiTheft.enable(true);
+//	antiTheft = new AntiTheftClass();
+//	antiTheft.enable(true);
 //	appConfig = new AppConfigClass();
 //	appConfig.enable(true);
-//	websocket.send("Sming love WebSockets");
+//	websocket.send("Sming lo.ve WebSockets");
 }
 
 function onClose(evt) {
