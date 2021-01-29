@@ -23,6 +23,7 @@ void groupSet(const uint8_t* group, uint8_t state);
 Timer imHomeTimer;
 Timer nightChildrenTimer;
 Timer nightBedroomTimer;
+Timer clickTimer;
 
 void AppClass::init()
 {
@@ -281,6 +282,22 @@ void AppClass::init()
 	nightManual->onChange(nightManualFunc);
 
 	allOff->onChange([nightManual](uint8_t state){nightManual->setFalse(state);});
+
+// Close all shutters
+	auto closeAllShuttersIdFunc{
+		[](uint8_t state)
+		{
+			if (state)
+			{
+				outputs[shuttersAllOffId]->state.set(true);
+				clickTimer.initializeMs(500, [=](){outputs[shuttersAllOffId]->state.set(false);}).start(false);
+			}
+		}
+	};
+
+	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, closeAllShuttersId); //"Закр. все жалюзи"
+	httpButton->state.onChange(closeAllShuttersIdFunc);
+
 //	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 29, &antiTheft->state);//"Антивор!"
 //	httpButton->state.onChange([](uint8_t state){antiTheft->state.toggle(state);});
 
