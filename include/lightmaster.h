@@ -40,7 +40,6 @@ const uint8_t allOffId{22u};
 const uint8_t shuttersAllOffId{23u};
 const uint8_t imHomeId{24u};
 const uint8_t imHomeInputId{mainCount};
-const uint8_t imHomeDuration{10}; // I'm home group turn on duration in seconds
 const uint8_t imHomeGroup[]{3, 10, 14, groupEnd};
 
 const uint8_t nightChildrenId{25};
@@ -48,7 +47,6 @@ const uint8_t nightChildrenInputId{mainCount+1};
 const uint8_t nightBedroomId{26};
 const uint8_t nightBedroomInputId{mainCount+2};
 const uint8_t nightManualId{27};
-const uint8_t nightDuration{10}; // Night group turn on duration in seconds
 
 const uint8_t nightChildrenGroup[]{16,17,18,19, groupEnd};
 const uint8_t nightBedroomGroup[]{20,21, groupEnd};

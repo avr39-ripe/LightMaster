@@ -71,6 +71,12 @@
 					<div class="panel-body">
 						<form id="form_settings" method="POST">
 							<div class="form-group">
+								<label for="imHomeDuration">Время работы "Я дома!", сек</label>
+								<input type="number" required class="form-control" min="1" max="32767" step="1" id="imHomeDuration" name="imHomeDuration" class="form-control">
+
+								<label for="nightDuration">Время работы "Ночная подсветка", сек</label>
+								<input type="number" required class="form-control" min="1" max="32767" step="1" id="nightDuration" name="nightDuration" class="form-control">
+								
 								<label for="loopInterval">Main loop interval, ms</label>
 								<input type="number" required class="form-control" min="100" max="60000" step="1" id="loopInterval" name="loopInterval" class="form-control" value="{loopInterval}">
 								<label for="updateURL">Firmware update URL</label>

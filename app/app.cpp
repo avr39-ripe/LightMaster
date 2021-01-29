@@ -7,6 +7,9 @@
 #include <app.h>
 #include <lightmaster.h>
 
+uint16_t AppClass::imHomeDuration{10};
+uint16_t AppClass::nightDuration{10};
+
 namespace std
 {
 	void __throw_length_error(char const*)
@@ -336,6 +339,43 @@ void AppClass::_httpOnIndex(HttpRequest &request, HttpResponse &response)
     response.sendDataStream(stream, MIME_HTML);
 }
 
+void AppClass::_loadAppConfig(file_t& file)
+{
+	fileRead(file, &imHomeDuration, sizeof(imHomeDuration));
+	fileRead(file, &nightDuration, sizeof(nightDuration));
+}
+
+void AppClass::_saveAppConfig(file_t& file)
+{
+	fileWrite(file, &imHomeDuration, sizeof(imHomeDuration));
+	fileWrite(file, &nightDuration, sizeof(nightDuration));
+}
+
+bool AppClass::_extraConfigReadJson(JsonObject& json)
+{
+	bool needSave{false};
+	json.prettyPrintTo(Serial); Serial.println();
+	if (json["imHomeDuration"].success())
+	{
+		imHomeDuration = static_cast<uint16_t>(json["imHomeDuration"]);
+		needSave = true;
+	}
+
+	if (json["nightDuration"].success())
+	{
+		nightDuration = static_cast<uint16_t>(json["nightDuration"]);
+		needSave = true;
+	}
+
+	return needSave;
+}
+
+void AppClass::_extraConfigWriteJson(JsonObject& json)
+{
+	json["imHomeDuration"] = imHomeDuration;
+	json["nightDuration"] = nightDuration;
+
+}
 
 // groupSet stuff
 
