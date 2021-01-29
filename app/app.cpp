@@ -131,7 +131,12 @@ void AppClass::init()
 	allOff->onChange([output](uint8_t state){output->state.set(state);});
 	pollTimer.initializeMs(3*1000, [input](){binInPoller.add(input);}).start(false);
 	//binInPoller.add(input);
-	input->state.onChange([allOff](uint8_t state){allOff->set(state);});
+	input->state.onChange([allOff](uint8_t state){
+		if ( state )
+		{
+			allOff->set(true);
+		}
+	});
 	auto allOffState = new BinStateHttpClass(webServer, allOff, 0);//"Выкл. все"
 	binStatesHttp->add(allOffState);
 	auto httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, allOffId, allOff); //"Выкл. все"
