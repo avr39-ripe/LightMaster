@@ -33,6 +33,9 @@ const uint8_t ioCount = 15;
 const uint8_t outputsCount = ioCount;
 const uint8_t inputsCount = ioCount;
 const uint8_t allOffId = 15;
+const uint8_t closeAllId{15};
+const uint8_t closeAllWebId{16};
+const uint8_t openAllWebId{15};
 const uint8_t maxShuttersId{11};
 
 enum class shutters : int {open,close}; // Constants for access array

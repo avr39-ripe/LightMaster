@@ -117,6 +117,42 @@ void AppClass::init()
 		}
 	}
 //Additional buttons/settings
+// Close all / open all
+	uint8_t mcpId = closeAllId >> 3; //mcp IC number from linear io number, math eq i / 8
+	uint8_t pinId = closeAllId ^ mcpId << 3; //mcp IC pin number from linear io number, math eq i ^ (mcpId*8)
+
+#ifdef MCP23S17
+		auto input{new BinInMCP23S17Class(*mcp[mcpId],pinId,0)};
+#endif
+#ifdef GPIO_MCP23017
+		auto input{new BinInMCP23017Class(*mcp[mcpId],pinId,0)};
+#endif
+
+	pollTimer.initializeMs(3*1000, [input](){binInPoller.add(input);}).start(false);
+
+	auto closeAll {
+		[=](uint8_t state)
+		{
+			if (state){shuttersClose(true);}
+		}
+	};
+
+	auto openAll {
+		[=](uint8_t state)
+		{
+			if (state){shuttersClose(false);}
+		}
+	};
+
+	input->state.onChange(closeAll);
+
+	auto httpButton{new BinHttpButtonClass(webServer, *binStatesHttp, closeAllWebId)}; //"Закр. все"
+	httpButton->state.onChange(closeAll);
+
+	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, openAllWebId); //"Откр. все"
+	httpButton->state.onChange(openAll);
+
+	/*
 	uint8_t mcpId = allOffId >> 3; //mcp IC number from linear io number, math eq i / 8
 	uint8_t pinId = allOffId ^ mcpId << 3; //mcp IC pin number from linear io number, math eq i ^ (mcpId*8)
 
@@ -131,10 +167,11 @@ void AppClass::init()
 	allOff->onChange([output](uint8_t state){output->state.set(state);});
 	pollTimer.initializeMs(3*1000, [input](){binInPoller.add(input);}).start(false);
 	//binInPoller.add(input);
-	input->state.onChange([allOff](uint8_t state){
+	input->state.onChange([=](uint8_t state){
 		if ( state )
 		{
-			allOff->set(true);
+			//allOff->set(true);
+			shuttersClose(true);
 		}
 	});
 	auto allOffState = new BinStateHttpClass(webServer, allOff, 0);//"Выкл. все"
@@ -145,6 +182,7 @@ void AppClass::init()
 
 //shuttersControl
 	allOff->onChange(shuttersClose); // Close all shutters on True and open on False
+	*/
 // Make shutters closers/openers mutual exclusive
 	for (const auto& shuttersOutput : shuttersOutputs)
 	{
