@@ -164,6 +164,7 @@ void AppClass::init()
 
 	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, closeAllShuttersId); //"Закр. все жалюзи"
 	httpButton->state.onChange(closeAllShuttersFunc);
+
 // AllOff + ShuttersAllOff
 
 	for (uint8_t allOffOut: {allOffId, shuttersAllOffId})
@@ -301,6 +302,24 @@ void AppClass::init()
 
 	allOff->onChange([nightManual](uint8_t state){nightManual->setFalse(state);});
 
+	// allLightsOff
+	auto sleepModeFunc{
+		[nightManual,closeAllShuttersFunc](uint8_t state)
+		{
+			if (state)
+			{
+				for(uint8_t outGroupId{0}; outGroupId < allOffId; ++outGroupId)
+				{
+					outputs[outGroupId]->state.set(false);
+				}
+				nightManual->set(false);
+				closeAllShuttersFunc(true);
+			}
+		}
+	};
+
+	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, sleepModeId); //"Спим!"
+	httpButton->state.onChange(sleepModeFunc);
 #endif
 }
 

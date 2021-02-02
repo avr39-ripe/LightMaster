@@ -52,6 +52,7 @@ const uint8_t nightChildrenGroup[]{16,17,18,19, groupEnd};
 const uint8_t nightBedroomGroup[]{20,21, groupEnd};
 
 const uint8_t closeAllShuttersId{28};
+const uint8_t sleepModeId{29};
 
 const uint16_t shuttersDuration = 300; //Shutters motor duration to edge position in seconds
 enum class shutters : int {open,close}; // Constants for access array
