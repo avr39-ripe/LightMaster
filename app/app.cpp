@@ -301,38 +301,6 @@ void AppClass::init()
 
 	allOff->onChange([nightManual](uint8_t state){nightManual->setFalse(state);});
 
-
-
-//	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, 29, &antiTheft->state);//"Антивор!"
-//	httpButton->state.onChange([](uint8_t state){antiTheft->state.toggle(state);});
-
-//Night magic group
-//	auto cmnNightGrp = new BinStateSharedDeferredClass(); // Add Shared state to turn on/off shared zones
-//	// Shared zones will follow cmnNightGrp state.
-//	// First time it turns on they will turn on, last time it turns off they will turn off.
-//	uint8_t magicNightOutputs[]{ 1 }; // Output id that will form Magic night group
-//	uint8_t magicNightActivators[]{ 3, 7, 8}; // Outputs id that will trigger Magic Night Group
-//
-//	for (const auto& activatorId : magicNightActivators)
-//	{
-//		outputs[activatorId]->state.onChange([cmnNightGrp](uint8_t state){cmnNightGrp->set(state);});
-//		outputs[activatorId]->state.onChange([magicNightOutputs](uint8_t state)
-//				{
-//					for (const auto& mnOutputId : magicNightOutputs)
-//					{
-//						outputs[mnOutputId]->state.setTrue(state);
-//					};
-//				});
-//	}
-//
-//	cmnNightGrp->onChange([magicNightOutputs](uint8_t state)
-//				{
-//					for (const auto& mnOutputId : magicNightOutputs)
-//					{
-//						outputs[mnOutputId]->state.set(state);
-//					}
-//				});
-
 #endif
 }
 
