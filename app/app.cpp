@@ -99,91 +99,14 @@ void AppClass::init()
 		inputs[i]->state.onChange(allOffsetFalseFunc);
 		httpButtons[i]->state.onChange(allOffsetFalseFunc);
 	}
-// AdditionalControl setup
-	for(uint8_t i{mainCount}; i < mainCount+additionalCount; ++i)
-	{
-		uint8_t mcpId{(uint8_t)(i >> 3)}; //mcp IC number from linear io number, math eq i / 8
-		uint8_t pinId{(uint8_t)(i ^ mcpId << 3)}; //mcp IC pin number from linear io number, math eq i ^ (mcpId*8)
 
-#ifdef MCP23S17
-		outputs[i] = new BinOutMCP23S17Class(*mcp[mcpId],pinId,0);
-#endif
-#ifdef GPIO_MCP23017
-		outputs[i] = new BinOutMCP23017Class(*mcp[mcpId],pinId,0);
-#endif
-
-		httpButtons[i] = new BinHttpButtonClass(webServer, *binStatesHttp, i, &outputs[i]->state);
-		auto togglerFunc = [i](uint8_t state){outputs[i]->state.toggle(state);};
-
-		httpButtons[i]->state.onChange(togglerFunc);
-
-		allOff->onChange([i](uint8_t state){outputs[i]->state.setFalse(state);});
-
-		httpButtons[i]->state.onChange(allOffsetFalseFunc);
-	}
-
-// NightControl setup
-	for(uint8_t i{mainCount+additionalCount}; i < mainCount+additionalCount+nightCount; ++i)
-	{
-		uint8_t mcpId{(uint8_t)(i >> 3)}; //mcp IC number from linear io number, math eq i / 8
-		uint8_t pinId{(uint8_t)(i ^ mcpId << 3)}; //mcp IC pin number from linear io number, math eq i ^ (mcpId*8)
-
-#ifdef MCP23S17
-		outputs[i] = new BinOutMCP23S17Class(*mcp[mcpId],pinId,0);
-#endif
-#ifdef GPIO_MCP23017
-		outputs[i] = new BinOutMCP23017Class(*mcp[mcpId],pinId,0);
-#endif
-
-		httpButtons[i] = new BinHttpButtonClass(webServer, *binStatesHttp, i, &outputs[i]->state);
-		auto togglerFunc = [i](uint8_t state){outputs[i]->state.toggle(state);};
-
-		httpButtons[i]->state.onChange(togglerFunc);
-
-		allOff->onChange([i](uint8_t state){outputs[i]->state.setFalse(state);});
-
-		httpButtons[i]->state.onChange(allOffsetFalseFunc);
-	}
 
 //Additional buttons/settings
 	uint8_t mcpId;
 	uint8_t pinId;
 	BinHttpButtonClass* httpButton;
 
-// Close all shutters
-	auto closeAllShuttersFunc{
-		[](uint8_t state)
-		{
-			if (state)
-			{
-				outputs[shuttersAllOffId]->state.set(true);
-				clickTimer.initializeMs(500, [=](){outputs[shuttersAllOffId]->state.set(false);}).start(false);
-			}
-		}
-	};
-
-	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, closeAllShuttersId); //"Закр. все жалюзи"
-	httpButton->state.onChange(closeAllShuttersFunc);
-
-// AllOff + ShuttersAllOff
-
-	for (uint8_t allOffOut: {allOffId, shuttersAllOffId})
-	{
-		uint8_t mcpId{(uint8_t)(allOffOut >> 3)}; //mcp IC number from linear io number, math eq i / 8
-		uint8_t pinId{(uint8_t)(allOffOut ^ mcpId << 3)}; //mcp IC pin number from linear io number, math eq i ^ (mcpId*8)
-
-	#ifdef MCP23S17
-			outputs[allOffOut] = new BinOutMCP23S17Class(*mcp[mcpId],pinId,0);
-	#endif
-	#ifdef GPIO_MCP23017
-			outputs[allOffOut] = new BinOutMCP23017Class(*mcp[mcpId],pinId,0);
-	#endif
-	}
-
-	allOff->onChange([closeAllShuttersFunc](uint8_t state){outputs[allOffId]->state.set(state); closeAllShuttersFunc(state);});
-
-	auto shuttersAllOffState = new BinStateHttpClass(webServer, &outputs[shuttersAllOffId]->state, 1);//"Выкл. все жалюзи"
-	binStatesHttp->add(shuttersAllOffState);
+// AllOff
 
 	auto allOffState = new BinStateHttpClass(webServer, allOff, 0);//"Выкл. все"
 	binStatesHttp->add(allOffState);
@@ -192,17 +115,6 @@ void AppClass::init()
 	allOff->persistent(0);
 
 // I'm home!
-
-	mcpId = (imHomeInputId >> 3); //mcp IC number from linear io number, math eq i / 8
-	pinId = (imHomeInputId ^ mcpId << 3); //mcp IC pin number from linear io number, math eq i ^ (mcpId*8)
-
-#ifdef MCP23S17
-	inputs[imHomeInputId] = new BinInMCP23S17Class(*mcp[mcpId],pinId,0);
-#endif
-#ifdef GPIO_MCP23017
-	inputs[imHomeInputId] = new BinInMCP23017Class(*mcp[mcpId],pinId,0);
-#endif
-	binInPoller.add(inputs[imHomeInputId]);
 
 	auto imHomeFunc{
 		[](uint8_t state)
@@ -216,104 +128,21 @@ void AppClass::init()
 		}
 	};
 
-	inputs[imHomeInputId]->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
-	inputs[imHomeInputId]->state.onChange(imHomeFunc);
-
 	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, imHomeId); //"Я дома!"
 	httpButton->state.onChange([allOff](uint8_t state){allOff->setFalse(state);});
 	httpButton->state.onChange(imHomeFunc);
 
 
-// night group magic stuff
-	BinStateClass* nightManual{new BinStateClass()};
-	auto nightChildrenFunc{
-		[nightManual](uint8_t state)
-		{
-			if (state and !nightManual->get())
-			{
-				groupSet(nightChildrenGroup, true);
-				nightChildrenTimer.initializeMs(nightDuration*1000, [=](){groupSet(nightChildrenGroup, false);}).start(false);
-			}
-		}
-	};
-
-	auto nightBedroomFunc{
-		[nightManual](uint8_t state)
-		{
-			if (state and !nightManual->get())
-			{
-				groupSet(nightChildrenGroup, true);
-				nightChildrenTimer.initializeMs(nightDuration*1000, [=](){groupSet(nightChildrenGroup, false);}).start(false);
-
-				groupSet(nightBedroomGroup, true);
-				nightBedroomTimer.initializeMs(nightDuration*1000, [=](){groupSet(nightBedroomGroup, false);}).start(false);
-			}
-		}
-	};
-
-	auto nightManualFunc{
+	// allLightsOff
+	auto sleepModeFunc{
 		[](uint8_t state)
 		{
 			if (state)
 			{
-				groupSet(nightChildrenGroup, true);
-				nightChildrenTimer.stop();
-
-				groupSet(nightBedroomGroup, true);
-				nightBedroomTimer.stop();
-			}
-			else
-			{
-				groupSet(nightChildrenGroup, false);
-				groupSet(nightBedroomGroup, false);
-			}
-		}
-	};
-
-	for (uint8_t nightIn: {nightChildrenInputId, nightBedroomInputId})
-	{
-		uint8_t mcpId{(uint8_t)(nightIn >> 3)}; //mcp IC number from linear io number, math eq i / 8
-		uint8_t pinId{(uint8_t)(nightIn ^ mcpId << 3)}; //mcp IC pin number from linear io number, math eq i ^ (mcpId*8)
-
-#ifdef MCP23S17
-		inputs[nightIn] = new BinInMCP23S17Class(*mcp[mcpId],pinId,0);
-#endif
-#ifdef GPIO_MCP23017
-		inputs[nightIn] = new BinInMCP23017Class(*mcp[mcpId],pinId,0);
-#endif
-		inputs[nightIn]->state.onChange(allOffsetFalseFunc);
-		binInPoller.add(inputs[nightIn]);
-	}
-	inputs[nightChildrenInputId]->state.onChange(nightChildrenFunc);
-	inputs[nightBedroomInputId]->state.onChange(nightBedroomFunc);
-
-	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, nightChildrenId); //"Ночь дети"
-	httpButton->state.onChange(allOffsetFalseFunc);
-	httpButton->state.onChange(nightChildrenFunc);
-
-	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, nightBedroomId); //"Ночь спальня"
-	httpButton->state.onChange(allOffsetFalseFunc);
-	httpButton->state.onChange(nightBedroomFunc);
-
-	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, nightManualId, nightManual); //"Ночная подсветка"
-	httpButton->state.onChange(allOffsetFalseFunc);
-	httpButton->state.onChange([nightManual](uint8_t state){nightManual->toggle(state);});
-	nightManual->onChange(nightManualFunc);
-
-	allOff->onChange([nightManual](uint8_t state){nightManual->setFalse(state);});
-
-	// allLightsOff
-	auto sleepModeFunc{
-		[nightManual,closeAllShuttersFunc](uint8_t state)
-		{
-			if (state)
-			{
-				for(uint8_t outGroupId{0}; outGroupId < allOffId; ++outGroupId)
+				for(uint8_t outGroupId{0}; outGroupId < maxLightId; ++outGroupId)
 				{
 					outputs[outGroupId]->state.set(false);
 				}
-				nightManual->set(false);
-				closeAllShuttersFunc(true);
 			}
 		}
 	};
