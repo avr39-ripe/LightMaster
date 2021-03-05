@@ -33,14 +33,16 @@ const uint8_t groupEnd{255}; // end marker for light zones group array
 const uint8_t ioCount = 24;
 const uint8_t outputsCount = ioCount;
 const uint8_t inputsCount = ioCount;
-const uint8_t mainCount{22u};
+const uint8_t mainCount{23u};
 const uint8_t maxLightId{20u};
+const uint8_t socketControl1{21u};
+const uint8_t socketControl2{22u};
 
 const uint8_t allOffId{23u};
 
 const uint8_t imHomeId{24u};
 //const uint8_t imHomeInputId{mainCount};
-const uint8_t imHomeGroup[]{3, 10, 14, groupEnd};
+const uint8_t imHomeGroup[]{9, 10, 14, 15, groupEnd};
 
 
 const uint8_t sleepModeId{25};

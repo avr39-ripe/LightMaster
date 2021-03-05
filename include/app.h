@@ -11,7 +11,6 @@
 class AppClass : public ApplicationClass
 {
 	static uint16_t imHomeDuration; // I'm home turn on duration in seconds
-	static uint16_t nightDuration; // Night groups turn on duration in seconds.
 
 	void _loadAppConfig(file_t& file) override;
 	void _saveAppConfig(file_t& file) override;
@@ -21,7 +20,6 @@ public:
 	virtual void init(); // Application initialization
 	virtual void start(); // Application main-loop start/restart
 	static uint16_t getImHomeDuration(){return imHomeDuration;};
-	static uint16_t getNightDuration(){return nightDuration;};
 //	virtual void userSTAGotIP(IpAddress ip, IpAddress mask, IpAddress gateway); // Runs when Station got ip from access-point
 protected:
 	virtual void _loop(); // Application main loop function goes here

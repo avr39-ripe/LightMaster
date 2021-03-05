@@ -8,7 +8,6 @@
 #include <lightmaster.h>
 
 uint16_t AppClass::imHomeDuration{10};
-uint16_t AppClass::nightDuration{10};
 
 namespace std
 {
@@ -107,7 +106,7 @@ void AppClass::init()
 	BinHttpButtonClass* httpButton;
 
 // AllOff
-
+	allOff->onChange([](uint8_t state){outputs[socketControl1]->state.set(state); outputs[socketControl2]->state.set(state);});
 	auto allOffState = new BinStateHttpClass(webServer, allOff, 0);//"Выкл. все"
 	binStatesHttp->add(allOffState);
 	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, allOffId, allOff); //"Выкл. все"
@@ -122,7 +121,11 @@ void AppClass::init()
 			if (state)
 			{
 				groupSet(imHomeGroup, true);
-				imHomeTimer.initializeMs(imHomeDuration*1000, [=](){groupSet(imHomeGroup, false);}).start(false);
+				if (imHomeDuration)
+				{
+					imHomeTimer.initializeMs(imHomeDuration*1000, [=](){groupSet(imHomeGroup, false);}).start(false);
+				}
+
 			}
 
 		}
@@ -180,13 +183,11 @@ void AppClass::_httpOnIndex(HttpRequest &request, HttpResponse &response)
 void AppClass::_loadAppConfig(file_t& file)
 {
 	fileRead(file, &imHomeDuration, sizeof(imHomeDuration));
-	fileRead(file, &nightDuration, sizeof(nightDuration));
 }
 
 void AppClass::_saveAppConfig(file_t& file)
 {
 	fileWrite(file, &imHomeDuration, sizeof(imHomeDuration));
-	fileWrite(file, &nightDuration, sizeof(nightDuration));
 }
 
 bool AppClass::_extraConfigReadJson(JsonObject& json)
@@ -199,20 +200,12 @@ bool AppClass::_extraConfigReadJson(JsonObject& json)
 		needSave = true;
 	}
 
-	if (json["nightDuration"].success())
-	{
-		nightDuration = static_cast<uint16_t>(json["nightDuration"]);
-		needSave = true;
-	}
-
 	return needSave;
 }
 
 void AppClass::_extraConfigWriteJson(JsonObject& json)
 {
 	json["imHomeDuration"] = imHomeDuration;
-	json["nightDuration"] = nightDuration;
-
 }
 
 // groupSet stuff
