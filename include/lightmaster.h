@@ -25,6 +25,8 @@ const uint8_t mcpCount = 3; //Number of MCP23*17 ICs
 #include <binin.h>
 #include <binout.h>
 #include <binhttpbutton.h>
+#include <antitheft.h>
+
 
 extern NtpClient* ntpClient;
 
@@ -46,9 +48,10 @@ const uint8_t imHomeGroup[]{9, 10, 14, 15, groupEnd};
 
 
 const uint8_t sleepModeId{25};
+const uint8_t antiTheftId{26};
 
 extern BinOutClass* outputs[outputsCount];
 
 extern BinInPollerClass binInPoller;
 
-
+extern AntiTheftClass* antiTheft;

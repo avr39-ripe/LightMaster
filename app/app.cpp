@@ -65,6 +65,10 @@ void AppClass::init()
 	BinInClass* inputs[inputsCount];
 	BinHttpButtonClass* httpButtons[inputsCount];
 
+	antiTheft = new AntiTheftClass(outputs, 99);
+
+	wsAddBinGetter(antiTheft->sysId, WebsocketBinaryDelegate(&AntiTheftClass::wsBinGetter,antiTheft));
+	wsAddBinSetter(antiTheft->sysId, WebsocketBinaryDelegate(&AntiTheftClass::wsBinSetter,antiTheft));
 
 	Serial.printf(_F("Initial Free Heap: %d\n"), system_get_free_heap_size());
 
@@ -86,6 +90,7 @@ void AppClass::init()
 		inputs[i] = new BinInMCP23017Class(*mcp[mcpId],pinId,0);
 #endif
 		binInPoller.add(inputs[i]);
+		antiTheft->addOutputId(i);
 
 		httpButtons[i] = new BinHttpButtonClass(webServer, *binStatesHttp, i, &outputs[i]->state);
 		auto togglerFunc = [i](uint8_t state){outputs[i]->state.toggle(state);};
@@ -152,6 +157,9 @@ void AppClass::init()
 
 	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, sleepModeId); //"Спим!"
 	httpButton->state.onChange(sleepModeFunc);
+
+	httpButton = new BinHttpButtonClass(webServer, *binStatesHttp, antiTheftId, &antiTheft->state);//"Антивор!"
+	httpButton->state.onChange([](uint8_t state){antiTheft->state.toggle(state);});
 #endif
 }
 
@@ -160,6 +168,7 @@ void AppClass::start()
 {
 	ApplicationClass::start();
 	binInPoller.start();
+	antiTheft->start();
 //	Serial.printf("AppClass start done!\n");
 }
 
