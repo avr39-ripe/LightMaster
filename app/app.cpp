@@ -142,7 +142,7 @@ void AppClass::init()
 		{
 			if (state)
 			{
-				for(uint8_t outGroupId{0}; outGroupId < maxLightId; ++outGroupId)
+				for(uint8_t outGroupId{0}; outGroupId <= maxLightId; ++outGroupId)
 				{
 					outputs[outGroupId]->state.set(false);
 				}
