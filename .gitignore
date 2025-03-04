@@ -5,3 +5,4 @@ out/
 files/index.*.js*
 files/index.html*
 web/build/
+node_modules/

@@ -153,12 +153,12 @@ void AppClass::_loop()
 	Serial.printf("Free Heap: %d WS count: %d Counter: %d\n", system_get_free_heap_size(), WebsocketConnection::getActiveWebsockets().count(), _counter);
 }
 
-IMPORT_FSTR(flash_indexhtmlgz, PROJECT_DIR "/files/index.html.gz");
+IMPORT_FSTR(flash_indexhtmlgz, PROJECT_DIR "/web/build/index.html.gz");
 void AppClass::_httpOnIndex(HttpRequest &request, HttpResponse &response)
 {
 	response.setCache(86400, true); // It's important to use cache for better performance.
 //	response.sendFile("index.html");
     response.headers[HTTP_HEADER_CONTENT_ENCODING] = _F("gzip");
     auto stream = new FlashMemoryStream(flash_indexhtmlgz);
-    response.sendDataStream(stream, MimeType::MIME_HTML);
+    response.sendDataStream(stream, MimeType::HTML);
 }
