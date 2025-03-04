@@ -1,98 +1,87 @@
 const path = require('path');
-const webpack = require('webpack');
-const BabiliPlugin = require("babili-webpack-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin');
+const InlineChunkHtmlPlugin = require('react-dev-utils/InlineChunkHtmlPlugin');
 const CompressionPlugin = require('compression-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
-	mode : 'development',
-	resolve : {
-		modules : [
-				path.resolve(__dirname, "lib/application"),
-				path.resolve(__dirname, "lib/binio"),
-				path.resolve(__dirname, "lib/tempsensor"),
-				path.resolve(__dirname, "files"),
-				path.resolve(__dirname, "web"), "node_modules"
-		]
-	},
-	entry : {
-		index : 'index.js'
-	},
-	output : {
-		path : path.join(__dirname, 'web/build'),
-//		filename : '[name].[hash:10].js'
-//		filename : '[name].[hash:10].js'
-	},
-	module : {
-		rules : [ {
-			test : /\.(js|jsx)$/,
-			exclude : /node_modules/, // This may not be needed since we supplied `include`.
-			include : path.resolve(__dirname, 'src'),
-
-			/*
-			  https://goo.gl/99S6sU
-			  Loaders will be applied from right to left.
-			  E.x.: loader3(loader2(loader1(data)))
-			 */
-			use : [
-			// https://goo.gl/EXjzoG
-			{
-				loader : 'babel-loader',
-				options : {
-					presets : [
-					/*
-					  To get tree shaking working, we need the `modules: false` below.
-					  https://goo.gl/4vZBSr - 2ality blog mentions that the issue is caused
-					  by under-the-hood usage of `transform-es2015-modules-commonjs`.
-					  https://goo.gl/sBmiwZ - A comment on the above post shows that we
-					  can use `modules: false`.
-					  https://goo.gl/aAxYAq - `babel-preset-env` documentation.
-					 */
-					[ '@babel/preset-env', {
-						targets : {
-							browsers : [ 'last 2 versions' ]
-						},
-						modules : false
-					// Needed for tree shaking to work.
-					} ], '@babel/preset-env', // https://goo.gl/aAxYAq
-					//'@babel/preset-react' // https://goo.gl/4aEFV3
-					],
-
-					// https://goo.gl/N9gaqc - List of Babel plugins.
-					plugins : [
-					//          '@babel/plugin-proposal-object-rest-spread', // https://goo.gl/LCHWnP
-					//          '@babel/plugin-proposal-class-properties' // https://goo.gl/TE6TyG
-					]
-				}
-			} ]
-		},
-	    {
-		      test: /\.css$/,
-		      use: ['style-loader', 'css-loader']
-		},
-		{
-	        test: /\.(png|jpe?g|gif|svg|eot|ttf|woff|woff2)$/i,
-	        loader: 'url-loader',
-	        options: {
-	          limit: 8192,
-	        },
-	    }
-		]
-	},
-	devtool : 'source-map',
-	plugins : [
-	new BabiliPlugin(),
-	new HtmlWebpackPlugin({
-		template : './web/index-template.html',
-		inject : 'head',
-		//inlineSource: '.(js|css)$' // embed all javascript and css inline
-		inlineSource: '.(js|css|png|jpe?g|gif|svg|eot|ttf|woff|woff2)$'
-	}),
-	new HtmlWebpackInlineSourcePlugin(),
-	new CompressionPlugin({
-		test: /\.html|map(\?.*)?$/i,
-		deleteOriginalAssets : true
-	})
-	]
-}
+  mode: process.env.NODE_ENV || 'production',
+  entry: {
+    index: path.resolve(__dirname, 'web/index.js')
+  },
+  output: {
+    path: path.join(__dirname, 'web/build'),
+    filename: '[name].[contenthash:10].js',
+    clean: true // Clean the output directory before each build
+  },
+  resolve: {
+    modules: [
+      path.resolve(__dirname, "lib/application"),
+      path.resolve(__dirname, "lib/binio"),
+      path.resolve(__dirname, "lib/tempsensor"),
+      path.resolve(__dirname, "files"),
+      path.resolve(__dirname, "web"),
+      "node_modules"
+    ]
+  },
+  module: {
+    rules: [
+      {
+        test: /\.(js|jsx)$/,
+        include: path.resolve(__dirname, 'src'),
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: [
+              [
+                '@babel/preset-env',
+                {
+                  targets: { browsers: ['last 2 versions'] },
+                  modules: false // Needed for tree shaking
+                }
+              ]
+              // Uncomment the next line if you're using React:
+              //, '@babel/preset-react'
+            ]
+          }
+        }
+      },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'] // CSS is bundled inside JS
+      },
+      {
+        // Inline all assets (images, fonts, SVGs, etc.) as data URIs.
+        test: /\.(png|jpe?g|gif|svg|eot|ttf|woff|woff2)$/i,
+        type: 'asset/inline'
+      }
+    ]
+  },
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          // Optional Terser configuration can go here.
+        }
+      })
+    ]
+  },
+  devtool: 'source-map',
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: './web/index-template.html',
+      inject: 'head'
+    }),
+    // Inline all JavaScript chunks into the HTML.
+    new InlineChunkHtmlPlugin(HtmlWebpackPlugin, [/\.js$/]),
+    // Compress the final HTML file (with inlined assets) into index.html.gz and remove the original.
+    new CompressionPlugin({
+      test: /\.html$/i,
+      filename: '[path][base].gz',
+      algorithm: 'gzip',
+      deleteOriginalAssets: true
+    })
+  ]
+};
