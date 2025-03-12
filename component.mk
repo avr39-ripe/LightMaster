@@ -1,4 +1,5 @@
 ARDUINO_LIBRARIES := OneWire MCP23017 ArduinoJson5
+COMPONENT_DEPENDS := OtaNetwork
 
 HWCONFIG := ota
 
