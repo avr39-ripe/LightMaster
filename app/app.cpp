@@ -14,7 +14,6 @@ void AppClass::init()
 {
 	ApplicationClass::init();
 
-	webServer.paths.set("/",HttpPathDelegate(&AppClass::_httpOnIndex,this));
 
 	BinStatesHttpClass* binStatesHttp = new BinStatesHttpClass();
 	wsAddBinGetter(binStatesHttp->sysId, WebsocketBinaryDelegate(&BinStatesHttpClass::wsBinGetter,binStatesHttp));
@@ -57,7 +56,7 @@ void AppClass::init()
 	wsAddBinSetter(antiTheft->sysId, WebsocketBinaryDelegate(&AntiTheftClass::wsBinSetter,antiTheft));
 
 
-	Serial.printf(_F("Initial Free Heap: %d\n"), system_get_free_heap_size());
+	Serial.printf(_F("Initial Free Heap: %ld\n"), system_get_free_heap_size());
 
 	BinStateClass* allOff = new BinStateClass();
 	auto allOffsetFalseFunc = [allOff](uint8_t state){allOff->setFalse(state);};
@@ -150,15 +149,7 @@ void AppClass::_loop()
 {
 	ApplicationClass::_loop();
 //	Serial.printf("AppClass loop\n");
-	Serial.printf("Free Heap: %d WS count: %d Counter: %d\n", system_get_free_heap_size(), WebsocketConnection::getActiveWebsockets().count(), _counter);
+	Serial.printf("Free Heap: %lu WS count: %d Counter: %lu\n", static_cast<unsigned long>(system_get_free_heap_size()), WebsocketConnection::getActiveWebsockets().count(), static_cast<unsigned long>(_counter));
 }
 
-IMPORT_FSTR(flash_indexhtmlgz, PROJECT_DIR "/web/build/index.html.gz");
-void AppClass::_httpOnIndex(HttpRequest &request, HttpResponse &response)
-{
-	response.setCache(86400, true); // It's important to use cache for better performance.
-//	response.sendFile("index.html");
-    response.headers[HTTP_HEADER_CONTENT_ENCODING] = _F("gzip");
-    auto stream = new FlashMemoryStream(flash_indexhtmlgz);
-    response.sendDataStream(stream, MimeType::HTML);
-}
+
