@@ -11,7 +11,7 @@ COMPONENT_INCDIRS = include lib/application lib/binio lib/light lib/wsbinconst
 
 ENABLE_CMD_EXECUTOR = 0
 
-WEBPACK_OUT = files/index.*.js* files/thermostat.*.js*
+WEBPACK_OUT = web/build/
 SPIFF_OUT = files
 INDEX = index.html.gz
 
